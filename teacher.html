@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>보물 기록장 현황판</title>
+<style>
+  body { font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+         background: #fdf6e3; color: #3b2f1e; margin: 0; padding: 24px 16px; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08); margin-bottom: 16px; }
+  .login { max-width: 380px; margin: 40px auto; }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  h2 { margin: 0 0 12px; font-size: 1.1rem; }
+  .sub { margin: 0 0 16px; color: #8a7350; font-size: .9rem; }
+  label { display: block; margin: 12px 0 6px; font-weight: 600; }
+  input, select { width: 100%; box-sizing: border-box; padding: 11px; font-size: 1rem;
+                  border: 1px solid #d9c9a8; border-radius: 10px; background: #fff; }
+  button { padding: 11px 16px; font-size: .95rem; font-weight: 700; border: 0; border-radius: 10px;
+           background: #c8892b; color: #fff; cursor: pointer; }
+  button.ghost { background: #efe3cc; color: #3b2f1e; }
+  .full { width: 100%; margin-top: 20px; padding: 14px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .bar .right { display: flex; gap: 8px; align-items: center; }
+  .bar select { width: auto; min-width: 140px; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { padding: 9px 8px; border-bottom: 1px solid #efe3cc; text-align: left; }
+  th { background: #faf3e4; font-weight: 700; }
+  td.num, th.num { text-align: right; }
+  .scroll { overflow-x: auto; }
+  .err { color: #c62828; } .muted { color: #8a7350; }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #f3e6c8; font-size: .85rem; }
+  footer { text-align: center; font-size: .75rem; color: #8a7350; margin-top: 8px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 로그인 화면 -->
+  <div id="loginView" class="card login">
+    <h1>🗝️ 현황판</h1>
+    <p class="sub">선생님 계정으로 로그인하세요</p>
+    <form id="loginForm">
+      <label for="email">이메일</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="pw">비밀번호</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <button class="full" type="submit">로그인</button>
+    </form>
+    <p id="loginMsg" class="err"></p>
+  </div>
+
+  <!-- 현황판 화면 -->
+  <div id="boardView" class="hidden">
+    <div class="bar">
+      <div>
+        <h1>🗝️ 보물 기록장 현황판</h1>
+        <p class="sub" id="who"></p>
+      </div>
+      <div class="right">
+        <select id="classSel"></select>
+        <button id="refresh" class="ghost" type="button">새로고침</button>
+        <button id="logout" class="ghost" type="button">로그아웃</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>반별 요약</h2>
+      <div class="scroll"><table id="summary"></table></div>
+    </div>
+
+    <div class="card">
+      <h2 id="listTitle">학생 기록</h2>
+      <p class="muted" style="margin-top:-6px;font-size:.85rem">한 학생이 여러 번 저장했으면 가장 최근 기록만 보여요.</p>
+      <div class="scroll"><table id="list"></table></div>
+      <p id="boardMsg" class="muted"></p>
+    </div>
+  </div>
+
+  <footer>© 2026 경남고등학교 수학과 최선지 선생님 · 연습용 예제</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // 해결 미션 수 → 참고 수준과 점수 (수행평가 채점기준과 같음)
+  const LEVEL = { 7:['상',50], 6:['상-',49], 5:['중',42], 4:['중-',41], 3:['하',34], 2:['하-',33], 1:['미흡',26], 0:['미흡-',25] };
+
+  // 학번에서 반 꺼내기: 5자리 → 학년1 + 반2, 4자리 → 학년1 + 반1
+  function classOf(no) {
+    if (no.length === 5) return no[0] + '학년 ' + Number(no.slice(1, 3)) + '반';
+    if (no.length === 4) return no[0] + '학년 ' + Number(no[1]) + '반';
+    return '기타';
+  }
+
+  const $ = (id) => document.getElementById(id);
+  let latest = []; // 학생별 최신 기록
+
+  // 표 칸 만들기 (이름 등은 textContent로 넣어 안전하게)
+  function row(cells, tag = 'td') {
+    const tr = document.createElement('tr');
+    cells.forEach(([text, cls]) => {
+      const c = document.createElement(tag);
+      c.textContent = text;
+      if (cls) c.className = cls;
+      tr.appendChild(c);
+    });
+    return tr;
+  }
+
+  async function load() {
+    $('boardMsg').textContent = '불러오는 중…';
+    const { data, error } = await sb.from('practice_records')
+      .select('student_no, name, solved, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) { $('boardMsg').textContent = '불러오지 못했어요: ' + error.message; return; }
+
+    // 학번별 가장 최근 기록만 남기기
+    const seen = new Map();
+    for (const r of data) if (!seen.has(r.student_no)) seen.set(r.student_no, r);
+    latest = [...seen.values()].sort((a, b) => a.student_no.localeCompare(b.student_no));
+
+    if (latest.length === 0) {
+      $('boardMsg').textContent = '기록이 없어요. (선생님 명단에 등록되지 않은 계정이어도 이렇게 보여요.)';
+    } else {
+      $('boardMsg').textContent = '';
+    }
+
+    // 반 목록 채우기
+    const sel = $('classSel');
+    const prev = sel.value;
+    const classes = [...new Set(latest.map(r => classOf(r.student_no)))].sort();
+    sel.innerHTML = '';
+    sel.add(new Option('전체 보기', ''));
+    classes.forEach(c => sel.add(new Option(c, c)));
+    if (classes.includes(prev)) sel.value = prev;
+
+    render();
+  }
+
+  function render() {
+    const pick = $('classSel').value;
+
+    // 반별 요약
+    const sum = $('summary');
+    sum.innerHTML = '';
+    sum.appendChild(row([['반'], ['학생 수', 'num'], ['평균 해결 수', 'num'], ['평균 점수', 'num'], ['7개 모두 해결', 'num']], 'th'));
+    const groups = {};
+    latest.forEach(r => (groups[classOf(r.student_no)] ??= []).push(r));
+    Object.keys(groups).sort().forEach(c => {
+      const g = groups[c];
+      const avgSolved = g.reduce((s, r) => s + r.solved, 0) / g.length;
+      const avgScore = g.reduce((s, r) => s + LEVEL[r.solved][1], 0) / g.length;
+      const full = g.filter(r => r.solved === 7).length;
+      sum.appendChild(row([[c], [g.length + '명', 'num'], [avgSolved.toFixed(1) + '개', 'num'],
+                           [avgScore.toFixed(1) + '점', 'num'], [full + '명', 'num']]));
+    });
+
+    // 학생 목록
+    const list = $('list');
+    list.innerHTML = '';
+    list.appendChild(row([['학번'], ['이름'], ['반'], ['해결 미션', 'num'], ['참고 수준(점수)'], ['저장 시각']], 'th'));
+    latest.filter(r => !pick || classOf(r.student_no) === pick).forEach(r => {
+      const [lv, sc] = LEVEL[r.solved];
+      const t = new Date(r.created_at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      list.appendChild(row([[r.student_no], [r.name], [classOf(r.student_no)], [r.solved + '개', 'num'], [`${lv}(${sc})`], [t]]));
+    });
+    $('listTitle').textContent = pick ? `학생 기록 · ${pick}` : '학생 기록 · 전체';
+  }
+
+  function show(loggedIn, email) {
+    $('loginView').classList.toggle('hidden', loggedIn);
+    $('boardView').classList.toggle('hidden', !loggedIn);
+    if (loggedIn) { $('who').textContent = email + ' 로그인 중'; load(); }
+  }
+
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('loginMsg').textContent = '';
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: $('email').value.trim(), password: $('pw').value
+    });
+    if (error) { $('loginMsg').textContent = '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.'; return; }
+    $('pw').value = '';
+    show(true, data.user.email);
+  });
+
+  $('logout').addEventListener('click', async () => { await sb.auth.signOut(); show(false); });
+  $('refresh').addEventListener('click', load);
+  $('classSel').addEventListener('change', render);
+
+  // 이미 로그인돼 있으면 바로 현황판
+  sb.auth.getSession().then(({ data }) => {
+    if (data.session) show(true, data.session.user.email);
+  });
+</script>
+</body>
+</html>
