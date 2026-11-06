@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>보물 기록장 (연습)</title>
+<style>
+  body { font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+         background: #fdf6e3; color: #3b2f1e; margin: 0; padding: 24px 16px; }
+  .card { max-width: 420px; margin: 0 auto; background: #fff; border-radius: 16px;
+          padding: 28px 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  .sub { margin: 0 0 20px; color: #8a7350; font-size: .9rem; }
+  label { display: block; margin: 14px 0 6px; font-weight: 600; }
+  input, select { width: 100%; box-sizing: border-box; padding: 12px; font-size: 1rem;
+                  border: 1px solid #d9c9a8; border-radius: 10px; }
+  button { width: 100%; margin-top: 22px; padding: 14px; font-size: 1.05rem; font-weight: 700;
+           border: 0; border-radius: 10px; background: #c8892b; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  #msg { margin-top: 16px; text-align: center; min-height: 1.4em; }
+  .ok { color: #2e7d32; } .err { color: #c62828; }
+  footer { max-width: 420px; margin: 16px auto 0; font-size: .75rem; color: #8a7350; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>🗝️ 보물 기록장</h1>
+    <p class="sub">연습용 · 해결한 미션 수를 기록해요</p>
+
+    <form id="form">
+      <label for="no">학번</label>
+      <input id="no" inputmode="numeric" placeholder="예: 10315" required>
+
+      <label for="name">이름</label>
+      <input id="name" placeholder="예: 홍길동" required>
+
+      <label for="solved">해결한 미션 수</label>
+      <select id="solved"></select>
+
+      <button id="btn" type="submit">기록 저장하기</button>
+    </form>
+    <p id="msg"></p>
+  </div>
+  <footer>© 2026 경남고등학교 수학과 최선지 선생님 · 연습용 예제</footer>
+
+  <!-- Supabase 도구 불러오기 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ① 내 Supabase 창고 주소와 공개용 열쇠 (공개돼도 괜찮은 값)
+    const SUPABASE_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 0~7 선택지 만들기
+    const sel = document.getElementById('solved');
+    for (let i = 0; i <= 7; i++) sel.add(new Option(i + '개', i));
+
+    // ② [기록 저장하기]를 누르면 Supabase 표에 한 줄 추가
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg');
+      const btn = document.getElementById('btn');
+      const studentNo = document.getElementById('no').value.trim();
+      const name = document.getElementById('name').value.trim();
+
+      if (!/^[0-9]{4,5}$/.test(studentNo)) {
+        msg.className = 'err'; msg.textContent = '학번은 숫자 4~5자리로 써 주세요.'; return;
+      }
+
+      btn.disabled = true; msg.className = ''; msg.textContent = '저장 중…';
+      const { error } = await sb.from('practice_records').insert({
+        student_no: studentNo, name: name, solved: Number(sel.value)
+      });
+      btn.disabled = false;
+
+      if (error) {
+        msg.className = 'err'; msg.textContent = '저장하지 못했어요: ' + error.message;
+      } else {
+        msg.className = 'ok'; msg.textContent = '✅ 저장되었어요!';
+        e.target.reset();
+      }
+    });
+  </script>
+</body>
+</html>
