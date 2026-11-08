@@ -134,6 +134,33 @@
   .badge { font-family: var(--body); font-size: 11px; background: var(--fresh); color: #fff; border-radius: 999px; padding: 2px 7px; margin-left: 4px; vertical-align: 2px; }
   .empty { text-align: center; color: var(--muted); padding: 24px 0; }
 
+  .train-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .train-head #trainMark { font-family: var(--title); font-size: 30px; width: 52px; height: 52px; border-radius: 16px; background: var(--fresh); color: #fff; display: grid; place-items: center; flex: none; }
+  .train-head small { color: var(--muted); font-size: 13px; } .train-head h2 { font-size: 23px; color: var(--deep); }
+  .rule { background: #fff6d6; border-left: 6px solid var(--gold); border-radius: 12px; padding: 12px 14px; font-size: 17px; line-height: 1.5; }
+  .rule b { color: #8a5a00; }
+  .tiny { font-size: 14px; color: var(--muted); margin: 8px 2px; }
+  .ex { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; align-items: baseline; background: #eef8ec; border-radius: 10px; padding: 9px 12px; margin-top: 7px; }
+  .ex span { font-family: var(--title); font-size: 19px; } .ex em { font-style: normal; font-size: 13px; color: #1c6b34; }
+  .ex.bad { background: #fff1f0; } .ex.bad em { color: #a3171c; }
+  .warn { font-size: 14px; margin: 12px 2px 0; color: #8a3a00; }
+  .figs { display: flex; gap: 10px; justify-content: center; margin: 6px 0; }
+  .sq-fig { margin: 0; text-align: center; font-size: 12.5px; line-height: 1.4; width: 50%; }
+  .dots { display: flex; gap: 6px; justify-content: center; margin: 4px 0 12px; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; background: #e3dcc6; } .dots i.ok { background: var(--fresh); } .dots i.no { background: var(--red); } .dots i.now { outline: 3px solid var(--gold); }
+  .qnum { font-family: var(--title); font-size: 46px; text-align: center; margin: 10px 0 4px; color: var(--deep); }
+  .qtxt { text-align: center; color: var(--muted); font-size: 15px; }
+  .opts { display: flex; gap: 10px; margin-top: 14px; } .opts .btn { flex: 1; margin: 0; font-size: 20px; }
+  .opts .btn.right { background: var(--fresh); color: #fff; box-shadow: 0 5px 0 #23733a; } .opts .btn.wrongpick { background: #ffd9d9; color: #a3171c; box-shadow: 0 5px 0 #e7a3a3; }
+  .fb { margin-top: 14px; padding: 10px 12px; border-radius: 12px; font-size: 16px; text-align: center; }
+  .fb.ok { background: #e9fff0; color: #17592c; } .fb.no { background: #fff1f0; color: #a3171c; }
+  .camp-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; border-radius: 14px; background: #f3efe0; margin-top: 8px; font-family: var(--body); font-size: 15px; color: var(--ink); }
+  .camp-item .mk { font-family: var(--title); font-size: 22px; width: 40px; height: 40px; border-radius: 12px; background: #fff; display: grid; place-items: center; flex: none; }
+  .camp-item.due { background: #fff1c4; outline: 2px solid var(--gold); }
+  .camp-item .nm { flex: 1; font-weight: 700; } .camp-item small { display: block; font-weight: 400; color: var(--muted); }
+  .chip-due { background: var(--red); color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+  .chip-badge { background: var(--fresh); color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+  .trainbox { margin-top: 12px; padding: 12px; border-radius: 14px; background: #fff6d6; border: 2px solid var(--gold); text-align: center; font-size: 15px; line-height: 1.5; }
   .sq { white-space: nowrap; } .rad { border-top: .07em solid currentColor; padding: .02em .06em 0; margin-left: -.02em; }
 </style>
 </head>
@@ -144,6 +171,7 @@
   <div id="hud" class="hidden">
     <div class="hud-row">
       <div id="hearts" class="pill"><span>❤️</span><span>❤️</span><span>❤️</span></div>
+      <div id="shieldPill" class="pill hidden" style="font-size:15px;padding:8px 12px">🛡️ 보호막</div>
       <div id="score" class="pill">0점</div>
       <button id="pauseBtn" aria-label="일시정지">❚❚</button>
     </div>
@@ -172,6 +200,7 @@
       <div style="max-width:380px;margin:0 auto">
         <button class="btn" id="goStart">달리러 가기</button>
         <div class="row2"><button class="btn ghost small" id="goRank">🏆 랭킹</button><button class="btn ghost small" id="goGuide">📖 게임 방법</button></div>
+        <button class="btn green small" id="goCamp">🏕️ 탐험대 훈련소</button>
       </div>
       <footer class="cp">© 2026 경남고등학교 수학과 최선지 선생님</footer>
     </div>
@@ -210,7 +239,8 @@
         <div class="g wide"><b>목숨 ❤️❤️❤️ · 1000 m 완주하면 보물상자 오픈</b>완주 보너스 500점 + 남은 목숨 하나당 100점</div>
       </div>
       <p class="keys">태블릿: ◀ 점프 ▶ 버튼 또는 화면 밀기 · 키보드: ← → 이동, 스페이스 점프</p>
-      <button class="btn" id="guideGo">출발!</button>
+      <div class="row2"><button class="btn" id="guideGo">출발!</button><button class="btn green" id="guideSlow">🐢 천천히 모드</button></div>
+      <p class="keys" style="margin-top:6px">천천히 모드: 속도 70% · 틀리면 잠깐 멈추고 설명을 보여 줘요 · 랭킹에는 안 올라가요</p>
       <button class="btn ghost small" id="guideBack">← 처음으로</button>
     </div>
   </section>
@@ -240,8 +270,26 @@
       </div>
       <div class="save" id="saveBox"></div>
       <div class="review" id="reviewBox"></div>
-      <button class="btn" id="againBtn">다시 달리기</button>
+      <div id="trainBox"></div>
+      <div id="againRow" class="row2"><button class="btn" id="againBtn">다시 달리기</button><button class="btn green" id="slowBtn">🐢 천천히</button></div>
+      <button class="btn green hidden" id="trainGoBtn">🏕️ 훈련소 가기 (필수)</button>
       <div class="row2"><button class="btn ghost small" id="resRank">🏆 랭킹</button><button class="btn ghost small" id="resHome">처음으로</button></div>
+    </div>
+  </section>
+
+  <!-- 훈련소 -->
+  <section id="scrCamp" class="screen hidden">
+    <div class="card center" style="max-width:460px;width:100%;margin-left:auto;margin-right:auto">
+      <h2 style="font-size:28px;color:var(--deep);text-align:center">🏕️ 탐험대 훈련소</h2>
+      <p class="note" style="text-align:center;margin-top:4px">개념 카드를 읽고 5문제 중 4문제를 맞히면 통과!<br>통과하면 배지와 <b>다음 판 보호막 1회</b>를 받아요.</p>
+      <div id="campList"></div>
+      <button class="btn ghost small" id="campBack">← 처음으로</button>
+    </div>
+  </section>
+  <section id="scrTrain" class="screen hidden">
+    <div class="card center" style="max-width:480px;width:100%;margin-left:auto;margin-right:auto">
+      <div class="train-head"><span id="trainMark"></span><div><small id="trainStep"></small><h2 id="trainName"></h2></div></div>
+      <div id="trainBody"></div>
     </div>
   </section>
 
@@ -296,28 +344,102 @@ const POOL = {
         ['√{18}', '√18 = 3√2 → 무리수'], ['√{3}×√{2}', '√3×√2 = √6 → 무리수'], ['√{27}', '√27 = 3√3 → 무리수'],
         ['√{0.5}', '√0.5 = √(1/2) → 무리수'], ['√{8}÷2', '√8÷2 = 2√2÷2 = √2 → 무리수']]
   },
-  no: {
-    1: [['3', '3은 정수 → 유리수'], ['−5', '−5는 정수 → 유리수'], ['1/2', '분수 → 유리수'], ['0', '0도 정수 → 유리수'],
-        ['0.25', '0.25 = 1/4 유한소수 → 유리수'], ['7', '7은 정수 → 유리수']],
-    2: [['√{16}', '√16 = 4 → 유리수'], ['0.333…', '0.333… = 1/3 순환소수 → 유리수'], ['√{9}', '√9 = 3 → 유리수'],
-        ['−√{25}', '−√25 = −5 → 유리수'], ['2.5', '2.5 = 5/2 유한소수 → 유리수'], ['0.1212…', '0.1212… = 4/33 순환소수 → 유리수']],
-    3: [['√{4/9}', '√(4/9) = 2/3 → 유리수'], ['√{0.04}', '√0.04 = 0.2 → 유리수'], ['√{2}×√{8}', '√2×√8 = √16 = 4 → 유리수'],
-        ['√{0.09}', '√0.09 = 0.3 → 유리수'], ['(√{3})²', '(√3)² = 3 → 유리수'], ['√{12}÷√{3}', '√12÷√3 = √4 = 2 → 유리수'],
-        ['√{1.21}', '√1.21 = 1.1 → 유리수'], ['−√{1/4}', '−√(1/4) = −1/2 → 유리수']]
+  no: { // [표시, 설명, 유형]  유형 ①제곱수 ②소수·분수 ③계산 ④유리수의 뜻·순환소수
+    1: [['3', '3 = 3/1, 정수 → 유리수', 4], ['−5', '−5 = −5/1, 정수 → 유리수', 4], ['1/2', '분수 → 유리수', 4], ['0', '0 = 0/1, 정수 → 유리수', 4],
+        ['0.25', '0.25 = 1/4 유한소수 → 유리수', 4], ['7', '7 = 7/1, 정수 → 유리수', 4]],
+    2: [['√{16}', '16 = 4²이라 근호를 벗기면 4 → 유리수', 1], ['0.333…', '0.333… = 1/3 순환소수 → 유리수', 4], ['√{9}', '9 = 3²이라 근호를 벗기면 3 → 유리수', 1],
+        ['−√{25}', '25 = 5²이라 근호를 벗기면 −5 → 유리수', 1], ['2.5', '2.5 = 5/2 유한소수 → 유리수', 4], ['0.1212…', '0.1212… = 4/33 순환소수 → 유리수', 4]],
+    3: [['√{4/9}', '4/9 = (2/3)²이라 근호를 벗기면 2/3 → 유리수', 2], ['√{0.04}', '0.04 = (0.2)²이라 근호를 벗기면 0.2 → 유리수', 2],
+        ['√{2}×√{8}', '√2×√8 = √16, 근호를 벗기면 4 → 유리수', 3], ['√{0.09}', '0.09 = (0.3)²이라 근호를 벗기면 0.3 → 유리수', 2],
+        ['(√{3})²', '(√3)² = 3 → 유리수', 3], ['√{12}÷√{3}', '√12÷√3 = √4, 근호를 벗기면 2 → 유리수', 3],
+        ['√{1.21}', '1.21 = (1.1)²이라 근호를 벗기면 1.1 → 유리수', 2], ['−√{1/4}', '1/4 = (1/2)²이라 근호를 벗기면 −1/2 → 유리수', 2]]
   }
 };
 // 관문 문제: 첫 번째 보기가 정답
-const GATES = [
-  ['√{12} = ?', ['2√{3}', '3√{2}', '4√{3}']], ['√{18} = ?', ['3√{2}', '2√{3}', '9√{2}']],
-  ['√{2} × √{8} = ?', ['4', '√{10}', '16']], ['가장 큰 수는?', ['√{10}', '3', '√{8}']],
-  ['(√{5})² = ?', ['5', '√{5}', '25']], ['√{27} ÷ √{3} = ?', ['3', '9', '√{3}']],
-  ['2√{3} = ?', ['√{12}', '√{6}', '√{9}']], ['무리수인 것은?', ['√{7}', '√{49}', '0.5']],
-  ['√{0.16} = ?', ['0.4', '0.04', '0.016']], ['√{3}에 가장 가까운 수는?', ['1.7', '1.4', '2.2']],
-  ['3√{2} = ?', ['√{18}', '√{6}', '√{9}']], ['√{50} = ?', ['5√{2}', '2√{5}', '25√{2}']]
+const GATES = [ // [문제, 보기(첫 번째가 정답), 유형]
+  ['√{12} = ?', ['2√{3}', '3√{2}', '4√{3}'], 5], ['√{18} = ?', ['3√{2}', '2√{3}', '9√{2}'], 5],
+  ['√{2} × √{8} = ?', ['4', '√{10}', '16'], 3], ['가장 큰 수는?', ['√{10}', '3', '√{8}'], 5],
+  ['(√{5})² = ?', ['5', '√{5}', '25'], 3], ['√{27} ÷ √{3} = ?', ['3', '9', '√{3}'], 3],
+  ['2√{3} = ?', ['√{12}', '√{6}', '√{9}'], 5], ['무리수인 것은?', ['√{7}', '√{49}', '0.5'], 1],
+  ['√{0.16} = ?', ['0.4', '0.04', '0.016'], 2], ['√{3}에 가장 가까운 수는?', ['1.7', '1.4', '2.2'], 5],
+  ['3√{2} = ?', ['√{18}', '√{6}', '√{9}'], 5], ['√{50} = ?', ['5√{2}', '2√{5}', '25√{2}'], 5]
 ];
+
+/* ---------------- 훈련소 내용 ---------------- */
+const TYPES = {
+  1: { name: '제곱수의 제곱근', badge: '제곱수 탐험가', mark: '①' },
+  2: { name: '소수·분수의 제곱근', badge: '소수·분수 탐험가', mark: '②' },
+  3: { name: '계산하면 유리수', badge: '계산 탐험가', mark: '③' },
+  4: { name: '유리수의 뜻·순환소수', badge: '순환소수 탐험가', mark: '④' },
+  5: { name: '근호 밖으로 꺼내기·크기 비교', badge: '근호 탐험가', mark: '⑤' }
+};
+const sqSVG = (n, label, exact) => {
+  const u = 84 / n, lines = exact ? Array.from({ length: n - 1 }, (_, i) => `<line x1="${8 + u * (i + 1)}" y1="8" x2="${8 + u * (i + 1)}" y2="92"/><line x1="8" y1="${8 + u * (i + 1)}" x2="92" y2="${8 + u * (i + 1)}"/>`).join('') : '';
+  return `<figure class="sq-fig"><svg viewBox="0 0 100 100" width="96" height="96"><rect x="8" y="8" width="84" height="84" rx="3" fill="${exact ? '#e9fff0' : '#fff1f0'}" stroke="${exact ? '#2fae66' : '#e5484d'}" stroke-width="2.5"/><g stroke="${exact ? '#9fd8b3' : '#f3b3b3'}" stroke-width="1">${lines}</g></svg><figcaption>${label}</figcaption></figure>`;
+};
+const CARDS = {
+  1: `<div class="rule">근호 안의 수가 <b>제곱수</b>이면 <b>근호를 벗긴다</b> → 유리수</div>
+      <p class="tiny">제곱수: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, …</p>
+      <div class="figs">${sqSVG(4, '넓이 16 → 한 변 <b>√{16} = 4</b><br>근호를 벗겼다 → 유리수', true)}${sqSVG(4, '넓이 15 → 한 변 <b>√{15} = 3.872…</b><br>근호를 벗길 수 없다 → 무리수', false)}</div>
+      <div class="ex"><span>√{49} = √{7²} = 7</span><em>유리수</em></div>
+      <div class="ex"><span>−√{25} = −5</span><em>유리수</em></div>
+      <div class="ex bad"><span>√{20}</span><em>20은 제곱수가 아님 → 무리수</em></div>
+      <p class="warn">⚠️ √ 기호가 있다고 다 무리수는 아니에요!</p>`,
+  2: `<div class="rule">소수·분수는 <b>분수로 고친 뒤</b>, 분자와 분모가 모두 제곱수이면 <b>근호를 벗긴다</b> → 유리수</div>
+      <div class="ex"><span>√{0.04} = √{4/100} = 2/10 = 0.2</span><em>유리수</em></div>
+      <div class="ex"><span>√{4/9} = √{(2/3)²} = 2/3</span><em>유리수</em></div>
+      <div class="ex"><span>√{1.21} = √{121/100} = 11/10 = 1.1</span><em>유리수</em></div>
+      <div class="ex bad"><span>√{0.4} = √{4/10} = √{2/5}</span><em>기약분수 2/5에서 2, 5가 제곱수가 아님 → 무리수</em></div>
+      <p class="warn">⚠️ 꼭 <b>기약분수</b>로 줄인 다음에 확인해요.</p>`,
+  3: `<div class="rule"><b>먼저 계산</b>해서 근호 하나로 만든 다음, <b>근호를 벗길 수 있는지</b> 본다</div>
+      <p class="tiny">√{a} × √{b} = √{ab},  √{a} ÷ √{b} = √{a÷b},  (√{a})² = a</p>
+      <div class="ex"><span>√{2} × √{8} = √{16} = 4</span><em>유리수</em></div>
+      <div class="ex"><span>√{12} ÷ √{3} = √{4} = 2</span><em>유리수</em></div>
+      <div class="ex"><span>(√{3})² = 3</span><em>유리수</em></div>
+      <div class="ex bad"><span>√{2} × √{3} = √{6}</span><em>근호를 벗길 수 없음 → 무리수</em></div>
+      <p class="warn">⚠️ 무리수끼리 곱하거나 나눠도 유리수가 될 수 있어요!</p>`,
+  4: `<div class="rule"><b>분수(정수/정수)로 나타낼 수 있으면</b> 유리수</div>
+      <div class="ex"><span>3 = 3/1,  −5 = −5/1,  0 = 0/1</span><em>정수 → 유리수</em></div>
+      <div class="ex"><span>0.25 = 1/4,  2.5 = 5/2</span><em>유한소수 → 유리수</em></div>
+      <div class="ex"><span>0.333… = 1/3,  0.1212… = 4/33</span><em>순환소수 → 유리수</em></div>
+      <div class="ex bad"><span>0.1010010001…,  π = 3.14159…</span><em>순환하지 않는 무한소수 → 무리수</em></div>
+      <p class="warn">⚠️ 끝이 없는 소수라도 <b>같은 마디가 반복</b>되면 유리수예요!</p>`,
+  5: `<div class="rule">근호 안을 <b>제곱수 × 나머지</b>로 나누고, 제곱수 부분만 <b>근호를 벗겨</b> 밖으로 꺼낸다</div>
+      <div class="ex"><span>√{12} = √{2²×3} = 2√{3}</span><em>4 = 2²만 꺼냄</em></div>
+      <div class="ex"><span>√{50} = √{5²×2} = 5√{2}</span><em>25 = 5²만 꺼냄</em></div>
+      <div class="ex"><span>3√{2} = √{3²×2} = √{18}</span><em>반대로 근호 안에 넣기</em></div>
+      <div class="ex"><span>3 = √{9}  →  √{8} &lt; 3 &lt; √{10}</span><em>크기 비교는 근호 안으로 넣어서</em></div>
+      <div class="ex"><span>1.7² = 2.89,  1.8² = 3.24</span><em>√{3} = 1.732… 는 1.7에 가장 가까움</em></div>`
+};
+// 판정 연습 문제 [수, 설명]
+const QUIZ = {
+  1: { no: [['√{4}', '4 = 2² → 근호를 벗기면 2'], ['√{36}', '36 = 6² → 근호를 벗기면 6'], ['√{49}', '49 = 7² → 근호를 벗기면 7'], ['√{81}', '81 = 9² → 근호를 벗기면 9'],
+             ['√{100}', '100 = 10² → 근호를 벗기면 10'], ['−√{16}', '16 = 4² → 근호를 벗기면 −4'], ['√{144}', '144 = 12² → 근호를 벗기면 12'], ['√{1}', '1 = 1² → 근호를 벗기면 1']],
+       yes: [['√{8}', '8은 제곱수가 아님 → 근호를 벗길 수 없음'], ['√{15}', '15는 제곱수가 아님'], ['√{24}', '24는 제곱수가 아님'], ['√{3}', '3은 제곱수가 아님'],
+             ['√{50}', '50은 제곱수가 아님'], ['−√{7}', '7은 제곱수가 아님'], ['√{40}', '40은 제곱수가 아님']] },
+  2: { no: [['√{0.25}', '0.25 = 25/100 = (5/10)² → 0.5'], ['√{0.49}', '0.49 = (7/10)² → 0.7'], ['√{9/16}', '9/16 = (3/4)² → 3/4'], ['√{1/25}', '1/25 = (1/5)² → 1/5'],
+             ['√{1.44}', '1.44 = 144/100 = (12/10)² → 1.2'], ['√{0.01}', '0.01 = (1/10)² → 0.1'], ['√{25/36}', '25/36 = (5/6)² → 5/6']],
+       yes: [['√{0.4}', '0.4 = 2/5, 2와 5가 제곱수가 아님'], ['√{0.9}', '0.9 = 9/10, 10이 제곱수가 아님'], ['√{2/9}', '분자 2가 제곱수가 아님 → √2/3'],
+             ['√{5/16}', '분자 5가 제곱수가 아님 → √5/4'], ['√{0.1}', '0.1 = 1/10, 10이 제곱수가 아님'], ['√{3/4}', '분자 3이 제곱수가 아님 → √3/2']] },
+  3: { no: [['√{3}×√{12}', '√36 = 6'], ['(√{5})²', '(√5)² = 5'], ['√{18}÷√{2}', '√9 = 3'], ['√{50}÷√{2}', '√25 = 5'], ['(−√{7})²', '(−√7)² = 7'],
+             ['√{5}×√{20}', '√100 = 10'], ['√{27}÷√{3}', '√9 = 3']],
+       yes: [['√{2}×√{3}', '√6 → 근호를 벗길 수 없음'], ['√{12}÷√{2}', '√6 → 근호를 벗길 수 없음'], ['√{3}×√{6}', '√18 = 3√2 → 무리수'],
+             ['√{20}÷√{2}', '√10 → 근호를 벗길 수 없음'], ['2×√{5}', '유리수 × 무리수 → 무리수'], ['√{8}÷2', '2√2 ÷ 2 = √2']] },
+  4: { no: [['5', '5 = 5/1'], ['−2', '−2 = −2/1'], ['0.75', '0.75 = 3/4 유한소수'], ['0.333…', '0.333… = 1/3 순환소수'], ['0.1212…', '0.1212… = 4/33 순환소수'],
+             ['0.1666…', '0.1666… = 1/6 순환소수'], ['2.7272…', '2.7272… = 30/11 순환소수']],
+       yes: [['0.1010010001…', '0이 하나씩 늘어나 반복되는 마디가 없음'], ['π', 'π = 3.14159… 순환하지 않는 무한소수'],
+             ['0.1234567891011…', '자연수를 이어 붙여서 반복되는 마디가 없음'], ['π+1', '무리수 + 유리수 → 무리수']] },
+  5: [['√{8} = ?', ['2√{2}', '4√{2}', '2√{4}'], '8 = 2²×2 → 2√2'], ['√{20} = ?', ['2√{5}', '5√{2}', '4√{5}'], '20 = 2²×5 → 2√5'],
+      ['√{27} = ?', ['3√{3}', '9√{3}', '3√{9}'], '27 = 3²×3 → 3√3'], ['√{45} = ?', ['3√{5}', '5√{3}', '9√{5}'], '45 = 3²×5 → 3√5'],
+      ['√{48} = ?', ['4√{3}', '3√{4}', '16√{3}'], '48 = 4²×3 → 4√3'], ['√{72} = ?', ['6√{2}', '2√{6}', '8√{3}'], '72 = 6²×2 → 6√2'],
+      ['3√{2} = ?', ['√{18}', '√{6}', '√{12}'], '3√2 = √(3²×2) = √18'], ['2√{5} = ?', ['√{20}', '√{10}', '√{25}'], '2√5 = √(2²×5) = √20'],
+      ['5√{2} = ?', ['√{50}', '√{10}', '√{25}'], '5√2 = √(5²×2) = √50'], ['가장 큰 수는?', ['4', '√{15}', '√{10}'], '4 = √16 → √16 > √15 > √10'],
+      ['가장 작은 수는?', ['√{8}', '3', '√{10}'], '3 = √9 → √8 < √9 < √10'], ['√{2}에 가장 가까운 수는?', ['1.4', '1.2', '1.7'], '1.4² = 1.96 → √2 = 1.414…']]
+};
 const plain = s => s.replace(/√\{([^}]*)\}/g, (m, a) => a.includes('/') ? `√(${a})` : `√${a}`);
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const mathHTML = s => esc(s).replace(/√\{([^}]*)\}/g, '<span class="sq">√<span class="rad">$1</span></span>');
+const mathRaw = s => s.replace(/√\{([^}]*)\}/g, '<span class="sq">√<span class="rad">$1</span></span>'); // 내가 쓴 HTML(개념 카드)용
 
 /* ---------------- 캔버스 & 화면 ---------------- */
 const app = document.getElementById('app');
@@ -511,6 +633,7 @@ const GATE_AT = [300, 700], FINISH = 1000, CHEST_D = 4.5;
 const secOf = s => SECTIONS.find(x => s < x.until) || SECTIONS[2];
 let G = null;
 let USER = null; // {no, name, pin}
+let TRAIN = { due: [], badges: [], shield: 0 }; // 훈련 대기 유형, 배지, 보호막
 const bags = {};
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function draw1(yes, tier) {
@@ -520,18 +643,19 @@ function draw1(yes, tier) {
 }
 function pickTier(sec) { const r = Math.random(); return r < sec.tiers[0] ? 1 : r < sec.tiers[0] + sec.tiers[1] ? 2 : 3; }
 
-function newGame() {
+function newGame(slow = false) {
   const qs = shuffle(GATES.slice()).slice(0, 2);
   G = {
+    slow, shield: !slow && TRAIN.shield > 0 ? 1 : 0, shieldUsed: false, freeze: 0, typeCnt: {},
     state: 'ready', t: 0, s: 0, prevS: 0, speed: 0, lane: 1, px: 0, jy: 0, vy: 0, jumping: false, phase: 0,
     hearts: 3, itemPts: 0, gatePts: 0, bonus: 0, correct: 0, wrong: 0, gates: 0, wrongItems: [], gateMiss: [],
     invuln: 0, gold: 0, shake: 0, runMs: 0, objs: [], decor: [], parts: [], pops: [],
     nextRow: 24, nextDecor: -4, readyT: 0, endT: 0, cleared: false, chestOpen: 0
   };
   GATE_AT.forEach((wz, i) => {
-    const [q, opts] = qs[i];
+    const [q, opts, type] = qs[i];
     const order = shuffle([0, 1, 2]);
-    G.objs.push({ kind: 'gate', wz, x: 0, q, answers: order.map(o => opts[o]), correctLane: order.indexOf(0), right: opts[0] });
+    G.objs.push({ kind: 'gate', wz, x: 0, q, type, answers: order.map(o => opts[o]), correctLane: order.indexOf(0), right: opts[0] });
   });
   G.objs.push({ kind: 'finish', wz: FINISH, x: 0 });
   for (let wz = -4; wz < ZFAR; wz += 3.5) spawnDecor(wz);
@@ -550,8 +674,8 @@ function spawnRow(wz) {
   let gotYes = false;
   for (let i = 0; i < items; i++) {
     let yes = Math.random() < 0.58; if (i === 1 && !gotYes) yes = true; gotYes = gotYes || yes;
-    const tier = pickTier(sec), [txt, why] = draw1(yes, tier);
-    G.objs.push({ kind: 'item', wz: wz + (i ? 0 : 0), x: LANES[lanes[li++]], yes, tier, txt, why, bob: Math.random() * 6 });
+    const tier = pickTier(sec), [txt, why, type] = draw1(yes, tier);
+    G.objs.push({ kind: 'item', wz, x: LANES[lanes[li++]], yes, tier, txt, why, type, bob: Math.random() * 6 });
   }
 }
 function spawnDecor(wz) {
@@ -592,8 +716,9 @@ $('pauseBtn').addEventListener('click', pause);
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
 
 /* ---------------- 진행 ---------------- */
-function startRun() {
-  newGame(); showScreen(null);
+function startRun(slow = false) {
+  if (TRAIN.due.length) { toast('훈련소부터 다녀와요!', 'gold high', '훈련을 마쳐야 다시 달릴 수 있어요', 1.8); openTrain(TRAIN.due[0]); return; }
+  newGame(slow); showScreen(null);
   $('hud').classList.remove('hidden'); $('pad').classList.remove('hidden');
   G.state = 'ready'; G.readyT = 0;
 }
@@ -619,8 +744,9 @@ function update(dt) {
     return;
   }
   if (G.state === 'run') {
+    if (G.freeze > 0) { G.freeze -= dt; return; } // 천천히 모드: 틀리면 잠깐 멈춤
     G.runMs += dt * 1000;
-    const target = secOf(G.s).speed;
+    const target = secOf(G.s).speed * (G.slow ? 0.7 : 1);
     G.speed += (target - G.speed) * Math.min(1, dt * 1.6);
     G.prevS = G.s; G.s += G.speed * dt;
     G.phase += dt * (5 + G.speed * 0.9);
@@ -676,10 +802,17 @@ function resolve(o) {
       pop(`+${pts}`, o, '#ffe066'); sparkle(o, ['#ffe066', '#fff', '#9bd35a']);
       if (o.tier >= 2) toast('무리수 정답!', 'good', o.why, 0.6);
     } else {
-      G.wrong++; G.wrongItems.push(plain(o.txt));
+      G.wrong++; G.wrongItems.push(plain(o.txt)); G.typeCnt[o.type] = (G.typeCnt[o.type] || 0) + 1;
       pop('✗', o, '#ff6b6b'); sparkle(o, ['#ff6b6b', '#ffb3b3']);
-      toast(`앗, ${plain(o.txt)}는 유리수!`, 'bad', o.why, 1.0);
-      loseHeart();
+      if (G.slow) G.freeze = 1.0;
+      if (G.shield > 0) {
+        G.shield = 0; G.shieldUsed = true; G.shake = 0.2;
+        toast(`🛡️ 보호막이 막아 줬어요! ${plain(o.txt)}는 유리수`, 'gold', o.why, 1.2);
+        sparkle({ x: G.px, wz: G.s, elev: 1.3 }, ['#9fd8ff', '#ffffff', '#5db4ff'], 30); updateHUD();
+      } else {
+        toast(`앗, ${plain(o.txt)}는 유리수!`, 'bad', o.why, 1.0);
+        loseHeart();
+      }
     }
   } else if (o.kind === 'log' || o.kind === 'mole') {
     if (!laneHit(o)) return;
@@ -693,7 +826,7 @@ function resolve(o) {
       toast('관문 통과! 5초 무적 변신', 'gold', '+100점', 0.7);
       sparkle({ x: G.px, wz: G.s, elev: 1.3 }, ['#ffe066', '#fff', '#ffc93c'], 40);
     } else {
-      G.gateMiss.push(plain(o.q));
+      G.gateMiss.push(plain(o.q)); G.typeCnt[o.type] = (G.typeCnt[o.type] || 0) + 1;
       toast('아쉬워요!', 'bad', `정답은 ${plain(o.right)}`, 0.9);
     }
   }
@@ -734,6 +867,7 @@ function burstCoins() {
 function pop(text, o, col) { G.pops.push({ text, x: o.x, wz: o.wz, t: 0, col }); }
 let toastTimer = 0;
 function toast(main, cls, sub, sec = 1.6) {
+  if (G && G.slow && G.state === 'run') sec *= 2.2; // 천천히 모드는 설명을 오래 보여 줌
   const t = $('toast'); t.className = 'show ' + cls; t.innerHTML = esc(main) + (sub ? `<small>${mathHTML(sub)}</small>` : '');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = '', sec * 1000);
 }
@@ -742,6 +876,8 @@ function toast(main, cls, sub, sec = 1.6) {
 function updateHUD() {
   if (!G) return;
   [...$('hearts').children].forEach((h, i) => h.classList.toggle('lost', i >= G.hearts));
+  $('shieldPill').classList.toggle('hidden', !G.shield);
+  $('mission').textContent = G.slow ? '🐢 천천히 모드 · 무리수만 먹어요!' : '무리수만 먹어요!';
   $('score').textContent = score().toLocaleString() + '점';
   const d = Math.min(FINISH, Math.floor(G.s));
   $('fill').style.width = (d / 10) + '%'; $('runner').style.left = (d / 10) + '%';
@@ -962,6 +1098,12 @@ function drawPlayer() {
   const arm = (img, px, py, a) => { ctx.save(); ctx.translate(px, py); ctx.rotate(a); ctx.scale(1, sq); ctx.translate(-px, -py); ctx.drawImage(img, 0, 0); ctx.restore(); };
   arm(kid.armL, 93, 163, aL); arm(kid.armR, 158, 163, aR);
   ctx.drawImage(kid.body, 0, 0);
+  if (G.shield > 0) { // 보호막 방울
+    ctx.save(); ctx.globalAlpha *= 0.55 + 0.15 * Math.sin(G.t * 5);
+    const gr = ctx.createRadialGradient(128, 190, 120, 128, 190, 215);
+    gr.addColorStop(0, 'rgba(120,200,255,0)'); gr.addColorStop(0.85, 'rgba(120,200,255,.35)'); gr.addColorStop(1, 'rgba(70,160,240,.9)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(128, 190, 150, 215, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
   if (G.gold > 0) { // 왕관
     ctx.fillStyle = '#ffc93c'; ctx.strokeStyle = '#a86b00'; ctx.lineWidth = 4; ctx.beginPath();
     ctx.moveTo(88, 16); ctx.lineTo(96, -26); ctx.lineTo(112, 0); ctx.lineTo(128, -34); ctx.lineTo(144, 0); ctx.lineTo(160, -26); ctx.lineTo(168, 16); ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -980,7 +1122,7 @@ function loop(now) {
 }
 
 /* ---------------- 화면 전환 ---------------- */
-const SCREENS = ['scrTitle', 'scrLogin', 'scrGuide', 'scrPause', 'scrResult', 'scrRank'];
+const SCREENS = ['scrTitle', 'scrLogin', 'scrGuide', 'scrPause', 'scrResult', 'scrRank', 'scrCamp', 'scrTrain'];
 let rankReturn = 'scrTitle';
 function showScreen(id) {
   SCREENS.forEach(s => $(s).classList.toggle('hidden', s !== id));
@@ -995,13 +1137,19 @@ $('goStart').addEventListener('click', () => { USER ? beginPlay() : showScreen('
 $('goGuide').addEventListener('click', () => { guideFromTitle = true; showScreen('scrGuide'); });
 $('goRank').addEventListener('click', () => openRank('scrTitle'));
 let guideFromTitle = false;
-$('guideGo').addEventListener('click', () => { guideSeen = true; if (guideFromTitle && !USER && !PRACTICE) { guideFromTitle = false; showScreen('scrLogin'); prefill(); } else { guideFromTitle = false; startRun(); } });
+function guideStart(slow) { guideSeen = true; if (guideFromTitle && !USER && !PRACTICE) { guideFromTitle = false; showScreen('scrLogin'); prefill(); } else { guideFromTitle = false; startRun(slow); } }
+$('guideGo').addEventListener('click', () => guideStart(false));
+$('guideSlow').addEventListener('click', () => guideStart(true));
+$('goCamp').addEventListener('click', () => openCamp());
+$('campBack').addEventListener('click', () => showScreen('scrTitle'));
+$('trainGoBtn').addEventListener('click', () => openTrain(TRAIN.due[0]));
+$('slowBtn').addEventListener('click', () => startRun(true));
 $('guideBack').addEventListener('click', () => { guideFromTitle = false; showScreen('scrTitle'); });
 $('loginBack').addEventListener('click', () => showScreen('scrTitle'));
 let PRACTICE = false;
-$('practiceBtn').addEventListener('click', () => { PRACTICE = true; USER = null; beginPlay(); });
+$('practiceBtn').addEventListener('click', () => { PRACTICE = true; USER = null; TRAIN = { due: [], badges: [], shield: 0 }; beginPlay(); });
 function beginPlay() { if (!guideSeen) { showScreen('scrGuide'); } else startRun(); }
-$('againBtn').addEventListener('click', startRun);
+$('againBtn').addEventListener('click', () => startRun(false));
 $('resHome').addEventListener('click', goHome);
 $('resRank').addEventListener('click', () => openRank('scrResult'));
 
@@ -1026,10 +1174,12 @@ $('loginForm').addEventListener('submit', async e => {
     const r = await rpc('runner_login', { p_no: no, p_name: name, p_pin: pin });
     if (!r.ok) { m.className = 'msg err'; m.textContent = LOGIN_MSG[r.code] || '로그인하지 못했어요.'; return; }
     USER = { no, name: r.name, pin }; PRACTICE = false;
+    if (r.state) TRAIN = { due: r.state.train_due || [], badges: r.state.badges || [], shield: r.state.shield || 0 };
     try { localStorage.setItem('jr_user', JSON.stringify({ no, name: r.name })); } catch (e) {}
     $('inPin').value = ''; m.textContent = '';
     if (r.code === 'new') toast('탐험대 등록 완료!', 'good', '비밀번호를 꼭 기억하세요', 2.2);
     if (r.code === 'reset') toast('새 비밀번호로 등록했어요', 'good', '', 2);
+    if (TRAIN.due.length) { toast('지난번 훈련이 남아 있어요', 'gold high', '훈련을 마치면 보호막을 받아요!', 2); openTrain(TRAIN.due[0]); return; }
     beginPlay();
   } catch (err) {
     m.className = 'msg err'; m.textContent = '인터넷 연결을 확인해 주세요. (연습 모드는 바로 할 수 있어요)';
@@ -1057,23 +1207,36 @@ function showResult() {
     G.objs.filter(o => o.kind === 'gate' && G.gateMiss.includes(plain(o.q))).forEach(o => rb.insertAdjacentHTML('beforeend',
       `<div class="rv" style="background:#fff8e1"><div class="m">관문</div><div>${mathHTML(o.q)} → 정답 <b>${mathHTML(o.right)}</b></div></div>`));
   }
+  // 훈련이 필요한가? (천천히 모드는 연습이라 제외)
+  const judged = G.correct + G.wrong, cnt = G.typeCnt;
+  const need = !G.slow && ((judged >= 4 && G.correct / judged < 0.7) || Object.values(cnt).some(n => n >= 2) || G.gateMiss.length >= 2);
+  const due = need ? Object.keys(cnt).map(Number).sort((a, b) => cnt[b] - cnt[a]).slice(0, 2) : [];
+  if (!G.slow) { TRAIN.shield = 0; if (due.length) TRAIN.due = due; }
+  renderTrainBox();
   lastRun = { p_no: USER && USER.no, p_pin: USER && USER.pin, p_score: sc, p_distance: dist, p_cleared: !!G.cleared,
     p_correct: G.correct, p_wrong: G.wrong, p_gates: G.gates, p_duration_ms: Math.round(G.runMs),
-    p_wrong_items: [...G.wrongItems, ...G.gateMiss.map(q => '관문:' + q)].slice(0, 8).map(s => s.slice(0, 40)) };
+    p_wrong_items: [...G.wrongItems, ...G.gateMiss.map(q => '관문:' + q)].slice(0, 8).map(s => s.slice(0, 40)), p_train_types: due };
   showScreen('scrResult');
   saveRun();
 }
+function renderTrainBox() {
+  const box = $('trainBox'), due = TRAIN.due;
+  box.innerHTML = due.length ? `<div class="trainbox">🏕️ <b>훈련소에 다녀와야 다시 달릴 수 있어요!</b><br>오늘 헷갈린 유형: ${due.map(t => `<b>${TYPES[t].mark} ${TYPES[t].name}</b>`).join(', ')}<br><small>통과하면 다음 판에 🛡️ 보호막 1회</small></div>` : '';
+  $('againRow').classList.toggle('hidden', !!due.length); $('trainGoBtn').classList.toggle('hidden', !due.length);
+}
 async function saveRun() {
   const box = $('saveBox');
+  if (G && G.slow) { box.innerHTML = '🐢 천천히 모드는 기록이 저장되지 않아요. 익숙해지면 기본 모드로 도전!'; return; }
   if (!USER) { box.innerHTML = '연습 모드라 기록은 저장되지 않아요.'; return; }
   box.textContent = '기록 저장 중…';
   try {
     const r = await rpc('runner_submit', lastRun);
+    if (r.state) { TRAIN = { due: r.state.train_due || [], badges: r.state.badges || [], shield: r.state.shield || 0 }; renderTrainBox(); }
     if (r.ok) {
       const me = r.me || {};
       box.innerHTML = `✅ 저장 완료 · 내 최고 <b>${(me.best || 0).toLocaleString()}점</b>` + (me.rank ? ` · 전체 ${me.total}명 중 <b>${me.rank}위</b>` : '');
     } else {
-      const map = { invalid: '기록이 이상해서 저장되지 않았어요.', too_fast: '너무 빨리 다시 저장했어요.', wrong_pin: '로그인 정보가 바뀌었어요. 다시 로그인해 주세요.', locked: '계정이 잠겨서 저장하지 못했어요.' };
+      const map = { invalid: '기록이 이상해서 저장되지 않았어요.', too_fast: '너무 빨리 다시 저장했어요.', wrong_pin: '로그인 정보가 바뀌었어요. 다시 로그인해 주세요.', locked: '계정이 잠겨서 저장하지 못했어요.', train_due: '훈련을 마치지 않아서 이번 기록은 저장되지 않았어요.' };
       box.textContent = map[r.code] || '저장하지 못했어요.';
     }
   } catch (e) {
@@ -1081,6 +1244,80 @@ async function saveRun() {
     $('retrySave').addEventListener('click', saveRun);
   }
 }
+
+/* ---------------- 훈련소 ---------------- */
+let TQ = null; // 진행 중인 훈련
+function openCamp() {
+  const list = $('campList');
+  list.innerHTML = [1, 2, 3, 4, 5].map(t => { const due = TRAIN.due.includes(t), got = TRAIN.badges.includes(t);
+    return `<button class="camp-item ${due ? 'due' : ''}" data-t="${t}"><span class="mk">${TYPES[t].mark}</span><span class="nm">${TYPES[t].name}<small>${got ? '🎖️ ' + TYPES[t].badge : '5문제 · 4개 맞히면 통과'}</small></span>${due ? '<span class="chip-due">필수</span>' : got ? '<span class="chip-badge">통과</span>' : ''}</button>`; }).join('');
+  list.querySelectorAll('.camp-item').forEach(b => b.addEventListener('click', () => openTrain(Number(b.dataset.t))));
+  showScreen('scrCamp');
+}
+function trainHead(t, step) {
+  $('trainMark').textContent = TYPES[t].mark; $('trainName').textContent = TYPES[t].name; $('trainStep').textContent = step;
+}
+function openTrain(t) {
+  if (!t) return openCamp();
+  trainHead(t, (TRAIN.due.includes(t) ? '필수 훈련 · ' : '') + '1단계 개념 카드');
+  $('trainBody').innerHTML = mathRaw(CARDS[t]) + `<button class="btn" id="tQuiz">문제 풀기 →</button><button class="btn ghost small" id="tBack">← 훈련소 목록</button>`;
+  $('tQuiz').addEventListener('click', () => startQuiz(t));
+  $('tBack').addEventListener('click', openCamp);
+  showScreen('scrTrain'); $('scrTrain').scrollTop = 0;
+}
+function makeQuiz(t) {
+  if (t === 5) return shuffle(QUIZ[5].slice()).slice(0, 5).map(([q, opts, why]) => ({ m: q, prompt: '알맞은 것을 고르세요', opts: shuffle(opts.slice()), ans: opts[0], why }));
+  const nYes = Math.random() < 0.5 ? 2 : 3;
+  const yes = shuffle(QUIZ[t].yes.slice()).slice(0, nYes).map(([m, why]) => ({ m, ans: '무리수', why }));
+  const no = shuffle(QUIZ[t].no.slice()).slice(0, 5 - nYes).map(([m, why]) => ({ m, ans: '유리수', why }));
+  return shuffle([...yes, ...no]).map(q => ({ ...q, prompt: '이 수는 무리수일까요, 유리수일까요?', opts: ['무리수', '유리수'] }));
+}
+function startQuiz(t) { TQ = { t, qs: makeQuiz(t), i: 0, ok: 0, marks: [] }; renderQ(); }
+function dots() { return `<div class="dots">${TQ.qs.map((_, i) => `<i class="${TQ.marks[i] === true ? 'ok' : TQ.marks[i] === false ? 'no' : i === TQ.i ? 'now' : ''}"></i>`).join('')}</div>`; }
+function renderQ() {
+  const q = TQ.qs[TQ.i];
+  trainHead(TQ.t, `2단계 판정 연습 · ${TQ.i + 1} / 5`);
+  $('trainBody').innerHTML = dots() + `<div class="qtxt">${q.prompt}</div><div class="qnum">${mathHTML(q.m)}</div>
+    <div class="opts">${q.opts.map(o => `<button class="btn ghost" data-o="${esc(o)}">${mathHTML(o)}</button>`).join('')}</div><div id="tFb"></div>`;
+  $('trainBody').querySelectorAll('.opts .btn').forEach(b => b.addEventListener('click', () => answer(b)));
+}
+function answer(b) {
+  const q = TQ.qs[TQ.i], pick = b.dataset.o, ok = pick === q.ans;
+  if (TQ.marks[TQ.i] != null) return;
+  TQ.marks[TQ.i] = ok; if (ok) TQ.ok++;
+  $('trainBody').querySelectorAll('.opts .btn').forEach(x => { x.disabled = true; if (x.dataset.o === q.ans) x.classList.add('right'); else if (x === b) x.classList.add('wrongpick'); });
+  const last = TQ.i === 4;
+  $('tFb').innerHTML = `<div class="fb ${ok ? 'ok' : 'no'}">${ok ? '정답!' : '아쉬워요. 정답은 <b>' + mathHTML(q.ans) + '</b>'}<br>${mathHTML(q.why)}</div>
+    <button class="btn" id="tNext">${last ? '결과 보기' : '다음 문제 →'}</button>`;
+  $('trainBody').querySelector('.dots').outerHTML = dots();
+  $('tNext').addEventListener('click', () => { if (last) finishQuiz(); else { TQ.i++; renderQ(); } });
+}
+async function finishQuiz() {
+  const { t, ok } = TQ, pass = ok >= 4;
+  trainHead(t, '훈련 결과');
+  $('trainBody').innerHTML = `<div class="qnum">${ok} / 5</div><div class="qtxt">저장 중…</div>`;
+  let note = '';
+  if (USER) {
+    try { const r = await rpc('runner_train_done', { p_no: USER.no, p_pin: USER.pin, p_type: t, p_correct: ok });
+      if (r.ok && r.state) TRAIN = { due: r.state.train_due || [], badges: r.state.badges || [], shield: r.state.shield || 0 };
+      else if (!r.ok) note = '훈련 결과를 저장하지 못했어요. 다시 로그인해 주세요.';
+    } catch (e) { note = '인터넷 연결 문제로 훈련 결과를 저장하지 못했어요.'; if (pass) localPass(t); }
+  } else if (pass) localPass(t);
+  const next = TRAIN.due[0];
+  $('trainBody').innerHTML = pass
+    ? `<div class="qnum">🎖️</div><h2 style="text-align:center;font-size:24px;color:var(--deep)">통과! 「${TYPES[t].badge}」</h2>
+       <p class="qtxt">${ok} / 5 정답 · 다음 판에 <b>🛡️ 보호막 1회</b>가 생겼어요.<br>유리수를 한 번 먹어도 목숨이 줄지 않아요.</p>`
+    : `<div class="qnum">${ok} / 5</div><h2 style="text-align:center;font-size:22px;color:var(--deep)">4개 이상 맞혀야 통과예요</h2>
+       <p class="qtxt">개념 카드를 한 번 더 보고, 새 문제로 다시 도전해요!</p>`;
+  if (note) $('trainBody').insertAdjacentHTML('beforeend', `<p class="msg err">${esc(note)}</p>`);
+  const btns = pass
+    ? (next ? `<button class="btn" id="tA">다음 훈련: ${TYPES[next].mark} ${TYPES[next].name}</button>` : `<button class="btn" id="tA">달리러 가기 🏃</button>`) + `<button class="btn ghost small" id="tB">훈련소 목록</button>`
+    : `<button class="btn" id="tA">새 문제로 다시 도전</button><button class="btn ghost small" id="tB">개념 카드 다시 보기</button>`;
+  $('trainBody').insertAdjacentHTML('beforeend', btns);
+  $('tA').addEventListener('click', () => pass ? (next ? openTrain(next) : startRun(false)) : startQuiz(t));
+  $('tB').addEventListener('click', () => pass ? openCamp() : openTrain(t));
+}
+function localPass(t) { TRAIN.due = TRAIN.due.filter(x => x !== t); if (!TRAIN.badges.includes(t)) TRAIN.badges.push(t); TRAIN.shield = 1; }
 
 /* ---------------- 랭킹 ---------------- */
 let rankTab = 'all';

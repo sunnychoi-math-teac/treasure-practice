@@ -25,7 +25,7 @@
   .bar .right { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
   .bar select { width:auto; min-width:150px; }
   .sub { color:var(--muted); font-size:.9rem; margin:4px 0 0; }
-  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:14px; }
   .kpi { background:var(--paper); border-radius:14px; padding:14px; box-shadow:0 3px 12px rgba(0,0,0,.06); }
   .kpi b { display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:30px; color:var(--deep); }
   .kpi span { font-size:.85rem; color:var(--muted); }
@@ -75,6 +75,13 @@
       <div class="kpi"><b id="kRuns">0</b><span>달린 판 수</span></div>
       <div class="kpi"><b id="kClear">0</b><span>보물상자 연 학생</span></div>
       <div class="kpi"><b id="kAcc">-</b><span>무리수 판별 정확도</span></div>
+      <div class="kpi"><b id="kDue">0</b><span>훈련 대기 학생</span></div>
+    </div>
+
+    <div class="card">
+      <h2>🏕️ 도움이 필요한 학생</h2>
+      <p class="sub" style="margin:-4px 0 8px">훈련이 밀려 있거나 정확도가 70% 아래인 학생이에요. 훈련을 마쳐야 다음 판을 달릴 수 있어요. 꼭 필요할 때만 [훈련 면제]를 눌러 주세요.</p>
+      <div class="scroll"><table id="helpTable"></table></div>
     </div>
 
     <div class="grid2">
@@ -83,7 +90,10 @@
         <div class="scroll"><table id="classTable"></table></div>
       </div>
       <div class="card">
-        <h2>가장 많이 헷갈린 수 TOP 10</h2>
+        <h2>유형별로 헷갈린 횟수</h2>
+        <p class="sub" style="margin:-4px 0 8px">유리수를 무리수로 알고 먹었거나 관문에서 틀린 횟수를 유형별로 모았어요.</p>
+        <div class="scroll"><table id="typeTable"></table></div>
+        <h2 style="margin-top:16px">가장 많이 헷갈린 수 TOP 10</h2>
         <p class="sub" style="margin:-4px 0 8px">유리수인데 무리수로 알고 먹은 수, 틀린 관문 문제</p>
         <div class="scroll"><table id="wrongTable"></table></div>
       </div>
@@ -111,7 +121,10 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
   const classOf = no => `${no[0]}학년 ${no[1]}반`;
   const fmtT = t => new Date(t).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  let players = [], runs = [];
+  let players = [], runs = [], trains = [];
+  const TYPES = { 1: '① 제곱수의 제곱근', 2: '② 소수·분수의 제곱근', 3: '③ 계산하면 유리수', 4: '④ 유리수의 뜻·순환소수', 5: '⑤ 근호 밖으로 꺼내기·크기 비교' };
+  const BADGE = { 1: '제곱수', 2: '소수·분수', 3: '계산', 4: '순환소수', 5: '근호' };
+  const TYPE_OF = {"0":4,"3":4,"7":4,"−5":4,"1/2":4,"0.25":4,"√16":1,"0.333…":4,"√9":1,"−√25":1,"2.5":4,"0.1212…":4,"√(4/9)":2,"√0.04":2,"√2×√8":3,"√0.09":2,"(√3)²":3,"√12÷√3":3,"√1.21":2,"−√(1/4)":2,"관문:√12 = ?":5,"관문:√18 = ?":5,"관문:√2 × √8 = ?":3,"관문:가장 큰 수는?":5,"관문:(√5)² = ?":3,"관문:√27 ÷ √3 = ?":3,"관문:2√3 = ?":5,"관문:무리수인 것은?":1,"관문:√0.16 = ?":2,"관문:√3에 가장 가까운 수는?":5,"관문:3√2 = ?":5,"관문:√50 = ?":5};
 
   function table(el, head, rows) {
     el.innerHTML = '<tr>' + head.map(([h, c]) => `<th class="${c || ''}">${h}</th>`).join('') + '</tr>' +
@@ -120,12 +133,13 @@
 
   async function load() {
     $('boardMsg').textContent = '불러오는 중…';
-    const [p, r] = await Promise.all([
-      sb.from('runner_players').select('student_no, name, created_at, last_login_at'),
-      sb.from('runner_runs').select('id, student_no, score, distance, cleared, correct, wrong, gates, duration_ms, wrong_items, created_at').order('created_at', { ascending: false }).limit(5000)
+    const [p, r, t] = await Promise.all([
+      sb.from('runner_players').select('student_no, name, created_at, last_login_at, train_due, train_badges, shield'),
+      sb.from('runner_runs').select('id, student_no, score, distance, cleared, correct, wrong, gates, duration_ms, wrong_items, created_at').order('created_at', { ascending: false }).limit(5000),
+      sb.from('runner_trainings').select('student_no, type, correct, passed, required, created_at').order('created_at', { ascending: false }).limit(5000)
     ]);
-    if (p.error || r.error) { $('boardMsg').textContent = '불러오지 못했어요: ' + (p.error || r.error).message; return; }
-    players = p.data; runs = r.data;
+    if (p.error || r.error || t.error) { $('boardMsg').textContent = '불러오지 못했어요: ' + (p.error || r.error || t.error).message; return; }
+    players = p.data; runs = r.data; trains = t.data;
     $('boardMsg').textContent = players.length ? '' : '아직 참여한 학생이 없어요. (선생님 명단에 없는 계정이어도 이렇게 보여요.)';
     const sel = $('classSel'), prev = sel.value;
     const classes = [...new Set(players.map(x => x.student_no.slice(0, 2)))].sort();
@@ -149,6 +163,31 @@
     $('kStudents').textContent = played.length; $('kRuns').textContent = R.length;
     $('kClear').textContent = played.filter(s => s.runs.some(x => x.cleared)).length;
     $('kAcc').textContent = cor + wr ? Math.round(cor / (cor + wr) * 100) + '%' : '-';
+    $('kDue').textContent = studs.filter(s => (s.train_due || []).length).length;
+    const T = trains.filter(x => inCls(x.student_no));
+
+    // 학생별 유형 오답
+    const typeCnt = {}, stuType = {};
+    R.forEach(x => x.wrong_items.forEach(w => { const ty = TYPE_OF[w]; if (!ty) return;
+      typeCnt[ty] = (typeCnt[ty] || 0) + 1; ((stuType[x.student_no] ??= {})[ty] = (stuType[x.student_no][ty] || 0) + 1); }));
+    const tmx = Math.max(1, ...Object.values(typeCnt));
+    table($('typeTable'), [['유형'], ['횟수'], ['학생 수', 'num']], [1, 2, 3, 4, 5].map(ty => {
+      const who = Object.keys(stuType).filter(n => stuType[n][ty]).length, n = typeCnt[ty] || 0;
+      return `<tr><td>${TYPES[ty]}</td><td class="barcell"><i style="width:${n / tmx * 100}%"></i><span>${n}번</span></td><td class="num">${who}명</td></tr>`; }));
+
+    // 도움이 필요한 학생
+    const help = studs.filter(s => { const c = s.runs.reduce((a, x) => a + x.correct, 0), w = s.runs.reduce((a, x) => a + x.wrong, 0);
+      s.acc = c + w ? c / (c + w) : null; s.judged = c + w; return (s.train_due || []).length || (s.judged >= 4 && s.acc < 0.7); })
+      .sort((a, b) => (b.train_due || []).length - (a.train_due || []).length || (a.acc ?? 1) - (b.acc ?? 1));
+    table($('helpTable'), [['학번'], ['이름'], ['정확도', 'num'], ['자주 틀리는 유형'], ['훈련 대기'], ['훈련 (통과/시도)', 'num'], ['받은 배지'], ['']],
+      help.map(s => { const st = stuType[s.student_no] || {}, top = Object.keys(st).sort((a, b) => st[b] - st[a]).slice(0, 2);
+        const mine = T.filter(x => x.student_no === s.student_no), due = s.train_due || [];
+        return `<tr><td>${esc(s.student_no)}</td><td>${esc(s.name)}</td><td class="num">${s.acc == null ? '-' : Math.round(s.acc * 100) + '%'}</td>
+          <td>${top.map(t => TYPES[t].slice(0, 1)).join(' ') || '-'} <span class="muted" style="font-size:.8rem">${top.map(t => TYPES[t].slice(2)).join(', ')}</span></td>
+          <td>${due.length ? due.map(t => `<span class="tag" style="background:#c62828">${TYPES[t].slice(0, 1)}</span>`).join(' ') : '-'}</td>
+          <td class="num">${mine.filter(x => x.passed).length} / ${mine.length}</td>
+          <td>${(s.train_badges || []).map(t => BADGE[t]).join(', ') || '-'}</td>
+          <td>${due.length ? `<button class="mini" data-clear="${esc(s.student_no)}" data-name="${esc(s.name)}">훈련 면제</button>` : ''}</td></tr>`; }));
 
     // 반별
     const cls = {};
@@ -168,13 +207,14 @@
 
     // 학생별
     $('stuTitle').textContent = '학생별 기록' + (pick ? ` · ${pick[0]}학년 ${pick[1]}반` : '');
-    table($('stuTable'), [['학번'], ['이름'], ['판 수', 'num'], ['최고점', 'num'], ['최고 거리', 'num'], ['정확도', 'num'], ['마지막 접속'], ['']],
+    table($('stuTable'), [['학번'], ['이름'], ['판 수', 'num'], ['최고점', 'num'], ['최고 거리', 'num'], ['정확도', 'num'], ['배지'], ['마지막 접속'], ['']],
       studs.sort((a, b) => a.student_no.localeCompare(b.student_no)).map(s => {
         const c = s.runs.reduce((a, x) => a + x.correct, 0), w = s.runs.reduce((a, x) => a + x.wrong, 0);
         return `<tr><td>${esc(s.student_no)}</td><td>${esc(s.name)}</td><td class="num">${s.runs.length}</td>
           <td class="num">${s.best ? s.best.score.toLocaleString() : '-'}</td>
           <td class="num">${s.best ? s.best.distance + ' m' : '-'} ${s.runs.some(x => x.cleared) ? '<span class="tag">완주</span>' : ''}</td>
           <td class="num">${c + w ? Math.round(c / (c + w) * 100) + '%' : '-'}</td>
+          <td>${(s.train_badges || []).length ? '🎖️ ' + s.train_badges.length : '-'}</td>
           <td>${s.last_login_at ? fmtT(s.last_login_at) : '-'}</td>
           <td><button class="mini" data-reset="${esc(s.student_no)}" data-name="${esc(s.name)}">비번 초기화</button></td></tr>`; }));
 
@@ -187,7 +227,12 @@
   }
 
   document.addEventListener('click', async e => {
-    const r = e.target.dataset.reset, d = e.target.dataset.del;
+    const r = e.target.dataset.reset, d = e.target.dataset.del, cl = e.target.dataset.clear;
+    if (cl) {
+      if (!confirm(`${cl} ${e.target.dataset.name} 학생의 밀린 훈련을 면제할까요?\n바로 다시 달릴 수 있게 돼요.`)) return;
+      const { error } = await sb.rpc('runner_clear_training', { p_no: cl });
+      if (error) alert('면제하지 못했어요: ' + error.message); else load();
+    }
     if (r) {
       if (!confirm(`${r} ${e.target.dataset.name} 학생의 비밀번호를 초기화할까요?\n학생이 다음에 로그인할 때 새 비밀번호를 정하게 돼요.`)) return;
       const { data, error } = await sb.rpc('runner_reset_pin', { p_no: r });
