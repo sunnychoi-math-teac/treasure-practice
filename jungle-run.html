@@ -674,11 +674,11 @@ function resolve(o) {
     if (o.yes) {
       G.itemPts += pts; G.correct++;
       pop(`+${pts}`, o, '#ffe066'); sparkle(o, ['#ffe066', '#fff', '#9bd35a']);
-      if (o.tier >= 2) toast('무리수 정답!', 'good', o.why, 0.9);
+      if (o.tier >= 2) toast('무리수 정답!', 'good', o.why, 0.6);
     } else {
       G.wrong++; G.wrongItems.push(plain(o.txt));
       pop('✗', o, '#ff6b6b'); sparkle(o, ['#ff6b6b', '#ffb3b3']);
-      toast(`앗, ${plain(o.txt)}는 유리수!`, 'bad', o.why, 1.5);
+      toast(`앗, ${plain(o.txt)}는 유리수!`, 'bad', o.why, 1.0);
       loseHeart();
     }
   } else if (o.kind === 'log' || o.kind === 'mole') {
@@ -690,11 +690,11 @@ function resolve(o) {
     const lane = LANES.indexOf(LANES.reduce((a, b) => Math.abs(b - G.px) < Math.abs(a - G.px) ? b : a));
     if (lane === o.correctLane) {
       G.gates++; G.gatePts += 100; G.gold = 5;
-      toast('관문 통과! 5초 무적 변신', 'gold', '+100점', 1.1);
+      toast('관문 통과! 5초 무적 변신', 'gold', '+100점', 0.7);
       sparkle({ x: G.px, wz: G.s, elev: 1.3 }, ['#ffe066', '#fff', '#ffc93c'], 40);
     } else {
       G.gateMiss.push(plain(o.q));
-      toast('아쉬워요!', 'bad', `정답은 ${plain(o.right)}`, 1.4);
+      toast('아쉬워요!', 'bad', `정답은 ${plain(o.right)}`, 0.9);
     }
   }
 }
@@ -702,7 +702,7 @@ function hitObstacle(o) {
   if (G.gold > 0) { o.knock = 0.001; o.done = true; pop('뿅!', o, '#ffe066'); return; }
   if (G.invuln > 0) return;
   o.knock = 0.001; o.done = true;
-  toast(o.kind === 'mole' ? '두더지와 쾅!' : '통나무에 걸렸어요!', 'bad', o.kind === 'mole' ? '두더지는 옆으로 피해요' : '통나무는 점프!', 0.9);
+  toast(o.kind === 'mole' ? '두더지와 쾅!' : '통나무에 걸렸어요!', 'bad', o.kind === 'mole' ? '두더지는 옆으로 피해요' : '통나무는 점프!', 0.6);
   G.invuln = 1.4; loseHeart();
 }
 function loseHeart() {
