@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>무리수 사냥 현황판</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root { --deep:#0d3324; --leaf:#1f6b45; --fresh:#3fa45b; --gold:#ffc93c; --gold-d:#d99a13; --paper:#fffdf6; --bg:#f2f0e4; --ink:#1f2a22; --muted:#66705f; --line:#e6dfc8; --red:#c62828; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; padding: 20px 16px 40px; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1, h2 { font-family: "Jua", sans-serif; font-weight: 400; margin: 0; }
+  h1 { font-size: 28px; color: var(--deep); } h2 { font-size: 20px; color: var(--deep); margin-bottom: 10px; }
+  .card { background: var(--paper); border-radius: 16px; padding: 18px; box-shadow: 0 3px 12px rgba(0,0,0,.06); margin-bottom: 14px; }
+  .login { max-width: 380px; margin: 50px auto; }
+  label { display:block; margin:12px 0 6px; font-weight:700; }
+  input, select { width:100%; padding:11px; font-size:1rem; border:1px solid #d6ccb0; border-radius:10px; background:#fff; }
+  button { padding:10px 14px; font-size:.95rem; font-weight:700; border:0; border-radius:10px; background:var(--gold); color:#4a2f00; cursor:pointer; }
+  button.ghost { background:#ece5cf; color:var(--deep); }
+  button.danger { background:#fde3e3; color:var(--red); padding:6px 10px; font-size:.82rem; }
+  button.mini { padding:6px 10px; font-size:.82rem; background:#e8f3e8; color:var(--deep); }
+  .full { width:100%; margin-top:18px; padding:13px; }
+  .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .bar .right { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+  .bar select { width:auto; min-width:150px; }
+  .sub { color:var(--muted); font-size:.9rem; margin:4px 0 0; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .kpi { background:var(--paper); border-radius:14px; padding:14px; box-shadow:0 3px 12px rgba(0,0,0,.06); }
+  .kpi b { display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:30px; color:var(--deep); }
+  .kpi span { font-size:.85rem; color:var(--muted); }
+  .grid2 { display:grid; grid-template-columns: 1.15fr 1fr; gap:14px; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { padding:8px 7px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+  th { background:#f7f2e2; font-weight:700; color:var(--deep); }
+  td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; }
+  .scroll { overflow-x:auto; }
+  .tag { display:inline-block; background:var(--fresh); color:#fff; border-radius:999px; padding:1px 8px; font-size:.75rem; }
+  .barcell { position:relative; min-width:120px; }
+  .barcell i { position:absolute; left:0; top:6px; bottom:6px; background:#ffe3a6; border-radius:6px; }
+  .barcell span { position:relative; padding-left:6px; }
+  .muted { color:var(--muted); } .err { color:var(--red); }
+  .hidden { display:none; }
+  .rad { border-top:.07em solid currentColor; padding:0 .05em; }
+  footer { text-align:center; font-size:.75rem; color:var(--muted); margin-top:10px; }
+  @media (max-width: 760px) { .kpis { grid-template-columns:repeat(2,1fr); } .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loginView" class="card login">
+    <h1>🗝️ 무리수 사냥 현황판</h1>
+    <p class="sub">선생님 계정으로 로그인하세요</p>
+    <form id="loginForm">
+      <label for="email">이메일</label><input id="email" type="email" autocomplete="username" required>
+      <label for="pw">비밀번호</label><input id="pw" type="password" autocomplete="current-password" required>
+      <button class="full" type="submit">로그인</button>
+    </form>
+    <p id="loginMsg" class="err"></p>
+  </div>
+
+  <div id="boardView" class="hidden">
+    <div class="bar">
+      <div><h1>🗝️ 무리수 사냥 · 정글 탈출 현황판</h1><p class="sub" id="who"></p></div>
+      <div class="right">
+        <select id="classSel"></select>
+        <button id="refresh" class="ghost">새로고침</button>
+        <button id="logout" class="ghost">로그아웃</button>
+      </div>
+    </div>
+    <p id="boardMsg" class="muted"></p>
+
+    <div class="kpis">
+      <div class="kpi"><b id="kStudents">0</b><span>참여 학생</span></div>
+      <div class="kpi"><b id="kRuns">0</b><span>달린 판 수</span></div>
+      <div class="kpi"><b id="kClear">0</b><span>보물상자 연 학생</span></div>
+      <div class="kpi"><b id="kAcc">-</b><span>무리수 판별 정확도</span></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>반별 참여</h2>
+        <div class="scroll"><table id="classTable"></table></div>
+      </div>
+      <div class="card">
+        <h2>가장 많이 헷갈린 수 TOP 10</h2>
+        <p class="sub" style="margin:-4px 0 8px">유리수인데 무리수로 알고 먹은 수, 틀린 관문 문제</p>
+        <div class="scroll"><table id="wrongTable"></table></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 id="stuTitle">학생별 기록</h2>
+      <p class="sub" style="margin:-4px 0 8px">비밀번호를 잊은 학생은 [비번 초기화] → 학생이 다음 로그인 때 새 비밀번호를 정해요.</p>
+      <div class="scroll"><table id="stuTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>최근 기록 30판</h2>
+      <p class="sub" style="margin:-4px 0 8px">이상한 기록은 [삭제]로 지울 수 있어요. 지우면 랭킹에서도 빠져요.</p>
+      <div class="scroll"><table id="recentTable"></table></div>
+    </div>
+  </div>
+  <footer>© 2026 경남고등학교 수학과 최선지 선생님</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  const sb = supabase.createClient('https://jerhkttkwvkfhiusgjhv.supabase.co', 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR');
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const classOf = no => `${no[0]}학년 ${no[1]}반`;
+  const fmtT = t => new Date(t).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  let players = [], runs = [];
+
+  function table(el, head, rows) {
+    el.innerHTML = '<tr>' + head.map(([h, c]) => `<th class="${c || ''}">${h}</th>`).join('') + '</tr>' +
+      (rows.length ? rows.join('') : `<tr><td colspan="${head.length}" class="muted">아직 기록이 없어요.</td></tr>`);
+  }
+
+  async function load() {
+    $('boardMsg').textContent = '불러오는 중…';
+    const [p, r] = await Promise.all([
+      sb.from('runner_players').select('student_no, name, created_at, last_login_at'),
+      sb.from('runner_runs').select('id, student_no, score, distance, cleared, correct, wrong, gates, duration_ms, wrong_items, created_at').order('created_at', { ascending: false }).limit(5000)
+    ]);
+    if (p.error || r.error) { $('boardMsg').textContent = '불러오지 못했어요: ' + (p.error || r.error).message; return; }
+    players = p.data; runs = r.data;
+    $('boardMsg').textContent = players.length ? '' : '아직 참여한 학생이 없어요. (선생님 명단에 없는 계정이어도 이렇게 보여요.)';
+    const sel = $('classSel'), prev = sel.value;
+    const classes = [...new Set(players.map(x => x.student_no.slice(0, 2)))].sort();
+    sel.innerHTML = '<option value="">전체 반</option>' + classes.map(c => `<option value="${c}">${c[0]}학년 ${c[1]}반</option>`).join('');
+    if (classes.includes(prev)) sel.value = prev;
+    render();
+  }
+
+  function render() {
+    const pick = $('classSel').value;
+    const inCls = no => !pick || no.startsWith(pick);
+    const P = players.filter(x => inCls(x.student_no)), R = runs.filter(x => inCls(x.student_no));
+    // 학생별 요약
+    const by = {};
+    P.forEach(x => by[x.student_no] = { ...x, runs: [], best: null });
+    R.forEach(x => { const s = by[x.student_no]; if (!s) return; s.runs.push(x);
+      if (!s.best || (x.cleared && !s.best.cleared) || (x.cleared === s.best.cleared && x.score > s.best.score)) s.best = x; });
+    const studs = Object.values(by);
+    const played = studs.filter(s => s.runs.length);
+    const cor = R.reduce((a, x) => a + x.correct, 0), wr = R.reduce((a, x) => a + x.wrong, 0);
+    $('kStudents').textContent = played.length; $('kRuns').textContent = R.length;
+    $('kClear').textContent = played.filter(s => s.runs.some(x => x.cleared)).length;
+    $('kAcc').textContent = cor + wr ? Math.round(cor / (cor + wr) * 100) + '%' : '-';
+
+    // 반별
+    const cls = {};
+    played.forEach(s => { const c = s.student_no.slice(0, 2); (cls[c] ??= []).push(s); });
+    table($('classTable'), [['반'], ['참여', 'num'], ['판 수', 'num'], ['평균 최고점', 'num'], ['완주', 'num']],
+      Object.keys(cls).sort().map(c => { const g = cls[c];
+        return `<tr><td>${c[0]}학년 ${c[1]}반</td><td class="num">${g.length}명</td><td class="num">${g.reduce((a, s) => a + s.runs.length, 0)}</td>
+          <td class="num">${Math.round(g.reduce((a, s) => a + s.best.score, 0) / g.length).toLocaleString()}</td><td class="num">${g.filter(s => s.runs.some(x => x.cleared)).length}명</td></tr>`; }));
+
+    // 헷갈린 수
+    const cnt = {};
+    R.forEach(x => new Set(x.wrong_items).forEach(w => { (cnt[w] ??= { n: 0, who: new Set() }); cnt[w].n++; cnt[w].who.add(x.student_no); }));
+    const top = Object.entries(cnt).sort((a, b) => b[1].n - a[1].n).slice(0, 10), mx = top.length ? top[0][1].n : 1;
+    table($('wrongTable'), [['수 / 문제'], ['횟수'], ['학생 수', 'num']],
+      top.map(([w, v]) => `<tr><td>${w.startsWith('관문:') ? '🚪 ' + esc(w.slice(3)) : esc(w)}</td>
+        <td class="barcell"><i style="width:${v.n / mx * 100}%"></i><span>${v.n}번</span></td><td class="num">${v.who.size}명</td></tr>`));
+
+    // 학생별
+    $('stuTitle').textContent = '학생별 기록' + (pick ? ` · ${pick[0]}학년 ${pick[1]}반` : '');
+    table($('stuTable'), [['학번'], ['이름'], ['판 수', 'num'], ['최고점', 'num'], ['최고 거리', 'num'], ['정확도', 'num'], ['마지막 접속'], ['']],
+      studs.sort((a, b) => a.student_no.localeCompare(b.student_no)).map(s => {
+        const c = s.runs.reduce((a, x) => a + x.correct, 0), w = s.runs.reduce((a, x) => a + x.wrong, 0);
+        return `<tr><td>${esc(s.student_no)}</td><td>${esc(s.name)}</td><td class="num">${s.runs.length}</td>
+          <td class="num">${s.best ? s.best.score.toLocaleString() : '-'}</td>
+          <td class="num">${s.best ? s.best.distance + ' m' : '-'} ${s.runs.some(x => x.cleared) ? '<span class="tag">완주</span>' : ''}</td>
+          <td class="num">${c + w ? Math.round(c / (c + w) * 100) + '%' : '-'}</td>
+          <td>${s.last_login_at ? fmtT(s.last_login_at) : '-'}</td>
+          <td><button class="mini" data-reset="${esc(s.student_no)}" data-name="${esc(s.name)}">비번 초기화</button></td></tr>`; }));
+
+    // 최근
+    table($('recentTable'), [['시각'], ['학번'], ['이름'], ['점수', 'num'], ['거리', 'num'], ['무리수/유리수', 'num'], ['관문', 'num'], ['걸린 시간', 'num'], ['']],
+      R.slice(0, 30).map(x => `<tr><td>${fmtT(x.created_at)}</td><td>${esc(x.student_no)}</td><td>${esc((by[x.student_no] || {}).name || '')}</td>
+        <td class="num">${x.score.toLocaleString()}</td><td class="num">${x.distance} m ${x.cleared ? '<span class="tag">완주</span>' : ''}</td>
+        <td class="num">${x.correct} / ${x.wrong}</td><td class="num">${x.gates}/2</td><td class="num">${Math.round(x.duration_ms / 1000)}초</td>
+        <td><button class="danger" data-del="${x.id}">삭제</button></td></tr>`));
+  }
+
+  document.addEventListener('click', async e => {
+    const r = e.target.dataset.reset, d = e.target.dataset.del;
+    if (r) {
+      if (!confirm(`${r} ${e.target.dataset.name} 학생의 비밀번호를 초기화할까요?\n학생이 다음에 로그인할 때 새 비밀번호를 정하게 돼요.`)) return;
+      const { data, error } = await sb.rpc('runner_reset_pin', { p_no: r });
+      alert(error ? '초기화하지 못했어요: ' + error.message : data ? '초기화했어요.' : '해당 학번이 없어요.');
+    }
+    if (d) {
+      if (!confirm('이 기록을 삭제할까요? 되돌릴 수 없어요.')) return;
+      const { error } = await sb.from('runner_runs').delete().eq('id', Number(d));
+      if (error) alert('삭제하지 못했어요: ' + error.message); else load();
+    }
+  });
+
+  function show(on, email) {
+    $('loginView').classList.toggle('hidden', on); $('boardView').classList.toggle('hidden', !on);
+    if (on) { $('who').textContent = email + ' 로그인 중'; load(); }
+  }
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault(); $('loginMsg').textContent = '';
+    const { data, error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pw').value });
+    if (error) { $('loginMsg').textContent = '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.'; return; }
+    $('pw').value = ''; show(true, data.user.email);
+  });
+  $('logout').addEventListener('click', async () => { await sb.auth.signOut(); show(false); });
+  $('refresh').addEventListener('click', load);
+  $('classSel').addEventListener('change', render);
+  sb.auth.getSession().then(({ data }) => { if (data.session) show(true, data.session.user.email); });
+</script>
+</body>
+</html>
