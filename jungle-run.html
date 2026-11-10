@@ -624,11 +624,14 @@ function drawMath(g, src, cx, cy, size, color) {
 }
 
 /* ---------------- 게임 상태 ---------------- */
+// 구간 속도 (2026-11-10: 예전 6.8 / 8.8 / 10.5 에서 20% 늦춤)
 const SECTIONS = [
-  { until: 300, speed: 6.8, tiers: [0.8, 0.2, 0], gap: 11, name: '정글 입구' },
-  { until: 700, speed: 8.8, tiers: [0.3, 0.55, 0.15], gap: 10, name: '깊은 정글' },
-  { until: 1000, speed: 10.5, tiers: [0, 0.4, 0.6], gap: 9.2, name: '정글 출구' }
+  { until: 300, speed: 5.44, tiers: [0.8, 0.2, 0], gap: 11, name: '정글 입구' },
+  { until: 700, speed: 7.04, tiers: [0.3, 0.55, 0.15], gap: 10, name: '깊은 정글' },
+  { until: 1000, speed: 8.4, tiers: [0, 0.4, 0.6], gap: 9.2, name: '정글 출구' }
 ];
+// 달리는 중에 뜨는 팝업(정답·오답·관문·장애물) 표시 시간 배율. 1이면 예전과 같고, 작을수록 빨리 사라져요.
+const RUN_TOAST = 0.7;
 const GATE_AT = [300, 700], FINISH = 1000, CHEST_D = 4.5;
 const secOf = s => SECTIONS.find(x => s < x.until) || SECTIONS[2];
 let G = null;
@@ -800,17 +803,17 @@ function resolve(o) {
     if (o.yes) {
       G.itemPts += pts; G.correct++;
       pop(`+${pts}`, o, '#ffe066'); sparkle(o, ['#ffe066', '#fff', '#9bd35a']);
-      if (o.tier >= 2) toast('무리수 정답!', 'good', o.why, 0.6);
+      if (o.tier >= 2) toast('무리수 정답!', 'good', o.why, 0.6 * RUN_TOAST);
     } else {
       G.wrong++; G.wrongItems.push(plain(o.txt)); G.typeCnt[o.type] = (G.typeCnt[o.type] || 0) + 1;
       pop('✗', o, '#ff6b6b'); sparkle(o, ['#ff6b6b', '#ffb3b3']);
       if (G.slow) G.freeze = 1.0;
       if (G.shield > 0) {
         G.shield = 0; G.shieldUsed = true; G.shake = 0.2;
-        toast(`🛡️ 보호막이 막아 줬어요! ${plain(o.txt)}는 유리수`, 'gold', o.why, 1.2);
+        toast(`🛡️ 보호막이 막아 줬어요! ${plain(o.txt)}는 유리수`, 'gold', o.why, 1.2 * RUN_TOAST);
         sparkle({ x: G.px, wz: G.s, elev: 1.3 }, ['#9fd8ff', '#ffffff', '#5db4ff'], 30); updateHUD();
       } else {
-        toast(`앗, ${plain(o.txt)}는 유리수!`, 'bad', o.why, 1.0);
+        toast(`앗, ${plain(o.txt)}는 유리수!`, 'bad', o.why, 1.0 * RUN_TOAST);
         loseHeart();
       }
     }
@@ -823,11 +826,11 @@ function resolve(o) {
     const lane = LANES.indexOf(LANES.reduce((a, b) => Math.abs(b - G.px) < Math.abs(a - G.px) ? b : a));
     if (lane === o.correctLane) {
       G.gates++; G.gatePts += 100; G.gold = 5;
-      toast('관문 통과! 5초 무적 변신', 'gold', '+100점', 0.7);
+      toast('관문 통과! 5초 무적 변신', 'gold', '+100점', 0.7 * RUN_TOAST);
       sparkle({ x: G.px, wz: G.s, elev: 1.3 }, ['#ffe066', '#fff', '#ffc93c'], 40);
     } else {
       G.gateMiss.push(plain(o.q)); G.typeCnt[o.type] = (G.typeCnt[o.type] || 0) + 1;
-      toast('아쉬워요!', 'bad', `정답은 ${plain(o.right)}`, 0.9);
+      toast('아쉬워요!', 'bad', `정답은 ${plain(o.right)}`, 0.9 * RUN_TOAST);
     }
   }
 }
@@ -835,7 +838,7 @@ function hitObstacle(o) {
   if (G.gold > 0) { o.knock = 0.001; o.done = true; pop('뿅!', o, '#ffe066'); return; }
   if (G.invuln > 0) return;
   o.knock = 0.001; o.done = true;
-  toast(o.kind === 'mole' ? '두더지와 쾅!' : '통나무에 걸렸어요!', 'bad', o.kind === 'mole' ? '두더지는 옆으로 피해요' : '통나무는 점프!', 0.6);
+  toast(o.kind === 'mole' ? '두더지와 쾅!' : '통나무에 걸렸어요!', 'bad', o.kind === 'mole' ? '두더지는 옆으로 피해요' : '통나무는 점프!', 0.6 * RUN_TOAST);
   G.invuln = 1.4; loseHeart();
 }
 function loseHeart() {
