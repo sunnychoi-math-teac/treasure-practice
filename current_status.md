@@ -1,6 +1,6 @@
 # 진행 상태 (current_status)
 
-마지막 갱신: 2026-11-13
+마지막 갱신: 2026-11-13 (밤)
 
 ## 완료한 것
 - **무리수 사냥: 경남이의 정글 탈출**(중3 제곱근과 실수): `jungle-run.html`, `jungle-run-teacher.html`. 3줄 러너, 로그인(학번 4자리·이름·비번 4자리), 랭킹, 훈련소(오답 5유형), 천천히 모드, 교사 현황판(탐험가 성취, CSV), Supabase 표 runner_* 와 함수
@@ -18,12 +18,16 @@
   - 현황판은 활동별로 두고 학년도를 골라 봄
   - 「자유 도전」 모드: 기한을 정해 두고 평상시에 자유롭게 하는 게임식 운영
 
+- **첫 화면(index.html) v1** (2026-11-13): 앱 이름 Math Land Explorers(영문만). 디자인 C안 — 연보라 하늘에 고등학교 수학 구슬(∫ Σ π log lim sin θ ∞)이 굴러와 쌓이는 모션 + 검색창 + 왼쪽 분류 메뉴(전체/고등학교/중학교 복습/수행평가/자유 도전/준비 중) + 카드. 검색어·분류는 주소(?q=&cat=)에 남아 링크로 나눠 줄 수 있음. 글꼴 Baloo 2 + IBM Plex Sans KR. 「움직임 줄이기」 설정이면 움직임 없이 완성 화면. 디자인 시안 캔버스: https://claude.ai/artifact/6tsejeJbn5JtPwGp2QJ6v8
+- 예전 index.html(보물 기록장 연습 예제)은 삭제함(선생님 결정). practice_records 표는 그대로 둠
+
 ## 진행 중
-- 개발 문서 4종 작성: prd.md, CLAUDE.md, README.md, current_status.md (v0.1)
+- **Supabase 표 land_activities + 함수 land_list_activities()**: SQL 파일 `supabase/migrations/20261113_land_activities.sql` 작성 완료. 아직 실행 전. 실행 전까지 첫 화면은 코드 안의 기본 목록 3개를 보여 줌(「서버와 연결되지 않아 기본 목록을 보여 주고 있어요」 문구)
+- 첫 화면에서 아직 비어 있는 것: 보물을 찾아라 입장 주소(entry_url, 앱스 스크립트 웹 앱 주소), 마감 날짜·도전 기한 글자(due_text), [내 기록 보기] 링크(공통 로그인 뒤 연결)
 
 ## 다음 단계 (1단계: 공통 틀)
 1. 미결정 사항 정하기(아래)
-2. Supabase 공통 표(land_*)와 로그인·저장·운영 함수 설계 → 선생님 확인 후 만들기
+2. Supabase 공통 표(land_*): land_activities는 SQL 준비됨 → 실행. 이어서 land_students·land_runs·land_records와 로그인·저장·운영 함수 설계 → 선생님 확인 후 만들기
 3. `common/` 공통 코드: 로그인, 운영 상태·기한 확인, 기록 저장
 4. 교사 홈(활동 카드 목록, 주소 복사, 운영 설정)
 5. 활동별 현황판 공통 틀(학년도 선택, 반별 보기, 진행 현황)
@@ -35,5 +39,6 @@
 - 저장소 새 이름
 - 1단계 시작 시기(제안: 2026 겨울방학)
 - 교사 로그인 방식(teachers 표 방식 유지?)
-- 화면 세부: 카드 모양·정렬, 같은 활동을 한 해에 여러 번 열 때 표시, 학생 입구 꾸밈
+- 화면 세부: 같은 활동을 한 해에 여러 번 열 때 표시 (카드 모양·학생 입구 꾸밈은 첫 화면 v1로 정함)
+- 제목 글꼴 최종 선택(지금 Baloo 2; 후보 Lilita One, Luckiest Guy, Bungee, Fredoka, Titan One)
 - 무리수 사냥 기존 기록(runner_*)을 공통 기록으로 옮길지, 그대로 둘지

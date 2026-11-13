@@ -3,83 +3,344 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>보물 기록장 (연습)</title>
+<meta name="theme-color" content="#EDE9FB">
+<title>Math Land Explorers — 경남고 수학 탐험</title>
+<meta name="description" content="경남고등학교 수학과 최선지 선생님의 수학 활동 모음. 활동을 골라 탐험을 떠나요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-  body { font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-         background: #fdf6e3; color: #3b2f1e; margin: 0; padding: 24px 16px; }
-  .card { max-width: 420px; margin: 0 auto; background: #fff; border-radius: 16px;
-          padding: 28px 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
-  h1 { margin: 0 0 4px; font-size: 1.5rem; }
-  .sub { margin: 0 0 20px; color: #8a7350; font-size: .9rem; }
-  label { display: block; margin: 14px 0 6px; font-weight: 600; }
-  input, select { width: 100%; box-sizing: border-box; padding: 12px; font-size: 1rem;
-                  border: 1px solid #d9c9a8; border-radius: 10px; }
-  button { width: 100%; margin-top: 22px; padding: 14px; font-size: 1.05rem; font-weight: 700;
-           border: 0; border-radius: 10px; background: #c8892b; color: #fff; cursor: pointer; }
-  button:disabled { opacity: .5; }
-  #msg { margin-top: 16px; text-align: center; min-height: 1.4em; }
-  .ok { color: #2e7d32; } .err { color: #c62828; }
-  footer { max-width: 420px; margin: 16px auto 0; font-size: .75rem; color: #8a7350; text-align: center; }
+:root{--ink:#1A1F4D;--ink2:#4A4F72;--ink3:#6A6F8E;--line:#C5CBE6;--mint:#2E8B57;--yellow:#FFC93C;--sheet:#F4F5F9}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'IBM Plex Sans KR',system-ui,sans-serif;color:var(--ink);background:#fff;word-break:keep-all;-webkit-text-size-adjust:100%}
+a{color:var(--ink)}
+a,button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #2340D0;outline-offset:3px}
+.skip{position:absolute;left:12px;top:-60px;background:var(--yellow);color:var(--ink);padding:10px 16px;border-radius:10px;font-weight:700;z-index:3}.skip:focus{top:12px}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 24px}
+.display{font-family:'Baloo 2',sans-serif;font-weight:800}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:999px;text-decoration:none;font-weight:700;font-size:14px;border:0;font-family:inherit;cursor:pointer}
+.pill-dark{background:var(--ink);color:#fff}
+.pill-line{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#EDE9FB 0%,#DDE6FF 55%,#E4F4F1 100%);display:flex;flex-direction:column}
+.topbar{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:22px}
+.hero-body{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 32px;padding-top:24px;padding-bottom:20px}
+.hero-text{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:14px;padding-bottom:8px}
+.hero-title{margin:0;font-size:clamp(48px,6.4vw,84px);line-height:.95;letter-spacing:-.5px;text-shadow:3px 3px 0 #fff;max-width:7em;transform-origin:left center}
+.hero-sub{margin:0;font-size:19px;font-weight:500;max-width:24em}
+.search{display:flex;align-items:center;gap:8px;width:100%;max-width:420px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:4px 4px 4px 16px}
+.search input{flex:1 1 auto;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);min-height:40px}
+.search button{font:inherit;font-weight:700;font-size:15px;min-height:40px;padding:0 18px;border:0;border-radius:999px;background:var(--ink);color:#fff;cursor:pointer}
+.hero-art{flex:1.6 1 460px;min-width:0}
+.hero-svg{width:100%;height:auto;display:block;overflow:visible}
+.ticker{position:relative;z-index:1;padding-bottom:24px}
+#tickerItems{display:contents}
+.ticker-in{background:rgba(255,255,255,.82);border-radius:18px;padding:12px 18px;display:flex;align-items:center;gap:12px 24px;flex-wrap:wrap;font-size:15px}
+.ticker b{font-variant-numeric:tabular-nums}
+.sep{width:1px;height:18px;background:var(--line)}
+.grow{flex-grow:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* motion */
+.roll{transform-box:fill-box;transform-origin:center bottom;animation:roll 1.1s cubic-bezier(.34,1.4,.4,1) both}
+@keyframes roll{0%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}20%{opacity:1}72%{transform:translate(0,0) rotate(0) scale(1.06,.94)}86%{transform:scale(.97,1.03)}100%{opacity:1;transform:none}}
+.drop{transform-box:fill-box;transform-origin:center bottom;animation:drop .7s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes drop{0%{opacity:0;transform:translateY(-180px) rotate(-18deg)}55%{opacity:1;transform:translateY(0) rotate(4deg) scale(1.05,.92)}100%{opacity:1;transform:none}}
+.cloud{transform-box:fill-box;transform-origin:center;animation:puff .5s ease-out 1s both}
+@keyframes puff{0%{transform:none}40%{transform:scale(1.025,.96)}100%{transform:none}}
+.breathe{transform-box:fill-box;transform-origin:center;animation:breathe 4.5s ease-in-out 3s infinite}
+@keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.conf{transform-box:fill-box;transform-origin:center;animation:confall .9s cubic-bezier(.2,.7,.3,1) both}
+@keyframes confall{0%{opacity:0;transform:translateY(-70px) rotate(-30deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+.ttl{animation:stamp .6s cubic-bezier(.3,1.5,.5,1) 2.2s both}
+.after{animation:rise .5s cubic-bezier(.2,.8,.3,1) both}
+.after-1{animation-delay:2.55s}.after-2{animation-delay:2.7s}
+@keyframes stamp{0%{opacity:0;transform:scale(1.3) translateY(-10px)}60%{opacity:1;transform:scale(.96)}100%{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.replay{position:absolute;right:16px;top:76px;z-index:2;background:transparent;border:0;color:var(--ink2);font:inherit;font-size:13px;cursor:pointer;min-height:36px;padding:0 10px;border-radius:999px}
+.replay:hover{background:rgba(255,255,255,.7)}
+@media (prefers-reduced-motion:reduce){.roll,.drop,.cloud,.breathe,.conf,.ttl,.after{animation:none}.replay{display:none}}
+
+/* explore */
+.explore{display:flex;flex-wrap:wrap;gap:32px 48px;padding-top:56px}
+.sidenav{flex:1 1 180px;max-width:220px;display:flex;flex-direction:column;gap:10px}
+.sidenav .lead{margin:0 0 8px;font-size:15px;line-height:1.6;color:var(--ink2)}
+.catlist{display:flex;flex-direction:column}
+.cat{font:inherit;text-align:left;background:none;border:0;border-left:3px solid transparent;padding:10px 14px;min-height:44px;cursor:pointer;color:var(--ink2);font-weight:500}
+.cat:hover{color:var(--ink)}
+.cat[aria-pressed="true"]{color:var(--ink);font-weight:700;border-left-color:var(--mint);background:#EEF8F3}
+.results{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:22px}
+.results-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.results-head h2{margin:0;font-size:32px;font-weight:700;scroll-margin-top:24px;text-wrap:balance}
+.count{font-size:15px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.clear{font:inherit;font-size:14px;font-weight:700;min-height:36px;padding:0 12px;border:0;border-radius:999px;background:#EEF8F3;color:var(--mint);cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.card{display:flex;flex-direction:column;gap:10px;background:var(--sheet);border-radius:20px;padding:12px;text-decoration:none;color:var(--ink);transition:transform .18s ease-out,background-color .18s ease-out}
+a.card:hover{transform:translateY(-4px);background:#ECEEF6}
+a.card:active{transform:translateY(0)}
+.card .art{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:12/7}
+.art-svg{width:100%;height:100%;display:block}
+.card .badge{position:absolute;top:10px;right:10px;background:#fff;color:#3A3F66;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}
+.card .body{display:flex;flex-direction:column;gap:6px;padding:4px 6px 0;flex-grow:1}
+.card .title{font-weight:700;font-size:19px;line-height:1.35}
+.card .desc{font-size:15px;line-height:1.55;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 2px}
+.card .when{font-size:14px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.card .tag{border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+.empty{border:3px dashed var(--line);border-radius:20px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px}
+.empty .q{font-size:34px;color:#A9B6EE}
+.none{grid-column:1/-1;border:3px dashed var(--line);border-radius:20px;padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.status{font-size:14px;color:var(--ink3)}
+footer{padding:72px 24px 32px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-size:13px;line-height:1.6;color:var(--ink2)}
+footer p{margin:0}
+@media (prefers-reduced-motion:reduce){.card{transition:none}html{scroll-behavior:auto}}
+@media (max-width:640px){.sidenav{max-width:none}.catlist{flex-direction:row;flex-wrap:wrap;gap:6px}.cat{border-left:0;border-radius:999px;background:var(--sheet);padding:8px 14px}.sep{display:none}}
 </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🗝️ 보물 기록장</h1>
-    <p class="sub">연습용 · 해결한 미션 수를 기록해요</p>
+<a class="skip" href="#explore">탐험지 고르기로 바로 가기</a>
 
-    <form id="form">
-      <label for="no">학번</label>
-      <input id="no" inputmode="numeric" placeholder="예: 10315" required>
-
-      <label for="name">이름</label>
-      <input id="name" placeholder="예: 홍길동" required>
-
-      <label for="solved">해결한 미션 수</label>
-      <select id="solved"></select>
-
-      <button id="btn" type="submit">기록 저장하기</button>
-    </form>
-    <p id="msg"></p>
+<section class="hero" id="hero">
+  <div class="wrap topbar">
+    <a class="brand display" href="./" translate="no">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="37" rx="10" fill="#FFC93C" stroke="#1A1F4D" stroke-width="3"/><circle cx="20" cy="20" r="11" fill="#fff" stroke="#1A1F4D" stroke-width="2.5"/><path d="M20 9 L23 20 L20 31 L17 20 Z" fill="#FF6F59" stroke="#1A1F4D" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      Math Land Explorers
+    </a>
+    <a class="pill pill-line" href="#" style="border:2px solid var(--ink);min-height:44px">내 기록 보기</a>
   </div>
-  <footer>© 2026 경남고등학교 수학과 최선지 선생님 · 연습용 예제</footer>
 
-  <!-- Supabase 도구 불러오기 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // ① 내 Supabase 창고 주소와 공개용 열쇠 (공개돼도 괜찮은 값)
-    const SUPABASE_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+  <div class="wrap hero-body">
+    <div class="hero-text">
+      <h1 class="hero-title display ttl" translate="no">Math Land Explorers</h1>
+      <p class="hero-sub after after-1">오늘은 어떤 수학 탐험을 떠나 볼까요?</p>
+      <form class="search after after-2" role="search" id="searchForm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1F4D" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <label for="q" class="sr">탐험지 검색</label>
+        <input id="q" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="무리수, 도형의 방정식, 고1…">
+        <button type="submit">검색</button>
+      </form>
+    </div>
+    <div class="hero-art" aria-hidden="true" id="heroArt">
+      <svg viewBox="0 0 800 450" class="hero-svg">
+          <defs><radialGradient id="gPu" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#E4DAFF"></stop><stop offset="0.45" stop-color="#9478F2"></stop><stop offset="1" stop-color="#6A4CD0"></stop></radialGradient><radialGradient id="gBl" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#D6E5FF"></stop><stop offset="0.45" stop-color="#5E8EF0"></stop><stop offset="1" stop-color="#3A60C2"></stop></radialGradient><radialGradient id="gYe" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#FFF3C9"></stop><stop offset="0.45" stop-color="#FFC93C"></stop><stop offset="1" stop-color="#DC970C"></stop></radialGradient><radialGradient id="gMi" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#E2FAF0"></stop><stop offset="0.45" stop-color="#6EDBB8"></stop><stop offset="1" stop-color="#2A9E7C"></stop></radialGradient><radialGradient id="gCo" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#FFE0D8"></stop><stop offset="0.45" stop-color="#FF8F7A"></stop><stop offset="1" stop-color="#D9492F"></stop></radialGradient><radialGradient id="gPi" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#FFE3F0"></stop><stop offset="0.45" stop-color="#FF8DC0"></stop><stop offset="1" stop-color="#CF4E8D"></stop></radialGradient><radialGradient id="gSk" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#E6F6FF"></stop><stop offset="0.45" stop-color="#86CBF2"></stop><stop offset="1" stop-color="#4594C8"></stop></radialGradient><radialGradient id="gWh" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#FFFFFF"></stop><stop offset="0.45" stop-color="#F1F2F8"></stop><stop offset="1" stop-color="#C9CDE0"></stop></radialGradient><radialGradient id="gCloud" cx="50%" cy="30%" r="70%"><stop offset="0" stop-color="#FFFFFF"></stop><stop offset="1" stop-color="#E4DEF8"></stop></radialGradient><filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"></feGaussianBlur></filter></defs>
+          <g><circle cx="90" cy="80" r="22" fill="url(#gCloud)"></circle><circle cx="118" cy="70" r="28" fill="url(#gCloud)"></circle><circle cx="146" cy="82" r="20" fill="url(#gCloud)"></circle><circle cx="660" cy="60" r="20" fill="url(#gCloud)"></circle><circle cx="688" cy="48" r="28" fill="url(#gCloud)"></circle><circle cx="718" cy="60" r="22" fill="url(#gCloud)"></circle></g>
+          <g><text class="conf" style="animation-delay: 1.90s" x="200" y="120" fill="#FF8DC0" font-family="'IBM Plex Sans KR', sans-serif" font-size="34" font-weight="700" text-anchor="middle" transform="rotate(-12 200 120)">+</text><text class="conf" style="animation-delay: 1.98s" x="610" y="120" fill="#6EDBB8" font-family="'IBM Plex Sans KR', sans-serif" font-size="34" font-weight="700" text-anchor="middle" transform="rotate(10 610 120)">×</text><text class="conf" style="animation-delay: 2.06s" x="740" y="200" fill="#5E8EF0" font-family="'IBM Plex Sans KR', sans-serif" font-size="30" font-weight="700" text-anchor="middle" transform="rotate(0 740 200)">÷</text><text class="conf" style="animation-delay: 2.14s" x="60" y="250" fill="#FFC93C" font-family="'IBM Plex Sans KR', sans-serif" font-size="30" font-weight="700" text-anchor="middle" transform="rotate(-8 60 250)">=</text><text class="conf" style="animation-delay: 2.22s" x="300" y="70" fill="#9478F2" font-family="'IBM Plex Sans KR', sans-serif" font-size="36" font-weight="700" text-anchor="middle" transform="rotate(0 300 70)">−</text><text class="conf" style="animation-delay: 2.30s" x="520" y="60" fill="#FF8F7A" font-family="'IBM Plex Sans KR', sans-serif" font-size="26" font-weight="700" text-anchor="middle" transform="rotate(14 520 60)">+</text></g>
+          <g transform="translate(-105 -80) scale(1.25)"><g class="breathe">
+          <g class="roll" style="--dx: -420px; --dy: -40px; --rot: -300deg; animation-delay: 0.95s">
+            <ellipse cx="262" cy="256" rx="22" ry="5" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="262" cy="232" r="26" fill="url(#gSk)"></circle>
+            <ellipse cx="254" cy="221" rx="7" ry="4" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 254 221)"></ellipse>
+            <text x="262" y="234" fill="#1A1F4D" font-family="'Times New Roman', 'Noto Serif', serif" font-size="30" font-weight="700" text-anchor="middle" dominant-baseline="central">∞</text>
+          </g><g class="roll" style="--dx: -520px; --dy: 30px; --rot: -420deg; animation-delay: 0.55s">
+            <ellipse cx="325" cy="334" rx="42" ry="9" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="325" cy="286" r="50" fill="url(#gBl)"></circle>
+            <ellipse cx="309" cy="265" rx="14" ry="8" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 309 265)"></ellipse>
+            <text x="325" y="288" fill="#FFFFFF" font-family="'Times New Roman', 'Noto Serif', serif" font-size="50" font-weight="700" text-anchor="middle" dominant-baseline="central">Σ</text>
+          </g><g class="roll" style="--dx: -380px; --dy: -260px; --rot: -300deg; animation-delay: 1.05s">
+            <ellipse cx="342" cy="230" rx="31" ry="6" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="342" cy="196" r="36" fill="url(#gMi)"></circle>
+            <ellipse cx="330" cy="181" rx="10" ry="6" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 330 181)"></ellipse>
+            <text x="342" y="198" fill="#1A1F4D" font-family="'IBM Plex Sans KR', sans-serif" font-size="22" font-weight="700" text-anchor="middle" dominant-baseline="central">log</text>
+          </g><g class="roll" style="--dx: 520px; --dy: 40px; --rot: 400deg; animation-delay: 0.65s">
+            <ellipse cx="512" cy="336" rx="39" ry="8" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="512" cy="292" r="46" fill="url(#gYe)"></circle>
+            <ellipse cx="497" cy="273" rx="13" ry="7" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 497 273)"></ellipse>
+            <text x="512" y="294" fill="#1A1F4D" font-family="'Times New Roman', 'Noto Serif', serif" font-size="48" font-weight="700" text-anchor="middle" dominant-baseline="central">π</text>
+          </g><g class="roll" style="--dx: 460px; --dy: -120px; --rot: 360deg; animation-delay: 1.15s">
+            <ellipse cx="585" cy="270" rx="27" ry="6" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="585" cy="240" r="32" fill="url(#gPi)"></circle>
+            <ellipse cx="575" cy="227" rx="9" ry="5" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 575 227)"></ellipse>
+            <text x="585" y="242" fill="#FFFFFF" font-family="'IBM Plex Sans KR', sans-serif" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="central">sin θ</text>
+          </g><g class="roll" style="--dx: 300px; --dy: -300px; --rot: 300deg; animation-delay: 1.25s">
+            <ellipse cx="500" cy="220" rx="29" ry="6" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="500" cy="188" r="34" fill="url(#gCo)"></circle>
+            <ellipse cx="489" cy="174" rx="10" ry="5" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 489 174)"></ellipse>
+            <text x="500" y="190" fill="#FFFFFF" font-family="'IBM Plex Sans KR', sans-serif" font-size="21" font-weight="700" text-anchor="middle" dominant-baseline="central">lim</text>
+          </g><g class="roll" style="--dx: 0px; --dy: -420px; --rot: -200deg; animation-delay: 0.15s">
+            <ellipse cx="420" cy="314" rx="54" ry="12" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="420" cy="252" r="64" fill="url(#gPu)"></circle>
+            <ellipse cx="400" cy="225" rx="18" ry="10" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 400 225)"></ellipse>
+            <text x="420" y="254" fill="#FFFFFF" font-family="'Times New Roman', 'Noto Serif', serif" font-size="72" font-weight="700" font-style="italic" text-anchor="middle" dominant-baseline="central">∫</text>
+          </g>
+          <g class="roll" style="--dx: 420px; --dy: 10px; --rot: 280deg; animation-delay: 1.45s">
+            <ellipse cx="596" cy="352" rx="38" ry="8" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <g stroke-linejoin="round" stroke-width="6">
+              <polygon points="596,288 630,306 596,324 562,306" fill="#FFE590" stroke="#FFE590"></polygon>
+              <polygon points="562,306 596,324 596,356 562,338" fill="#FFC93C" stroke="#FFC93C"></polygon>
+              <polygon points="596,324 630,306 630,338 596,356" fill="#E5A322" stroke="#E5A322"></polygon>
+            </g>
+          </g>
+          <g class="roll" style="--dx: -460px; --dy: 20px; --rot: -320deg; animation-delay: 1.58s">
+            <ellipse cx="246" cy="352" rx="26" ry="6" fill="#5B4FA0" opacity="0.18" filter="url(#soft)"></ellipse>
+            <circle cx="246" cy="326" r="28" fill="url(#gWh)"></circle>
+            <circle cx="246" cy="326" r="20" fill="none" stroke="#C9CDE0" stroke-width="2"></circle>
+            <path d="M246 308 L251 326 L246 344 L241 326 Z" fill="#FF6F59"></path>
+            <path d="M228 326 L246 321 L264 326 L246 331 Z" fill="#86A7F0"></path>
+            <circle cx="246" cy="326" r="3" fill="#1A1F4D"></circle>
+          </g>
+          <g class="drop" style="animation-delay: 1.80s">
+            <ellipse cx="420" cy="193" rx="58" ry="13" fill="#D9AE6A"></ellipse>
+            <path d="M378 192 Q380 150 420 147 Q460 150 462 192 Z" fill="#EBC88E"></path>
+            <path d="M380 180 Q420 172 460 180 L461 190 Q420 183 379 190 Z" fill="#FF6F59"></path>
+            <ellipse cx="405" cy="160" rx="10" ry="5" fill="#FFFFFF" opacity="0.5"></ellipse>
+          </g>
+          </g></g>
+          <g class="cloud"><circle cx="40" cy="430" r="80" fill="url(#gCloud)"></circle><circle cx="140" cy="410" r="70" fill="url(#gCloud)"></circle><circle cx="240" cy="425" r="80" fill="url(#gCloud)"></circle><circle cx="350" cy="400" r="64" fill="url(#gCloud)"></circle><circle cx="450" cy="420" r="80" fill="url(#gCloud)"></circle><circle cx="560" cy="405" r="70" fill="url(#gCloud)"></circle><circle cx="670" cy="425" r="84" fill="url(#gCloud)"></circle><circle cx="770" cy="410" r="72" fill="url(#gCloud)"></circle><circle cx="90" cy="470" r="70" fill="url(#gCloud)"></circle><circle cx="400" cy="470" r="80" fill="url(#gCloud)"></circle><circle cx="720" cy="470" r="80" fill="url(#gCloud)"></circle></g>
+        </svg>
+    </div>
+  </div>
+
+  <div class="wrap ticker">
+    <div class="ticker-in" id="ticker">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1A1F4D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <span id="tickerItems"><span>열린 탐험지를 불러오는 중…</span></span>
+      <span class="grow"></span>
+      <a class="pill pill-dark" href="#explore">학생</a>
+      <a class="pill pill-line" href="teacher.html">선생님</a>
+    </div>
+  </div>
+  <button class="replay" type="button" id="replay" aria-label="첫 화면 움직임 다시 보기">↻ 다시 보기</button>
+</section>
+
+<main class="wrap explore">
+  <nav class="sidenav" aria-label="탐험지 분류">
+    <span class="display" style="font-size:18px;color:var(--mint)">Explore</span>
+    <p class="lead">지금 열린 탐험과 준비 중인 탐험을 모아 두었어요.</p>
+    <div class="catlist" id="cats"></div>
+  </nav>
+  <div class="results">
+    <div class="results-head">
+      <h2 id="explore">탐험지 고르기</h2>
+      <span class="count" id="count" aria-live="polite"></span>
+      <button class="clear" type="button" id="clear" hidden>검색 지우기</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
+</main>
+
+<footer>
+  <p>© 2026 경남고등학교 수학과 최선지 선생님 · Math Land Explorers</p>
+  <p>원 저작자를 표시하면 비영리 교육 목적으로 이용할 수 있어요 (CC BY-NC 4.0).</p>
+  <p>저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</p>
+  <p>글꼴: Baloo 2, IBM Plex Sans KR (SIL Open Font License) · 서버 연결: supabase-js (MIT License)</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Supabase (공개용 열쇠만 사용) ─────────────────────────────
+const SUPABASE_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+
+// ── 카드 그림 (활동의 art 값으로 고름) ───────────────────────
+const ARTS = {"treasure": "<svg viewBox=\"0 0 240 140\" class=\"art-svg\" aria-hidden=\"true\">\n              <g stroke=\"#F0D59E\" stroke-width=\"1.5\"><path d=\"M30 0v140M60 0v140M90 0v140M120 0v140M150 0v140M180 0v140M210 0v140M0 28h240M0 56h240M0 84h240M0 112h240\"></path></g>\n              <path d=\"M76 104 C104 124 112 52 150 72 S176 56 184 50\" fill=\"none\" stroke=\"#E0533A\" stroke-width=\"3.5\" stroke-dasharray=\"7 6\" stroke-linecap=\"round\"></path>\n              <circle cx=\"186\" cy=\"46\" r=\"24\" fill=\"none\" stroke=\"#2340D0\" stroke-width=\"3\"></circle>\n              <g stroke=\"#E0533A\" stroke-width=\"5\" stroke-linecap=\"round\"><path d=\"M178 38l16 16M194 38l-16 16\"></path></g>\n              <rect x=\"26\" y=\"92\" width=\"48\" height=\"32\" rx=\"4\" fill=\"#C7782E\" stroke=\"#1A1F4D\" stroke-width=\"3\"></rect>\n              <path d=\"M26 94 Q50 72 74 94 Z\" fill=\"#E09A4A\" stroke=\"#1A1F4D\" stroke-width=\"3\" stroke-linejoin=\"round\"></path>\n              <rect x=\"46\" y=\"97\" width=\"8\" height=\"10\" rx=\"1\" fill=\"#FFC93C\" stroke=\"#1A1F4D\" stroke-width=\"2\"></rect>\n            </svg>", "jungle": "<svg viewBox=\"0 0 240 140\" class=\"art-svg\" aria-hidden=\"true\">\n              <polygon points=\"98,26 142,26 214,140 26,140\" fill=\"#F2E3C2\"></polygon>\n              <g stroke=\"#FFFFFF\" stroke-width=\"3\" stroke-dasharray=\"8 6\"><path d=\"M113 26L90 140M127 26l23 114\"></path></g>\n              <g stroke=\"#1A1F4D\" stroke-width=\"2.5\" stroke-linejoin=\"round\">\n                <path d=\"M0 0 Q52 8 42 62 Q22 40 0 52 Z\" fill=\"#2E8B57\"></path>\n                <path d=\"M0 64 Q42 72 32 122 Q12 102 0 112 Z\" fill=\"#3FA36A\"></path>\n                <path d=\"M240 0 Q188 8 198 62 Q218 40 240 52 Z\" fill=\"#2E8B57\"></path>\n                <path d=\"M240 70 Q200 80 210 130 Q228 110 240 118 Z\" fill=\"#3FA36A\"></path>\n              </g>\n              <rect x=\"84\" y=\"42\" width=\"72\" height=\"46\" rx=\"10\" fill=\"#FFFFFF\" stroke=\"#1A1F4D\" stroke-width=\"3\"></rect>\n              <text x=\"120\" y=\"66\" fill=\"#1A1F4D\" font-family=\"'Baloo 2', sans-serif\" font-weight=\"800\" font-size=\"30\" text-anchor=\"middle\" dominant-baseline=\"central\">√2</text>\n              <rect x=\"100\" y=\"110\" width=\"40\" height=\"14\" rx=\"7\" fill=\"#A0632B\" stroke=\"#1A1F4D\" stroke-width=\"2.5\"></rect>\n            </svg>", "merge": "<svg viewBox=\"0 0 240 140\" class=\"art-svg\" aria-hidden=\"true\">\n              <path d=\"M52 22 L52 126 L188 126 L188 22\" fill=\"#FFFDF4\" stroke=\"#1A1F4D\" stroke-width=\"4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"></path>\n              <line x1=\"58\" y1=\"32\" x2=\"182\" y2=\"32\" stroke=\"#E0533A\" stroke-width=\"2.5\" stroke-dasharray=\"6 5\"></line>\n              <g stroke=\"#1A1F4D\" stroke-width=\"3\">\n                <circle cx=\"152\" cy=\"98\" r=\"26\" fill=\"#FFC93C\"></circle>\n                <circle cx=\"102\" cy=\"105\" r=\"19\" fill=\"#8FB8FF\"></circle>\n                <circle cx=\"69\" cy=\"112\" r=\"12\" fill=\"#FF8F7A\"></circle>\n                <circle cx=\"120\" cy=\"52\" r=\"12\" fill=\"#FF8F7A\"></circle>\n              </g>\n              <g fill=\"#1A1F4D\" font-family=\"'Baloo 2', sans-serif\" font-weight=\"800\" text-anchor=\"middle\" dominant-baseline=\"central\">\n                <text x=\"152\" y=\"99\" font-size=\"24\">8</text><text x=\"102\" y=\"106\" font-size=\"19\">4</text><text x=\"69\" y=\"113\" font-size=\"14\">2</text><text x=\"120\" y=\"53\" font-size=\"14\">2</text>\n              </g>\n            </svg>"};
+
+// ── 서버에 연결이 안 될 때 쓰는 기본 목록 ──────────────────────
+const FALLBACK = [
+  { slug:'treasure', title:'보물을 찾아라', summary:'도형의 방정식으로 일곱 개의 미션을 풀고, 마지막에 보물상자를 열어요.', grade_group:'high', grade_label:'고1 공통수학', unit:'도형의 방정식', mode:'eval', mode_label:'수행평가', status:'open', entry_url:null, art:'treasure', theme:'#FFE7B8', keywords:'보물 도형의 방정식 원 직선 고1 공통수학 고등학교 수행평가 미션', due_text:'[마감 날짜]' },
+  { slug:'jungle-run', title:'무리수 사냥', summary:'정글을 달리며 무리수만 골라 먹고 1000 m 보물상자까지 가요.', grade_group:'mid', grade_label:'중3 복습', unit:'제곱근과 실수', mode:'free', mode_label:'자유 도전', status:'open', entry_url:'jungle-run.html', art:'jungle', theme:'#D9F2DC', keywords:'무리수 사냥 제곱근 실수 근호 중3 중학교 복습 자유 도전 게임 달리기', due_text:'[도전 기한]' },
+  { slug:'power-merge', title:'거듭제곱 합치기', summary:'같은 수끼리 닿으면 하나로 합쳐져요. 통이 넘치기 전에 1024를 만들어요.', grade_group:'mid', grade_label:'중2 복습', unit:'지수법칙', mode:'free', mode_label:'자유 도전', status:'soon', entry_url:null, art:'merge', theme:'#FFF1C2', keywords:'거듭제곱 합치기 지수법칙 2048 중2 중학교 복습 준비 중 게임', due_text:'곧 열려요' }
+];
+
+const CATS = [['all','전체 탐험지'],['high','고등학교'],['mid','중학교 복습'],['eval','수행평가'],['free','자유 도전'],['soon','준비 중']];
+const TAGBG = { eval:'#FFD9D2', free:'#CDEFE0', class:'#DDE6FF', soon:'#E6E8F2' };
+
+let activities = FALLBACK;
+const params = new URLSearchParams(location.search);
+let cat = CATS.some(c => c[0] === params.get('cat')) ? params.get('cat') : 'all';
+let q = params.get('q') || '';
+
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function matches(a) {
+  const okCat = cat === 'all' || cat === a.grade_group || cat === a.mode || (cat === 'soon' && a.status === 'soon');
+  const hay = [a.title, a.summary, a.grade_label, a.unit, a.mode_label, a.keywords].join(' ').toLowerCase();
+  const okQ = !q.trim() || hay.includes(q.trim().toLowerCase());
+  return okCat && okQ;
+}
+
+function cardHtml(a) {
+  const soon = a.status !== 'open' || !a.entry_url;
+  const tagKey = a.status === 'soon' ? 'soon' : a.mode;
+  const tagText = a.status === 'soon' ? '준비 중' : (a.mode_label || '');
+  const inner = `
+    <div class="art" style="background:${esc(a.theme || '#EEF2FF')}">
+      ${ARTS[a.art] || ''}
+      ${a.status === 'soon' ? '<span class="badge">준비 중</span>' : ''}
+    </div>
+    <div class="body">
+      <span class="title">${esc(a.title)}</span>
+      <span class="desc">${esc(a.summary)}</span>
+    </div>
+    <div class="foot">
+      <span class="when">${esc(a.due_text || '')}</span>
+      <span class="tag" style="background:${TAGBG[tagKey] || '#E6E8F2'}">${esc(tagText)}</span>
+    </div>`;
+  return soon
+    ? `<div class="card" style="cursor:default" aria-label="${esc(a.title)} (준비 중)">${inner}</div>`
+    : `<a class="card" href="${esc(a.entry_url)}">${inner}</a>`;
+}
+
+function render() {
+  // 분류 버튼
+  $('cats').innerHTML = CATS.map(([id, label]) =>
+    `<button type="button" class="cat" data-cat="${id}" aria-pressed="${cat === id}">${label}</button>`).join('');
+  // 카드
+  const shown = activities.filter(matches);
+  let html = shown.map(cardHtml).join('');
+  if (q.trim() && shown.length === 0) {
+    html = `<div class="none"><span style="font-weight:700;font-size:18px">「${esc(q.trim())}」에 맞는 탐험지가 아직 없어요</span><span style="font-size:15px;color:var(--ink2)">단원 이름이나 학년으로 다시 찾아보세요. 예: 무리수, 도형, 고1</span></div>`;
+  }
+  if (!q.trim() && (cat === 'all' || cat === 'soon')) {
+    html += `<div class="empty"><span class="q display">?</span><span style="font-weight:700;font-size:17px;color:var(--ink2)">다음 탐험지 준비 중</span></div>`;
+  }
+  $('grid').innerHTML = html;
+  $('count').textContent = q.trim() ? `${shown.length}개 찾았어요` : `${shown.length}개의 탐험지`;
+  $('clear').hidden = !q.trim();
+  $('q').value = q;
+  // 주소에 남기기 (링크로 나눠 줄 수 있게)
+  const p = new URLSearchParams();
+  if (cat !== 'all') p.set('cat', cat);
+  if (q.trim()) p.set('q', q.trim());
+  history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : '') + (location.hash || ''));
+}
+
+function renderTicker() {
+  const open = activities.filter(a => a.status === 'open' && a.due_text);
+  const items = open.slice(0, 2).map(a => `<span><b>${esc(a.due_text)}</b> ${esc(a.title)} ${esc(a.mode_label || '')}</span>`);
+  $('tickerItems').innerHTML = items.length ? items.join('<span class="sep" aria-hidden="true"></span>') : '<span>지금 열린 탐험지가 없어요.</span>';
+}
+
+// 이벤트
+$('cats').addEventListener('click', (e) => { const b = e.target.closest('.cat'); if (!b) return; cat = b.dataset.cat; render(); });
+$('q').addEventListener('input', (e) => { q = e.target.value; render(); });
+$('searchForm').addEventListener('submit', (e) => { e.preventDefault(); render(); $('explore').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('clear').addEventListener('click', () => { q = ''; render(); $('q').focus(); });
+$('replay').addEventListener('click', () => {
+  const hero = $('hero');
+  hero.querySelectorAll('.roll,.drop,.cloud,.conf,.ttl,.after').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+});
+
+// 서버에서 활동 목록 읽기 (실패하면 기본 목록 그대로)
+async function load() {
+  render(); renderTicker();
+  try {
+    if (typeof supabase === 'undefined') throw new Error('supabase-js를 불러오지 못했어요');
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // 0~7 선택지 만들기
-    const sel = document.getElementById('solved');
-    for (let i = 0; i <= 7; i++) sel.add(new Option(i + '개', i));
-
-    // ② [기록 저장하기]를 누르면 Supabase 표에 한 줄 추가
-    document.getElementById('form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const msg = document.getElementById('msg');
-      const btn = document.getElementById('btn');
-      const studentNo = document.getElementById('no').value.trim();
-      const name = document.getElementById('name').value.trim();
-
-      if (!/^[0-9]{4,5}$/.test(studentNo)) {
-        msg.className = 'err'; msg.textContent = '학번은 숫자 4~5자리로 써 주세요.'; return;
-      }
-
-      btn.disabled = true; msg.className = ''; msg.textContent = '저장 중…';
-      const { error } = await sb.from('practice_records').insert({
-        student_no: studentNo, name: name, solved: Number(sel.value)
-      });
-      btn.disabled = false;
-
-      if (error) {
-        msg.className = 'err'; msg.textContent = '저장하지 못했어요: ' + error.message;
-      } else {
-        msg.className = 'ok'; msg.textContent = '✅ 저장되었어요!';
-        e.target.reset();
-      }
-    });
-  </script>
+    const { data, error } = await sb.rpc('land_list_activities');
+    if (error) throw error;
+    if (Array.isArray(data) && data.length) { activities = data; render(); renderTicker(); $('status').textContent = ''; }
+  } catch (err) {
+    console.warn('활동 목록을 서버에서 읽지 못해 기본 목록을 보여 줍니다.', err);
+    $('status').textContent = '서버와 연결되지 않아 기본 목록을 보여 주고 있어요.';
+  }
+}
+load();
+</script>
 </body>
 </html>
