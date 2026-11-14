@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<base target="_top">
+<title>보물을 찾아라</title>
+<meta name="author" content="경남고등학교 수학과 최선지">
+<meta name="copyright" content="© 2026 경남고등학교 수학과 최선지 선생님. CC BY-NC 4.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.108.2/mathlive.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../../common/land.js"></script>
+<style>
+/* 탐험 일지 — 바다빛 표지 + 모래빛 지면 + 황동 포인트. 한 가지 테마로 고정 */
+:root{
+  --ink:#1d2a2f; --ink-soft:#4b5b60;
+  --sea:#0e5a68; --sea-deep:#0a3640; --sea-light:#d5ecee;
+  --sand:#efe4c6; --paper:#fbf4e1; --paper-edge:#e2d1a4;
+  --brass:#c48a1c; --brass-deep:#94650c;
+  --leaf:#2c8a4a; --leaf-bg:#e2f3e5; --coral:#c9472f; --coral-bg:#fbe7e1;
+  --display:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  --r:14px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--sand);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;
+  background-image:radial-gradient(circle at 20% 10%,rgba(255,255,255,.45),transparent 40%),radial-gradient(circle at 85% 80%,rgba(196,138,28,.10),transparent 45%);
+  -webkit-text-size-adjust:100%;}
+button{font-family:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.25;text-wrap:balance;margin:0}
+.app{min-height:100%;display:flex;flex-direction:column}
+
+/* 상단 바 */
+.topbar{position:sticky;top:0;z-index:30;background:var(--sea-deep);color:#f4ead0;
+  padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 2px 0 var(--brass)}
+.topbar .brand{font-family:var(--display);font-size:22px;letter-spacing:.5px;white-space:nowrap}
+.topbar .who{font-size:14px;opacity:.85;white-space:nowrap}
+.topbar .spacer{flex:1}
+.progress{display:flex;gap:6px;flex-wrap:wrap}
+.chip{min-width:34px;height:30px;border-radius:15px;border:1.5px solid rgba(244,234,208,.45);display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;padding:0 8px;color:#f4ead0;background:transparent;cursor:pointer}
+.chip.map{background:#f4ead0;color:var(--sea-deep);border-color:#f4ead0;font-weight:700}
+.chip.done{background:var(--brass);border-color:var(--brass);color:#fff}
+.chip.here{outline:2px solid #fff;outline-offset:1px}
+.demo-flag{background:var(--coral);color:#fff;font-size:12px;padding:2px 8px;border-radius:6px}
+
+/* 본문 */
+.main{flex:1;width:100%;max-width:1320px;margin:0 auto;padding-block:18px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.screen-title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.screen-title .tag{font-family:var(--display);color:var(--brass-deep);font-size:18px}
+.screen-title h2{font-size:28px}
+
+.two{display:grid;grid-template-columns:minmax(300px,0.9fr) 1.25fr;gap:20px;align-items:start}
+.two>*{min-width:0}
+@media (min-width:901px){.two>.panel:last-child{position:sticky;top:64px}}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+
+/* 단서 카드 (두루마리) */
+.clue{background:var(--paper);border:1px solid var(--paper-edge);border-radius:6px;padding:16px 18px;position:relative;
+  box-shadow:0 1px 0 rgba(0,0,0,.04),0 8px 18px -12px rgba(60,40,0,.35)}
+.clue::before,.clue::after{content:"";position:absolute;left:-6px;right:-6px;height:12px;background:var(--paper-edge);border-radius:6px}
+.clue::before{top:-6px}.clue::after{bottom:-6px}
+.clue h3{font-size:19px;color:var(--brass-deep);margin-bottom:6px}
+.clue p{margin:.2em 0}
+.clue b{color:var(--sea-deep)}
+.panel{display:flex;flex-direction:column;gap:14px}
+.task{font-weight:700}
+.note{font-size:14px;color:var(--ink-soft)}
+.rules{margin:0;padding-left:20px}
+.rules li{margin:2px 0}
+.rules li.bad{color:var(--coral);font-weight:700}
+.rules li.good{color:var(--leaf)}
+
+/* 그래프 */
+.graph{position:relative;width:100%;background:#fff;border-radius:10px;overflow:hidden;
+  border:3px solid #7a5a22;box-shadow:inset 0 0 0 2px #e8cf8f,0 10px 22px -14px rgba(0,0,0,.5);touch-action:none}
+.graph canvas{display:block;width:100%;height:100%}
+.graph .gtools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.gbtn{background:var(--sea);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:16px;cursor:pointer}
+.gbtn.alt{background:#fff;color:var(--sea);border:1.5px solid var(--sea)}
+
+/* 입력 */
+.answer{display:flex;flex-direction:column;gap:8px}
+.ans-row{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.ans-row .lbl{display:flex;align-items:center;font-family:var(--display);font-size:18px;min-width:2.2em}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px}
+math-field,.mf-fallback{flex:1;min-width:180px;font-size:22px;border:2px solid #c9b47c;border-radius:10px;background:#fff;padding:6px 10px;
+  --caret-color:var(--sea);--selection-background-color:var(--sea-light);--primary:var(--sea)}
+math-field:focus-within,.mf-fallback:focus{outline:3px solid rgba(14,90,104,.35);border-color:var(--sea)}
+math-field::part(menu-toggle){display:none}
+math-field::part(virtual-keyboard-toggle){display:none}
+.mf-fallback{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px}
+.btn{background:var(--sea);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-size:17px;cursor:pointer;min-height:46px;font-family:var(--display);letter-spacing:.3px}
+.btn:hover{background:var(--sea-deep)}
+.btn:focus-visible,.chip:focus-visible,.gbtn:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.btn.brass{background:var(--brass)}.btn.brass:hover{background:var(--brass-deep)}
+.btn.ghost{background:transparent;color:var(--sea);border:2px solid var(--sea)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.small{min-height:38px;padding:6px 12px;font-size:15px}
+.fb{border-radius:10px;padding:10px 14px;font-weight:700}
+.fb.ok{background:var(--leaf-bg);color:var(--leaf);border:1.5px solid #9fd1ad}
+.fb.no{background:var(--coral-bg);color:var(--coral);border:1.5px solid #efb4a5}
+.fb.info{background:var(--sea-light);color:var(--sea-deep)}
+.solved-banner{display:flex;align-items:center;gap:14px;background:var(--leaf);color:#fff;border-radius:12px;padding:12px 16px;flex-wrap:wrap}
+.solved-banner .stamp{font-family:var(--display);font-size:24px;border:3px solid #fff;border-radius:10px;padding:2px 10px;transform:rotate(-6deg);animation:stamp .5s ease-out}
+@keyframes stamp{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:scale(1) rotate(-6deg);opacity:1}}
+.solved-banner .sp{flex:1;min-width:140px}
+
+/* 표 (미션5) */
+table.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+.tbl th,.tbl td{border:1px solid #d9c99a;padding:8px;vertical-align:middle}
+.tbl th{background:#f3e7c4;font-weight:700;text-align:left;width:38%}
+.tbl td math-field,.tbl td .mf-fallback{width:100%;min-width:0}
+.tbl td.ok{background:var(--leaf-bg)}.tbl td.no{background:var(--coral-bg)}
+
+/* 하단 내비 */
+.navbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(10,54,64,.96);display:flex;justify-content:center;gap:10px;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.navbar .btn{min-width:110px;background:#f4ead0;color:var(--sea-deep)}
+.navbar .btn.home{background:var(--brass);color:#fff}
+
+/* 로그인 */
+.login-wrap{min-height:100%;display:grid;place-items:center;padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:linear-gradient(180deg,var(--sea-deep),var(--sea) 60%,#3c8d8f)}
+.login{width:min(460px,100%);background:var(--paper);border-radius:16px;padding:26px 24px;box-shadow:0 20px 40px -20px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px}
+.login h1{font-size:34px;color:var(--sea-deep)}
+.login .sub{color:var(--ink-soft);margin-top:-6px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-weight:700;font-size:15px}
+.field input{font-size:20px;padding:10px 12px;border:2px solid #c9b47c;border-radius:10px;background:#fff;font-family:inherit}
+.field input:focus{outline:3px solid rgba(14,90,104,.3);border-color:var(--sea)}
+.login-hero{display:flex;align-items:center;gap:14px}
+.login-hero img{width:64px}
+
+/* 안내 · 문 */
+.intro{max-width:760px;margin:0 auto;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.intro p{margin:0;font-size:19px}
+.intro .boy{width:120px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.25))}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #d9c99a;border-radius:10px;padding:10px 14px;cursor:pointer;font-size:17px;text-align:left}
+.choice:hover{border-color:var(--sea)}
+.choice.sel{border-color:var(--sea);background:var(--sea-light)}
+.scene{width:100%;border-radius:10px;border:3px solid #7a5a22;display:block}
+.painting-caption{background:#111;color:#fff;text-align:center;font-family:var(--display);font-size:18px;padding:6px}
+
+/* 지도(허브) */
+.hub{position:relative;width:100%;max-width:1100px;margin:0 auto;border-radius:14px;overflow:hidden;border:3px solid #7a5a22;background:#fff}
+.hub img.base{display:block;width:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:0;background:none;padding:0}
+.pin .flag{background:var(--sea-deep);color:#fff;font-family:var(--display);font-size:clamp(11px,1.5vw,16px);padding:3px 9px;border-radius:9px;white-space:nowrap;box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.pin.done .flag{background:var(--brass)}
+.pin .stem{width:3px;height:14px;background:var(--sea-deep)}
+.pin.done .stem{background:var(--brass)}
+.hub .walker{position:absolute;width:4.2%;transform:translate(-50%,-92%);pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.35))}
+.hub-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* 걷기 장면 */
+.walk{position:fixed;inset:0;z-index:60;background:rgba(6,30,36,.86);display:grid;place-items:center;padding:16px}
+.walk .stage{position:relative;width:min(1100px,100%);border-radius:14px;overflow:hidden;border:3px solid var(--brass)}
+.walk .stage img.base{display:block;width:100%}
+.walk .walker{position:absolute;width:4.6%;transform:translate(-50%,-92%);filter:drop-shadow(0 4px 3px rgba(0,0,0,.35))}
+.walk .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;font-family:var(--display);font-size:clamp(16px,2.4vw,26px);padding:28px 18px 14px;text-align:center}
+.walk .skip{position:absolute;right:12px;top:12px}
+@media (prefers-reduced-motion:reduce){.solved-banner .stamp{animation:none}}
+
+/* 테셀레이션 */
+.tess-types{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.ttype{background:#fff;border:2px solid #d9c99a;border-radius:12px;padding:10px;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
+.ttype canvas{width:100%;aspect-ratio:1;border-radius:8px;background:#fffdf6}
+.ttype.sel{border-color:var(--sea);box-shadow:0 0 0 3px var(--sea-light)}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tool{width:44px;height:44px;border-radius:10px;border:2px solid #d9c99a;background:#fff;cursor:pointer;font-size:18px;display:grid;place-items:center}
+.tool.sel{border-color:var(--sea);background:var(--sea-light)}
+.swatch{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #d9c99a;cursor:pointer}
+.swatch.sel{box-shadow:0 0 0 3px var(--sea)}
+.tess-canvas{width:100%;max-width:640px;aspect-ratio:1;background:#fffdf6;border:3px solid #7a5a22;border-radius:10px;touch-action:none;display:block}
+
+/* 마무리 */
+.slider-card{background:#fff;border:2px solid #d9c99a;border-radius:12px;padding:14px 16px}
+.slider-card input[type=range]{width:100%;accent-color:var(--sea)}
+.slider-card .val{font-family:var(--display);font-size:20px;color:var(--sea-deep);text-align:center}
+textarea{width:100%;min-height:120px;font:inherit;font-size:17px;border:2px solid #c9b47c;border-radius:10px;padding:10px;background:#fff}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.summary .s{background:#fff;border:1.5px solid #d9c99a;border-radius:10px;padding:8px 10px;font-size:15px}
+.summary .s b{font-family:var(--display);font-weight:400;font-size:17px;display:block}
+.summary .s.done{border-color:#9fd1ad;background:var(--leaf-bg)}
+.letter{max-width:980px;margin:0 auto;border-radius:12px;overflow:hidden;border:3px solid var(--brass)}
+.letter img{display:block;width:100%}
+
+.loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--sea-deep);color:#f4ead0;z-index:80;font-family:var(--display);font-size:22px;text-align:center;padding:16px}
+.loading .bar{width:min(320px,80vw);height:10px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden;margin:12px auto 0}
+.loading .bar i{display:block;height:100%;background:var(--brass);width:0;transition:width .2s}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 16px;border-radius:20px;z-index:90;font-size:15px}
+.hint{font-size:15px;background:#fff7dd;border:1.5px dashed var(--brass);border-radius:10px;padding:8px 12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+@media (max-width:900px){.two>.panel:last-child{order:-1}}
+@media (max-width:700px){.topbar{position:static}.topbar .brand{font-size:19px}}
+
+.walk .stage.scene2{width:min(860px,100%)}
+.walk .tele{position:absolute;width:7%;transform:translate(-50%,-50%);filter:drop-shadow(0 0 10px #fff6a8);animation:glow .7s ease-in-out infinite alternate}
+@keyframes glow{from{filter:drop-shadow(0 0 4px #fff6a8)}to{filter:drop-shadow(0 0 16px #ffe14d)}}
+.ans-row .mark{min-width:4.2em;font-size:15px;color:var(--leaf)}
+
+.slider-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.slider-row input{flex:1}
+.face{font-size:34px;line-height:1}
+.face-now{font-size:52px;text-align:center;line-height:1.1}
+.two.even{grid-template-columns:1fr 1fr}
+@media (max-width:900px){.two.even{grid-template-columns:1fr}.two.even>.panel:last-child{order:0}}
+.below{margin-top:16px;max-width:1100px;margin-inline:auto}
+.below.narrow{max-width:min(900px,calc((100vh - 90px) * 1.15))}
+@media (max-width:900px){.below.narrow{max-width:100%}}
+/* 수식 자판 */
+.keypad{position:fixed;left:0;right:0;bottom:0;z-index:70;background:#1f3f47;padding:8px max(8px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px;align-items:center;box-shadow:0 -6px 18px rgba(0,0,0,.25)}
+.kp-row{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;width:min(820px,100%)}
+.kp-key{min-height:46px;border:0;border-radius:9px;background:#f4ead0;color:var(--sea-deep);font-size:20px;font-family:'Times New Roman',Georgia,serif;font-style:normal;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.kp-key.num{background:#fff}
+.kp-key.fn{background:var(--brass);color:#fff;font-family:var(--display);font-size:16px}
+.kp-key:active{transform:translateY(1px);filter:brightness(.92)}
+body.kp-open .main{padding-bottom:280px}
+.lbl.eq0{min-width:auto;font-family:'Times New Roman',Georgia,serif;font-size:22px}
+@media (max-width:520px){.kp-key{min-height:40px;font-size:16px}.kp-key.fn{font-size:13px}}
+
+.tess-types{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.toolbar .tool{width:auto;min-width:52px;height:52px;padding:2px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1.1}
+.toolbar .tool small{font-size:11px;color:var(--ink-soft)}
+.tb-sep{width:1px;height:36px;background:#d9c99a;margin:0 4px}
+.wsel{height:44px;border-radius:10px;font-size:16px;border:2px solid #d9c99a;background:#fff;padding:0 6px}
+.tess-work{display:grid;grid-template-columns:minmax(0,640px) minmax(240px,1fr);gap:18px;align-items:start}
+.tess-work>*{min-width:0}
+.tess-canvas.erasing{cursor:cell}
+.tess-form .field input{font-size:18px}
+.tess-form textarea{min-height:150px}
+@media (max-width:900px){.tess-work{grid-template-columns:1fr}}
+
+/* 표지 */
+.title-wrap{min-height:100%;display:grid;place-items:center;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:radial-gradient(circle at 30% 20%,#3a6f74,#0a3640 70%)}
+.title-card{position:relative;width:min(1030px,100%);border-radius:16px;overflow:hidden;box-shadow:0 24px 50px -20px rgba(0,0,0,.7);border:4px solid #c48a1c;background:#efe4c6}
+.title-img{display:block;width:100%;height:auto}
+.title-fallback{padding:60px 24px 120px;font-size:40px;color:#1d2a2f}
+.title-start{position:absolute;left:7%;bottom:9%;font-size:clamp(16px,2.4vw,26px);padding:.55em 1.3em;min-height:0;border-radius:999px;box-shadow:0 8px 18px -6px rgba(0,0,0,.55);animation:pulse 1.8s ease-in-out infinite}
+.title-start[disabled]{opacity:.9;animation:none}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@media (prefers-reduced-motion:reduce){.title-start{animation:none}}
+@media (max-width:520px){.title-start{position:static;display:block;width:calc(100% - 24px);margin:12px auto}}
+.title-wrap,.login-wrap{min-height:100vh;min-height:100dvh}
+
+/* 보물상자 열리는 장면 */
+.cs-stage{position:relative;max-width:980px;margin:0 auto;aspect-ratio:16/10;border-radius:14px;overflow:hidden;border:3px solid var(--brass);background:radial-gradient(ellipse at 50% 70%,#3c2a12 0%,#1a1208 55%,#0b0804 100%);display:grid;place-items:center}
+.cs-stage .skip{position:absolute;right:12px;top:12px;z-index:5}
+.cs-chest{position:relative;width:42%;aspect-ratio:600/475;margin-top:12%;animation:cs-shake .9s ease-in-out 2 both}
+.cs-chest img{position:absolute;inset:0;width:100%;height:100%}
+.cs-base{clip-path:polygon(0 37.5%,23.3% 48%,55.8% 44.6%,71.7% 43.2%,100% 39.2%,100% 100%,0 100%)}
+.cs-lid{clip-path:polygon(0 0,100% 0,100% 39.2%,71.7% 43.2%,55.8% 44.6%,23.3% 48%,0 37.5%);transform-origin:50% 8%;transition:transform 1s cubic-bezier(.2,1.4,.4,1);z-index:3}
+.cs-light{position:absolute;left:12%;right:6%;top:30%;height:22%;border-radius:50%;background:radial-gradient(ellipse,#fff6c9 0%,#ffd54a 35%,rgba(255,170,0,0) 70%);opacity:0;transform:scale(.4);transition:opacity .6s .15s,transform 1s .15s;z-index:2}
+.cs-glow{position:absolute;width:70%;aspect-ratio:1;border-radius:50%;top:15%;background:radial-gradient(circle,rgba(255,220,120,.55),rgba(255,180,40,0) 65%);opacity:0;transform:scale(.3);transition:opacity .9s .2s,transform 1.4s .2s}
+.cs-rays{position:absolute;width:140%;aspect-ratio:1;top:-30%;background:repeating-conic-gradient(from 0deg,rgba(255,215,90,.22) 0 8deg,rgba(255,215,90,0) 8deg 22deg);border-radius:50%;opacity:0;transition:opacity 1.2s .3s;animation:cs-spin 18s linear infinite;-webkit-mask:radial-gradient(circle,#000 25%,transparent 65%);mask:radial-gradient(circle,#000 25%,transparent 65%)}
+.cs-p{position:absolute;left:50%;top:40%;width:5%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff8d0,var(--c) 55%,#a86f00);box-shadow:0 0 8px rgba(255,210,80,.8);opacity:0;z-index:4}
+.cs-p.gem{border-radius:2px;transform:rotate(45deg);background:linear-gradient(135deg,#fff,var(--c));width:4%}
+.cs-cap{position:absolute;left:0;right:0;bottom:6%;text-align:center;color:#ffe9a8;font-family:var(--display);font-size:clamp(18px,3.4vw,34px);text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.cs-stage.open .cs-chest{animation:none}
+.cs-stage.open .cs-lid{transform:translateY(-34%) rotate(-16deg) scaleY(.82)}
+.cs-stage.open .cs-light{opacity:1;transform:scale(1.15)}
+.cs-stage.open .cs-glow{opacity:1;transform:scale(1.4)}
+.cs-stage.open .cs-rays{opacity:1}
+.cs-stage.open .cs-p{animation:cs-burst 1.6s cubic-bezier(.15,.8,.35,1) var(--d) forwards}
+@keyframes cs-shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-3deg) translateY(-2%)}40%{transform:rotate(3deg)}60%{transform:rotate(-2deg) translateY(-1%)}80%{transform:rotate(1.5deg)}}
+@keyframes cs-burst{0%{opacity:0;transform:translate(-50%,0) scale(.3)}12%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(var(--dy) + 160px)) rotate(var(--r)) scale(1)}}
+@keyframes cs-spin{to{transform:rotate(360deg)}}
+.letter.rise{animation:cs-rise .9s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes cs-rise{from{opacity:0;transform:translateY(18%) scale(.35)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.cs-rays{animation:none}}
+
+/* 입력칸 + 자판 버튼 */
+.mf-wrap{position:relative;flex:1;min-width:180px;display:flex}
+.mf-wrap>math-field,.mf-wrap>.mf-fallback{flex:1;min-width:0;padding-right:54px}
+.tbl td .mf-wrap{width:100%;min-width:0}
+.kp-toggle{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:42px;height:34px;border-radius:8px;border:1.5px solid #c9b47c;background:#f4ead0;color:var(--sea-deep);font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;z-index:2}
+.kp-toggle:hover{background:#efe0b5}
+.mf-wrap.kp-on .kp-toggle{background:var(--sea);border-color:var(--sea);color:#fff}
+.mf-wrap.kp-on>math-field{border-color:var(--sea)}
+.lbl.m6name{font-family:var(--display);font-size:18px;min-width:5.2em;white-space:nowrap}
+
+/* ===== 태블릿 작업 화면 (데스모스형): 가로 = 왼쪽 문제·입력 | 오른쪽 그래프, 세로 = 위 그래프 | 아래 문제·입력 ===== */
+.main.ws{flex:none;min-height:0;max-width:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(340px,42%) minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:calc(100vh - var(--topH,56px));height:calc(100dvh - var(--topH,56px));overflow:hidden}
+.ws-panel{display:flex;flex-direction:column;min-height:0;min-width:0;border-right:2px solid #d9c99a;background:rgba(251,244,225,.6)}
+.ws-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px 16px 28px}
+.ws-dock{flex:none}
+.ws-graph{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden}
+.ws-graph .graph{flex:none;max-width:100%}
+.ws-scroll .two,.ws-scroll .two.even{grid-template-columns:minmax(0,1fr)!important;gap:14px}
+.ws-scroll .two>.panel,.ws-scroll .two>.panel:last-child{position:static!important;order:0!important}
+.ws-scroll .screen-title{margin-bottom:10px}
+.ws-scroll .screen-title h2{font-size:24px}
+.ws-scroll .scene{max-height:40vh;object-fit:contain}
+body.kp-open .main.ws{padding-bottom:0}
+.keypad.docked{position:static;padding:6px 8px 8px;gap:4px;box-shadow:0 -4px 12px rgba(0,0,0,.18)}
+.keypad.docked .kp-row{width:100%;gap:4px}
+.keypad.docked .kp-key{min-height:40px;font-size:17px;border-radius:7px;white-space:nowrap;padding:0;min-width:0}
+.keypad.docked .kp-row .kp-key:not(.num):not(.fn){font-size:15px}
+.keypad.docked .kp-key.fn{font-size:13px}
+@media (orientation:portrait){
+  .main.ws{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,46%) minmax(0,1fr)}
+  .ws-graph{order:-1;border-bottom:2px solid #d9c99a}
+  .ws-panel{border-right:0}
+}
+@media (max-height:560px) and (orientation:landscape){.keypad.docked .kp-key{min-height:32px;font-size:15px}}
+
+/* 반 마감 안내 */
+.closed-ov{position:fixed;inset:0;z-index:200;background:rgba(6,30,36,.82);display:grid;place-items:center;padding:16px}
+.closed-card{background:var(--paper);border:3px solid var(--brass);border-radius:16px;padding:26px 24px;max-width:440px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.closed-card h2{font-size:26px;color:var(--sea-deep)}
+.closed-card p{margin:0}
+.closed-ic{font-size:48px;line-height:1}
+
+/* 저작권 표시 */
+.copyright{max-width:1030px;margin:18px auto 0;text-align:center;font-size:12.5px;line-height:1.6;color:var(--ink-soft)}
+.copyright p{margin:0}
+.copyright .cr1{font-weight:700;font-size:13.5px;color:var(--ink)}
+.copyright .cr3{opacity:.8;font-size:11.5px}
+.title-wrap .copyright{color:rgba(244,234,208,.85);margin-top:14px}
+.title-wrap .copyright .cr1{color:#f4ead0}
+
+</style>
+</head>
+<body>
+<div id="root"><div id="boot-msg" style="padding:24px;font-size:18px;color:#0a3640;font-family:sans-serif">보물지도를 펼치는 중… <span style="color:#888;font-size:13px">(v2.0 · Math Land Explorers)</span><div id="boot-err" style="color:#c9472f;font-size:14px;white-space:pre-wrap;margin-top:12px"></div></div></div>
+<script>
+window.TM_STAGE = 'diag';
+window.TM_showErr = function (m) { try { var b = document.getElementById('boot-err'); if (!b) { b = document.createElement('div'); b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99;background:#fff3f0;color:#c9472f;font:13px sans-serif;padding:8px;white-space:pre-wrap'; document.body.appendChild(b); } b.textContent += '[오류] ' + m + '\n'; } catch (e) { } };
+window.addEventListener('error', function (e) { window.TM_showErr((e.message || '스크립트 오류') + (e.filename ? ' @ ' + e.lineno + ':' + e.colno : '') + ' / 단계: ' + window.TM_STAGE); });
+window.addEventListener('unhandledrejection', function (e) { var r = e.reason; window.TM_showErr('비동기: ' + (r && (r.message || r)) + ' / 단계: ' + window.TM_STAGE); });
+setTimeout(function () { if (window.TM_STAGE === 'diag') window.TM_showErr('앱 스크립트가 실행되지 않았어요 (단계: diag)'); }, 6000);
+</script>
+<img id="tm-chest-src" hidden alt="" src="img/chest_open.webp"><img id="tm-title-src" hidden alt="" src="img/title_cover.webp">
+<script>
+window.TM_STAGE='core';
+/* ===== 보물을 찾아라 : 수식 해석 · 음함수 그래프 · 채점 엔진 ===== */
+(function (G) {
+  'use strict';
+
+  /* ---------- LaTeX → 일반 수식 문자열 ---------- */
+  function readGroup(s, i) {
+    // s[i] === '{'  → returns [content, nextIndex]
+    if (s[i] !== '{') {
+      // single token (e.g. ^2 or \frac12)
+      if (s[i] === '\\') {
+        let j = i + 1;
+        while (j < s.length && /[a-zA-Z]/.test(s[j])) j++;
+        return [s.slice(i, j), j];
+      }
+      return [s[i] || '', i + 1];
+    }
+    let depth = 0, j = i;
+    for (; j < s.length; j++) {
+      if (s[j] === '{') depth++;
+      else if (s[j] === '}') { depth--; if (depth === 0) break; }
+    }
+    return [s.slice(i + 1, j), j + 1];
+  }
+
+  function latexToPlain(tex) {
+    if (tex == null) return '';
+    let s = String(tex);
+    s = s.replace(/\\left|\\right|\\bigl|\\bigr|\\Bigl|\\Bigr/g, '');
+    s = s.replace(/\\placeholder\{[^}]*\}|\\placeholder/g, '');
+    s = s.replace(/\\(mathrm|operatorname|text|mathit|textrm)\{([^}]*)\}/g, '$2');
+    s = s.replace(/\\[,;:! ]|\\quad|\\qquad|~/g, '');
+    s = s.replace(/\\cdot|\\times/g, '*').replace(/\\div/g, '/');
+    s = s.replace(/\\pi/g, 'pi').replace(/\\lbrace|\\\{/g, '(').replace(/\\rbrace|\\\}/g, ')');
+    s = s.replace(/\\lbrack/g, '(').replace(/\\rbrack/g, ')');
+    s = s.replace(/\\le|\\leq/g, '<=').replace(/\\ge|\\geq/g, '>=');
+    s = s.replace(/[−–]/g, '-').replace(/\\imaginaryI/g, 'i').replace(/\\exponentialE/g, 'e');
+    let out = '', i = 0;
+    while (i < s.length) {
+      if (s.startsWith('\\dfrac', i) || s.startsWith('\\tfrac', i) || s.startsWith('\\frac', i)) {
+        i += s.startsWith('\\frac', i) ? 5 : 6;
+        while (s[i] === ' ') i++;
+        const [a, i2] = readGroup(s, i); let k = i2; while (s[k] === ' ') k++;
+        const [b, i3] = readGroup(s, k);
+        out += '((' + latexToPlain(a) + ')/(' + latexToPlain(b) + '))';
+        i = i3; continue;
+      }
+      if (s.startsWith('\\sqrt', i)) {
+        i += 5; let n = null;
+        if (s[i] === '[') { const e = s.indexOf(']', i); n = s.slice(i + 1, e); i = e + 1; }
+        const [a, i2] = readGroup(s, i);
+        out += n ? 'root(' + latexToPlain(a) + ',' + latexToPlain(n) + ')' : 'sqrt(' + latexToPlain(a) + ')';
+        i = i2; continue;
+      }
+      if (s[i] === '^') {
+        i++; while (s[i] === ' ') i++;
+        const [a, i2] = readGroup(s, i);
+        out += '^(' + latexToPlain(a) + ')'; i = i2; continue;
+      }
+      if (s[i] === '_') { const [, i2] = readGroup(s, i + 1); i = i2; continue; }
+      if (s[i] === '{') { out += '('; i++; continue; }
+      if (s[i] === '}') { out += ')'; i++; continue; }
+      if (s[i] === '\\') { // unknown command → drop
+        let j = i + 1; while (j < s.length && /[a-zA-Z]/.test(s[j])) j++;
+        const cmd = s.slice(i + 1, j);
+        if (cmd === 'sqrt') { i = j; continue; }
+        out += ' '; i = j; continue;
+      }
+      out += s[i]; i++;
+    }
+    return out;
+  }
+
+  /* ---------- 토크나이저 · 파서 ---------- */
+  const FUNCS = { sqrt: 1, abs: 1, root: 1 };
+  function tokenize(str) {
+    const t = []; let i = 0; const s = str.replace(/\s+/g, '');
+    while (i < s.length) {
+      const c = s[i];
+      if (/[0-9.]/.test(c)) {
+        let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++;
+        const v = parseFloat(s.slice(i, j)); if (isNaN(v)) throw new Error('숫자를 확인하세요');
+        t.push({ k: 'num', v }); i = j; continue;
+      }
+      if (/[a-zA-Z]/.test(c)) {
+        let matched = null;
+        for (const w of ['sqrt', 'root', 'abs', 'pi']) if (s.startsWith(w, i)) { matched = w; break; }
+        if (matched) { t.push({ k: 'id', v: matched }); i += matched.length; continue; }
+        t.push({ k: 'id', v: c }); i++; continue;
+      }
+      if (s.startsWith('<=', i) || s.startsWith('>=', i)) { t.push({ k: 'op', v: s.substr(i, 2) }); i += 2; continue; }
+      if ('+-*/^(),=<>'.includes(c)) { t.push({ k: 'op', v: c }); i++; continue; }
+      if (c === '[') { t.push({ k: 'op', v: '(' }); i++; continue; }
+      if (c === ']') { t.push({ k: 'op', v: ')' }); i++; continue; }
+      throw new Error('알 수 없는 기호: ' + c);
+    }
+    return t;
+  }
+
+  function parse(str, funcNames) {
+    const fn = Object.assign({}, FUNCS);
+    (funcNames || []).forEach(n => fn[n] = 1);
+    const toks = tokenize(str); let p = 0;
+    const peek = () => toks[p], next = () => toks[p++];
+    const isOp = (v) => toks[p] && toks[p].k === 'op' && toks[p].v === v;
+    function startsPrimary(tk) { return tk && (tk.k === 'num' || tk.k === 'id' || (tk.k === 'op' && tk.v === '(')); }
+    function parseEq() {
+      const a = parseExpr();
+      if (isOp('=')) { next(); const b = parseExpr(); return { t: 'eq', a, b }; }
+      return a;
+    }
+    function parseExpr() {
+      let a = parseTerm();
+      while (isOp('+') || isOp('-')) { const o = next().v; const b = parseTerm(); a = { t: o, a, b }; }
+      return a;
+    }
+    function parseTerm() {
+      let a = parseUnary();
+      for (;;) {
+        if (isOp('*') || isOp('/')) { const o = next().v; const b = parseUnary(); a = { t: o, a, b }; continue; }
+        if (startsPrimary(peek())) { const b = parsePow(); a = { t: '*', a, b }; continue; }
+        break;
+      }
+      return a;
+    }
+    function parseUnary() {
+      if (isOp('-')) { next(); return { t: 'neg', a: parseUnary() }; }
+      if (isOp('+')) { next(); return parseUnary(); }
+      return parsePow();
+    }
+    function parsePow() {
+      const base = parsePrimary();
+      if (isOp('^')) { next(); const e = parseUnary(); return { t: '^', a: base, b: e }; }
+      return base;
+    }
+    function parsePrimary() {
+      const tk = next();
+      if (!tk) throw new Error('식이 덜 끝났어요');
+      if (tk.k === 'num') return { t: 'num', v: tk.v };
+      if (tk.k === 'id') {
+        if (fn[tk.v] && isOp('(')) {
+          next(); const args = [];
+          if (!isOp(')')) { args.push(parseExpr()); while (isOp(',')) { next(); args.push(parseExpr()); } }
+          if (!isOp(')')) throw new Error('괄호가 닫히지 않았어요'); next();
+          return { t: 'call', f: tk.v, args };
+        }
+        if (tk.v === 'pi') return { t: 'num', v: Math.PI };
+        if (tk.v === 'e') return { t: 'num', v: Math.E };
+        return { t: 'var', v: tk.v };
+      }
+      if (tk.k === 'op' && tk.v === '(') {
+        const a = parseExpr();
+        if (isOp(',')) { const items = [a]; while (isOp(',')) { next(); items.push(parseExpr()); } if (!isOp(')')) throw new Error('괄호가 닫히지 않았어요'); next(); return { t: 'tuple', items }; }
+        if (!isOp(')')) throw new Error('괄호가 닫히지 않았어요'); next();
+        return a;
+      }
+      throw new Error('식을 다시 확인하세요');
+    }
+    const ast = parseEq();
+    if (p < toks.length) throw new Error('식을 다시 확인하세요');
+    return ast;
+  }
+
+  function evalAst(n, env, F) {
+    switch (n.t) {
+      case 'num': return n.v;
+      case 'var': if (n.v in env) return env[n.v]; throw new Error('사용할 수 없는 문자: ' + n.v);
+      case 'neg': return -evalAst(n.a, env, F);
+      case '+': return evalAst(n.a, env, F) + evalAst(n.b, env, F);
+      case '-': return evalAst(n.a, env, F) - evalAst(n.b, env, F);
+      case '*': return evalAst(n.a, env, F) * evalAst(n.b, env, F);
+      case '/': return evalAst(n.a, env, F) / evalAst(n.b, env, F);
+      case '^': { const a = evalAst(n.a, env, F), b = evalAst(n.b, env, F); return Math.pow(a, b); }
+      case 'call': {
+        const args = n.args.map(x => evalAst(x, env, F));
+        if (n.f === 'sqrt') return Math.sqrt(args[0]);
+        if (n.f === 'abs') return Math.abs(args[0]);
+        if (n.f === 'root') return Math.sign(args[0]) * Math.pow(Math.abs(args[0]), 1 / args[1]);
+        if (F && F[n.f]) return F[n.f].apply(null, args);
+        throw new Error('알 수 없는 함수: ' + n.f);
+      }
+      case 'eq': return evalAst(n.a, env, F) - evalAst(n.b, env, F);
+      case 'tuple': throw new Error('좌표가 아니라 식을 입력하세요');
+    }
+    throw new Error('식 오류');
+  }
+
+  // 식(또는 방정식) → (x,y)=>값  (방정식이면 좌변-우변)
+  function compileXY(plain, F) {
+    const ast = parse(plain, Object.keys(F || {}));
+    if (ast.t === 'tuple') throw new Error('좌표가 아니라 식을 입력하세요');
+    // 실제로 계산되는지 한 번 시험
+    const fnc = (x, y) => { try { return evalAst(ast, { x, y }, F); } catch (e) { return NaN; } };
+    evalAst(ast, { x: 0.123, y: 0.456 }, F);
+    return { ast, f: fnc };
+  }
+
+  // "(10,13)" → [10,13]
+  function parsePoint(plain) {
+    const ast = parse(plain, []);
+    if (ast.t !== 'tuple' || ast.items.length !== 2) throw new Error('(x좌표, y좌표) 꼴로 입력하세요');
+    return ast.items.map(it => evalAst(it, {}, {}));
+  }
+  function parseNumber(plain) {
+    const ast = parse(plain, []);
+    if (ast.t === 'tuple' || ast.t === 'eq') throw new Error('수 하나를 입력하세요');
+    return evalAst(ast, {}, {});
+  }
+
+  /* ---------- 음함수 곡선 (marching squares) ---------- */
+  function contour(f, view, nx, ny) {
+    nx = nx || 240; ny = ny || Math.round(nx * (view.y1 - view.y0) / (view.x1 - view.x0));
+    const dx = (view.x1 - view.x0) / nx, dy = (view.y1 - view.y0) / ny;
+    const V = new Float64Array((nx + 1) * (ny + 1));
+    for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) V[j * (nx + 1) + i] = f(view.x0 + i * dx, view.y0 + j * dy);
+    const segs = [];
+    const lerp = (x0, y0, v0, x1, y1, v1) => { const t = v0 / (v0 - v1); return [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t]; };
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      const a = V[j * (nx + 1) + i], b = V[j * (nx + 1) + i + 1], c = V[(j + 1) * (nx + 1) + i + 1], d = V[(j + 1) * (nx + 1) + i];
+      if (!isFinite(a) || !isFinite(b) || !isFinite(c) || !isFinite(d)) continue;
+      const x0 = view.x0 + i * dx, y0 = view.y0 + j * dy, x1 = x0 + dx, y1 = y0 + dy;
+      const pts = [];
+      if ((a > 0) !== (b > 0)) pts.push(lerp(x0, y0, a, x1, y0, b));
+      if ((b > 0) !== (c > 0)) pts.push(lerp(x1, y0, b, x1, y1, c));
+      if ((c > 0) !== (d > 0)) pts.push(lerp(x1, y1, c, x0, y1, d));
+      if ((d > 0) !== (a > 0)) pts.push(lerp(x0, y1, d, x0, y0, a));
+      if (pts.length < 2) continue;
+      // 극(무한대 점프) 거르기
+      const m = Math.max(Math.abs(a), Math.abs(b), Math.abs(c), Math.abs(d));
+      const mid = f((x0 + x1) / 2, (y0 + y1) / 2);
+      if (isFinite(mid) && Math.abs(mid) > 4 * m + 1e-9) continue;
+      if (pts.length === 2) segs.push([pts[0][0], pts[0][1], pts[1][0], pts[1][1]]);
+      else { segs.push([pts[0][0], pts[0][1], pts[1][0], pts[1][1]]); segs.push([pts[2][0], pts[2][1], pts[3][0], pts[3][1]]); }
+    }
+    return { segs, cell: Math.max(dx, dy) };
+  }
+
+  // 선분들을 이어 폴리라인으로
+  function chain(segs, eps) {
+    eps = eps || 1e-6;
+    const key = (x, y) => Math.round(x / eps) + ',' + Math.round(y / eps);
+    const map = new Map(); const used = new Uint8Array(segs.length);
+    segs.forEach((s, i) => {
+      [key(s[0], s[1]), key(s[2], s[3])].forEach(k => { if (!map.has(k)) map.set(k, []); map.get(k).push(i); });
+    });
+    const lines = [];
+    for (let i = 0; i < segs.length; i++) {
+      if (used[i]) continue; used[i] = 1;
+      const s = segs[i]; let line = [[s[0], s[1]], [s[2], s[3]]];
+      for (const dir of [1, 0]) {
+        for (;;) {
+          const end = dir ? line[line.length - 1] : line[0];
+          const cand = (map.get(key(end[0], end[1])) || []).find(j => !used[j]);
+          if (cand === undefined) break;
+          used[cand] = 1; const t = segs[cand];
+          const k0 = key(t[0], t[1]) === key(end[0], end[1]);
+          const nxt = k0 ? [t[2], t[3]] : [t[0], t[1]];
+          if (dir) line.push(nxt); else line.unshift(nxt);
+        }
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+
+  function samplePoints(f, view, n) {
+    const { segs } = contour(f, view, n || 260);
+    return segs.map(s => [(s[0] + s[2]) / 2, (s[1] + s[3]) / 2]);
+  }
+  function distToCurve(f, x, y) {
+    const h = 1e-4, v = f(x, y);
+    if (!isFinite(v)) return Infinity;
+    const gx = (f(x + h, y) - f(x - h, y)) / (2 * h), gy = (f(x, y + h) - f(x, y - h)) / (2 * h);
+    const g = Math.hypot(gx, gy);
+    if (!isFinite(g)) return Infinity;
+    if (g < 1e-12) return Math.abs(v) < 1e-9 ? 0 : Infinity;
+    return Math.abs(v) / g;
+  }
+  // 두 음함수 곡선이 (보이는 범위에서) 같은지
+  function curvesMatch(fTarget, fStudent, view, tol) {
+    const n = 220;
+    const A = samplePoints(fTarget, view, n), B = samplePoints(fStudent, view, n);
+    if (!B.length || !A.length) return false;
+    const cell = (view.x1 - view.x0) / n; tol = tol || Math.max(0.06, cell * 1.5);
+    const okA = A.filter(p => distToCurve(fStudent, p[0], p[1]) < tol).length / A.length;
+    const okB = B.filter(p => distToCurve(fTarget, p[0], p[1]) < tol).length / B.length;
+    return okA > 0.97 && okB > 0.97;
+  }
+
+  /* ---------- 분수 표시 ---------- */
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+  function fracTex(p, q) {
+    if (q === 0) return '\\text{정의되지 않음}';
+    if (q < 0) { p = -p; q = -q; }
+    const g = gcd(p, q) || 1; p /= g; q /= g;
+    if (q === 1) return String(p);
+    return (p < 0 ? '-' : '') + '\\frac{' + Math.abs(p) + '}{' + q + '}';
+  }
+  function fmt(v) { const r = Math.round(v * 1000) / 1000; return (Object.is(r, -0) ? 0 : r).toString(); }
+
+  G.TMath = { latexToPlain, parse, evalAst, compileXY, parsePoint, parseNumber, contour, chain, samplePoints, distToCurve, curvesMatch, fracTex, gcd, fmt };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+window.TM_STAGE='plot';
+/* ===== 좌표평면 캔버스 ===== */
+(function (G) {
+  'use strict';
+  const M = G.TMath;
+
+  class Plot {
+    constructor(host, o) {
+      this.o = Object.assign({ grid: 1, label: 5, axes: true, gridAlpha: 0.38, axisColor: '#1d2a2f' }, o);
+      this.view = o.view; this.layers = []; this.drag = null;
+      this.box = document.createElement('div'); this.box.className = 'graph';
+      this.box.style.aspectRatio = ((this.view.x1 - this.view.x0) / (this.view.y1 - this.view.y0)).toFixed(4);
+      this.cv = document.createElement('canvas'); this.box.appendChild(this.cv);
+      this.tools = document.createElement('div'); this.tools.className = 'gtools'; this.box.appendChild(this.tools);
+      host.appendChild(this.box);
+      this.ctx = this.cv.getContext('2d');
+      this.ro = new ResizeObserver(() => this.resize()); this.ro.observe(this.box);
+      this._bind();
+      this.resize();
+    }
+    addTool(label, cls, fn) { const b = document.createElement('button'); b.className = 'gbtn ' + (cls || ''); b.textContent = label; b.type = 'button'; b.onclick = fn; this.tools.appendChild(b); return b; }
+    resize() {
+      const r = this.box.getBoundingClientRect(); if (!r.width) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.W = r.width; this.H = r.width * (this.view.y1 - this.view.y0) / (this.view.x1 - this.view.x0);
+      this.cv.width = Math.round(this.W * dpr); this.cv.height = Math.round(this.H * dpr);
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.layers.forEach(l => { l._segs = null; });
+      this.draw();
+    }
+    sx(x) { return (x - this.view.x0) / (this.view.x1 - this.view.x0) * this.W; }
+    sy(y) { return (this.view.y1 - y) / (this.view.y1 - this.view.y0) * this.H; }
+    wx(px) { return this.view.x0 + px / this.W * (this.view.x1 - this.view.x0); }
+    wy(py) { return this.view.y1 - py / this.H * (this.view.y1 - this.view.y0); }
+    unit() { return this.W / (this.view.x1 - this.view.x0); }
+    add(layer) { this.layers.push(layer); this.draw(); return layer; }
+    remove(layer) { this.layers = this.layers.filter(l => l !== layer); this.draw(); }
+    clear(pred) { this.layers = pred ? this.layers.filter(l => !pred(l)) : []; this.draw(); }
+
+    draw() {
+      const c = this.ctx, W = this.W, H = this.H; if (!W) return;
+      c.clearRect(0, 0, W, H);
+      c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+      const bg = this.o.bg;
+      if (bg && bg.img && bg.img.complete) {
+        const x = this.sx(bg.x0), y = this.sy(bg.y1), w = this.sx(bg.x1) - x, h = this.sy(bg.y0) - y;
+        c.globalAlpha = bg.alpha == null ? 1 : bg.alpha; c.drawImage(bg.img, x, y, w, h); c.globalAlpha = 1;
+      }
+      this._grid();
+      this.layers.forEach(l => { if (!l.hidden && l.under) this._layer(l); });
+      if (this.o.axes) this._axes();
+      this.layers.forEach(l => { if (!l.hidden && !l.under) this._layer(l); });
+    }
+    _grid() {
+      const c = this.ctx, v = this.view, st = this.o.grid; if (!st) return;
+      c.lineWidth = 1;
+      for (let x = Math.ceil(v.x0 / st) * st; x <= v.x1; x += st) {
+        const major = Math.abs(x / this.o.label - Math.round(x / this.o.label)) < 1e-9;
+        c.strokeStyle = (this.o.bg && !this.o.darkGrid) ? `rgba(255,255,255,${major ? this.o.gridAlpha + .2 : this.o.gridAlpha})` : this.o.darkGrid ? (major ? 'rgba(30,45,50,.55)' : 'rgba(30,45,50,.22)') : (major ? '#c9ced0' : '#e7eaeb');
+        c.beginPath(); c.moveTo(Math.round(this.sx(x)) + .5, 0); c.lineTo(Math.round(this.sx(x)) + .5, this.H); c.stroke();
+      }
+      for (let y = Math.ceil(v.y0 / st) * st; y <= v.y1; y += st) {
+        const major = Math.abs(y / this.o.label - Math.round(y / this.o.label)) < 1e-9;
+        c.strokeStyle = (this.o.bg && !this.o.darkGrid) ? `rgba(255,255,255,${major ? this.o.gridAlpha + .2 : this.o.gridAlpha})` : this.o.darkGrid ? (major ? 'rgba(30,45,50,.55)' : 'rgba(30,45,50,.22)') : (major ? '#c9ced0' : '#e7eaeb');
+        c.beginPath(); c.moveTo(0, Math.round(this.sy(y)) + .5); c.lineTo(this.W, Math.round(this.sy(y)) + .5); c.stroke();
+      }
+    }
+    _axes() {
+      const c = this.ctx, v = this.view, L = this.o.label;
+      const ax = v.y0 <= 0 && v.y1 >= 0, ay = v.x0 <= 0 && v.x1 >= 0;
+      c.strokeStyle = this.o.axisColor; c.lineWidth = 1.6;
+      if (ax) { c.beginPath(); c.moveTo(0, this.sy(0)); c.lineTo(this.W, this.sy(0)); c.stroke(); }
+      if (ay) { c.beginPath(); c.moveTo(this.sx(0), 0); c.lineTo(this.sx(0), this.H); c.stroke(); }
+      const fs = Math.max(11, Math.min(15, this.W / 55));
+      c.font = `600 ${fs}px system-ui,sans-serif`;
+      const lab = (txt, x, y, al, bl) => {
+        c.textAlign = al; c.textBaseline = bl;
+        const m = c.measureText(txt).width;
+        let bx = al === 'center' ? x - m / 2 : al === 'right' ? x - m : x;
+        let by = bl === 'top' ? y : bl === 'bottom' ? y - fs : y - fs / 2;
+        c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(bx - 2, by - 1, m + 4, fs + 2);
+        c.fillStyle = '#1d2a2f'; c.fillText(txt, x, y);
+      };
+      const yLine = ax ? this.sy(0) : this.H - 2, xLine = ay ? this.sx(0) : 2;
+      for (let x = Math.ceil(v.x0 / L) * L; x <= v.x1 + 1e-9; x += L) {
+        if (Math.abs(x) < 1e-9 && ax && ay) continue;
+        const px = this.sx(x); if (px < 12 || px > this.W - 12) continue;
+        c.strokeStyle = this.o.axisColor; c.beginPath(); c.moveTo(px, yLine - 4); c.lineTo(px, yLine + 4); c.stroke();
+        lab(M.fmt(x), px, ax ? yLine + 5 : yLine - 2, 'center', ax ? 'top' : 'bottom');
+      }
+      for (let y = Math.ceil(v.y0 / L) * L; y <= v.y1 + 1e-9; y += L) {
+        if (Math.abs(y) < 1e-9 && ax && ay) continue;
+        const py = this.sy(y); if (py < 10 || py > this.H - 10) continue;
+        c.strokeStyle = this.o.axisColor; c.beginPath(); c.moveTo(xLine - 4, py); c.lineTo(xLine + 4, py); c.stroke();
+        lab(M.fmt(y), ay ? xLine - 6 : xLine + 2, py, ay ? 'right' : 'left', 'middle');
+      }
+      if (ax && ay) lab('O', this.sx(0) - 5, this.sy(0) + 4, 'right', 'top');
+      c.font = `italic 700 ${fs + 3}px Georgia,serif`;
+      if (ax) lab('x', this.W - 8, this.sy(0) - 6, 'right', 'bottom');
+      if (ay) lab('y', this.sx(0) + 8, 8, 'left', 'top');
+    }
+    _segsFor(l) {
+      if (!l._segs) {
+        const n = Math.min(320, Math.max(140, Math.round(this.W / (l.res || 2.6))));
+        try { l._segs = M.contour(l.f, this.view, n).segs; } catch (e) { l._segs = []; }
+      }
+      return l._segs;
+    }
+    _layer(l) {
+      const c = this.ctx;
+      c.save();
+      if (l.alpha != null) c.globalAlpha = l.alpha;
+      switch (l.type) {
+        case 'curve': {
+          const segs = this._segsFor(l);
+          c.strokeStyle = l.color || '#2d6fb7'; c.lineWidth = l.width || 3; c.lineCap = 'round';
+          if (l.dash) c.setLineDash(l.dash);
+          c.beginPath();
+          for (const s of segs) { c.moveTo(this.sx(s[0]), this.sy(s[1])); c.lineTo(this.sx(s[2]), this.sy(s[3])); }
+          c.stroke(); break;
+        }
+        case 'seg': {
+          c.strokeStyle = l.color || '#333'; c.lineWidth = l.width || 2; c.lineCap = 'round'; if (l.dash) c.setLineDash(l.dash);
+          c.beginPath(); c.moveTo(this.sx(l.x1), this.sy(l.y1)); c.lineTo(this.sx(l.x2), this.sy(l.y2)); c.stroke(); break;
+        }
+        case 'poly': {
+          c.strokeStyle = l.color || '#333'; c.lineWidth = l.width || 2; if (l.dash) c.setLineDash(l.dash);
+          c.beginPath(); l.pts.forEach((p, i) => i ? c.lineTo(this.sx(p[0]), this.sy(p[1])) : c.moveTo(this.sx(p[0]), this.sy(p[1])));
+          if (l.close) c.closePath();
+          if (l.fill) { c.fillStyle = l.fill; c.fill(); }
+          c.stroke(); break;
+        }
+        case 'ellipse': {
+          c.translate(this.sx(l.x), this.sy(l.y)); c.rotate(-l.ang);
+          c.beginPath(); c.ellipse(0, 0, l.a * this.unit(), l.b * this.unit(), 0, 0, Math.PI * 2);
+          if (l.fill) { c.fillStyle = l.fill; c.fill(); }
+          c.strokeStyle = l.color || 'red'; c.lineWidth = l.width || 2; c.stroke(); break;
+        }
+        case 'point': {
+          const px = this.sx(l.x), py = this.sy(l.y), r = l.r || 8;
+          if (l.ring) { c.beginPath(); c.arc(px, py, r + 7, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,.35)'; c.fill(); }
+          c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fillStyle = l.color || '#7a3fb0'; c.fill();
+          c.lineWidth = 2.5; c.strokeStyle = '#fff'; c.stroke();
+          if (l.label) this._label(l.label, px, py, l.labelColor || l.color || '#333', l.labelPos);
+          break;
+        }
+        case 'star': {
+          const px = this.sx(l.x), py = this.sy(l.y), R = (l.size || 0.32) * this.unit() * 1.25;
+          c.translate(px, py); if (l.scale) c.scale(l.scale, l.scale);
+          c.beginPath();
+          for (let k = 0; k < 10; k++) { const ang = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? R * 0.45 : R; c.lineTo(Math.cos(ang) * rr, Math.sin(ang) * rr); }
+          c.closePath(); c.fillStyle = l.color || '#f5c518'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#a07800'; c.stroke(); break;
+        }
+        case 'img': {
+          if (!l.img || !l.img.complete) break;
+          const u = this.unit(), w = l.w * u, h = w * l.img.naturalHeight / l.img.naturalWidth;
+          c.drawImage(l.img, this.sx(l.x) - w / 2, this.sy(l.y) - h * (l.anchorY == null ? 0.5 : l.anchorY), w, h); break;
+        }
+        case 'text': {
+          this._label(l.text, this.sx(l.x), this.sy(l.y), l.color || '#333', l.pos || 'center', l.size); break;
+        }
+        case 'custom': l.draw(c, this); break;
+      }
+      c.restore();
+    }
+    _label(txt, px, py, color, pos, size) {
+      const c = this.ctx, fs = size || Math.max(13, Math.min(18, this.W / 48));
+      c.font = `700 ${fs}px system-ui,sans-serif`; const w = c.measureText(txt).width;
+      let x = px + 12, y = py - 12;
+      if (pos === 'below') { x = px - w / 2; y = py + fs + 14; }
+      else if (pos === 'left') { x = px - w - 12; }
+      else if (pos === 'center') { x = px - w / 2; y = py + fs / 2 - 2; }
+      else if (pos === 'above') { x = px - w / 2; y = py - 18; }
+      x = Math.max(2, Math.min(this.W - w - 4, x)); y = Math.max(fs + 2, Math.min(this.H - 4, y));
+      c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath();
+      if (c.roundRect) c.roundRect(x - 5, y - fs - 1, w + 10, fs + 9, 6); else c.rect(x - 5, y - fs - 1, w + 10, fs + 9);
+      c.fill(); c.strokeStyle = 'rgba(30,45,50,.35)'; c.lineWidth = 1; c.stroke(); c.fillStyle = color; c.fillText(txt, x, y);
+    }
+    _bind() {
+      const pos = (e) => { const r = this.cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+      this.cv.addEventListener('pointerdown', e => {
+        const [px, py] = pos(e);
+        let best = null, bd = 34;
+        this.layers.forEach(l => { if (l.type === 'point' && l.draggable && !l.hidden) { const d = Math.hypot(this.sx(l.x) - px, this.sy(l.y) - py); if (d < bd) { bd = d; best = l; } } });
+        if (best) { this.drag = best; this.cv.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+        this._down = [px, py];
+      });
+      this.cv.addEventListener('pointermove', e => {
+        if (!this.drag) return; const [px, py] = pos(e); const l = this.drag;
+        let x = this.wx(px), y = this.wy(py);
+        if (l.snap) { x = Math.round(x / l.snap) * l.snap; y = Math.round(y / l.snap) * l.snap; }
+        x = Math.max(this.view.x0, Math.min(this.view.x1, x)); y = Math.max(this.view.y0, Math.min(this.view.y1, y));
+        if (x !== l.x || y !== l.y) { l.x = x; l.y = y; if (l.onMove) l.onMove(l); this.draw(); }
+      });
+      const up = e => {
+        if (this.drag) { const l = this.drag; this.drag = null; if (l.onDrop) l.onDrop(l); return; }
+        if (this._down && this.onTap) { const [px, py] = pos(e); if (Math.hypot(px - this._down[0], py - this._down[1]) < 10) this.onTap(this.wx(px), this.wy(py)); }
+        this._down = null;
+      };
+      this.cv.addEventListener('pointerup', up);
+      this.cv.addEventListener('pointercancel', () => { this.drag = null; this._down = null; });
+    }
+    destroy() { this.ro.disconnect(); }
+  }
+  G.Plot = Plot;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+window.TM_STAGE='app';
+/* ===== 보물을 찾아라 : 학생용 앱 ===== */
+(function () {
+  'use strict';
+  const M = window.TMath, Plot = window.Plot;
+  const $ = (s, r) => (r || document).querySelector(s);
+
+  /* ---------- 작은 DOM 도우미 ---------- */
+  function el(tag, attrs, kids) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) {
+      const v = attrs[k];
+      if (k === 'class') e.className = v; else if (k === 'html') e.innerHTML = v; else if (k === 'text') e.textContent = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v);
+    }
+    (Array.isArray(kids) ? kids : kids != null ? [kids] : []).forEach(k => { if (k == null || k === false) return; e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k); });
+    return e;
+  }
+  function toast(msg, ms) { const t = el('div', { class: 'toast', text: msg }); document.body.appendChild(t); setTimeout(() => t.remove(), ms || 2200); }
+  const now = () => new Date().toISOString();
+  const pt = (p) => '(' + M.fmt(p[0]) + ', ' + M.fmt(p[1]) + ')';
+  const near = (a, b, e) => Math.abs(a - b) < (e || 1e-6);
+  const debounce = (fn, ms) => { let t = null; return () => { clearTimeout(t); t = setTimeout(fn, ms || 120); }; };
+
+  /* ---------- 서버 연결 (수학나라 공통 로그인·저장: common/land.js) ---------- */
+  const ACT = { slug: 'treasure', title: '보물을 찾아라', practice: false };
+  const UPLOAD_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co/functions/v1/land-upload';
+  const UPLOAD_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+  // 채점기준표(2026-11-02): 해결 미션 수 7~0 → 상 50 / 상- 49 / 중 42 / 중- 41 / 하 34 / 하- 33 / 미흡 26 / 미흡- 25
+  const LEVELS = [['미흡-', 25], ['미흡', 26], ['하-', 33], ['하', 34], ['중-', 41], ['중', 42], ['상-', 49], ['상', 50]];
+  const solvedCount = p => ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'].filter(m => p && p[m] && p[m].solved).length;
+  function scoreOf(p) {
+    const n = solvedCount(p);
+    if (ACT.practice) return { score: n, level: n + '/7 해결' };
+    const [lv, sc] = LEVELS[Math.max(0, Math.min(7, n))];
+    return { score: sc, level: `${lv}(${sc})` };
+  }
+  const API = (function () {
+    let enter = null, saver = null;
+    async function post(body) {
+      const res = await fetch(UPLOAD_URL, { method: 'POST', headers: { 'content-type': 'application/json', apikey: UPLOAD_KEY }, body: JSON.stringify(Object.assign({ token: enter.token, run_id: enter.run.id }, body)) });
+      let r = null; try { r = await res.json(); } catch (e) { }
+      if (!r) throw new Error('서버 응답 없음');
+      if (!r.ok) { if (['closed', 'ended', 'not_target', 'other_year'].includes(r.code) && window.TM_onClosed) window.TM_onClosed(r.code); throw new Error(r.code || '올리기 실패'); }
+      return r;
+    }
+    // 그림 올리기: 실패하면 조금 기다렸다가 최대 3번 다시 시도
+    async function upload(key, dataUrl) {
+      let err;
+      for (let k = 0; k < 3; k++) {
+        try { return await post({ key, data: dataUrl }); }
+        catch (e) { err = e; if (S.closed || /closed|ended|not_target|bad_|too_big|no_session/.test(e.message)) throw e; await new Promise(r => setTimeout(r, 1500 * (k + 1))); }
+      }
+      throw err;
+    }
+    return {
+      mode: 'live',
+      get enter() { return enter; },
+      async start() {
+        enter = await window.Land.start({ slug: ACT.slug, title: ACT.title });
+        saver = window.Land.saver(enter, { title: ACT.title, onClosed: code => window.TM_onClosed && window.TM_onClosed(code) });
+        return enter;
+      },
+      save(prog, extra) { if (!saver) return Promise.resolve({ ok: false }); saver.save(prog, Object.assign(scoreOf(prog), { summary: (prog.eval && prog.eval.c) || null }, extra || {})); return Promise.resolve({ ok: true }); },
+      flush() { return saver ? saver.flush() : Promise.resolve(); },
+      finish(prog, extra) { return saver.finish(prog, Object.assign(scoreOf(prog), { summary: (prog.eval && prog.eval.c) || null }, extra || {})); },
+      saveShot(tok, key, url) { return upload(key, url).then(r => ({ ok: true, fileId: r.path })); },
+      // 테셀레이션: 그리는 중인 선은 기록(detail)에, 제출한 그림(PNG)은 보관함에
+      saveTess(tok, png, strokes, type) {
+        S.prog.tessData = { type, strokes }; save();
+        if (!png) return Promise.resolve({ ok: true });
+        return upload('tess', png).then(r => ({ ok: true, fileId: r.path }));
+      },
+      loadTess() { return Promise.resolve(S.prog.tessData || null); },
+      myFiles() { return post({ action: 'list' }).then(r => r.urls || {}); },
+      uploadReport(dataUrl) { return upload('report', dataUrl); }
+    };
+  })();
+  const IMG_BASE = 'img/';
+
+  /* ---------- 이미지 ---------- */
+  const IMG_NAMES = ['door_closed', 'door_open', 'map_overview', 'm1_map', 'm4_swamp', 'm5_cliff', 'm6_field', 'm7_chest', 'letter', 'lock', 'telescope', 'boy', 'boy_back', 'chest'];
+  const IMG = {};
+  async function loadImages(onProg) {
+    let srcs = window.EMBED_IMAGES || null;
+    let done = 0;
+    await Promise.all(IMG_NAMES.map(n => new Promise(res => {
+      const im = new Image();
+      im.onload = im.onerror = () => { done++; onProg && onProg(done / IMG_NAMES.length); res(); };
+      im.src = srcs && srcs[n] ? srcs[n] : IMG_BASE + n + '.webp';
+      IMG[n] = im;
+    })));
+  }
+
+  /* ---------- 상태 ---------- */
+  const S = { token: null, name: '', sid: '', prog: null, plots: [], saveTimer: null };
+  const ORDER = ['intro', 'map', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'tess', 'treasure', 'final'];
+  const MISSIONS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'];
+  const TITLES = {
+    intro: '안내', door: '발견! 수학교과실의 비밀의 문', map: '보물지도 발견! 탐험을 떠나봅시다',
+    m1: '망원경을 찾아라', m2: '오솔길의 입구를 찾아라', m3: '네 개의 함정을 제거하라', m4: '악어의 늪을 건너라',
+    m5: '안개 속 숨은 다리를 건너라', m6: '보물상자를 찾아라', m7: '보물상자의 자물쇠를 풀어라',
+    tess: '테셀레이션 챌린지', treasure: '보물을 찾았습니다', final: '오늘 잘했나요?'
+  };
+  function newProgress() {
+    const v = {}; MISSIONS.forEach(m => v[m] = Math.floor(Math.random() * 6));
+    const p = { ver: 1, v, screen: 'intro', door: { stage: 2, wrong: 0 }, tess: {}, eval: { u: 3, f: 3, c: '' }, walked: {}, station: 'start' };
+    MISSIONS.forEach(m => p[m] = { solved: false, wrong: 0 });
+    return p;
+  }
+  function save(immediate) {
+    // 수학나라 공통 저장(Land.saver)이 4초씩 모아서 저장하고, 실패하면 알아서 다시 시도해요
+    if (S.closed || !S.prog) return Promise.resolve({ ok: false });
+    API.save(S.prog);
+    return immediate ? Promise.resolve(API.flush()).then(() => ({ ok: true })) : Promise.resolve({ ok: true });
+  }
+  function solve(key, extra) {
+    const m = S.prog[key];
+    const fresh = !m.solved;
+    if (!m.solved) { m.solved = true; m.at = now(); }
+    Object.assign(m, extra || {});
+    save(true); renderTop();
+    if (fresh && MISSIONS.includes(key)) scheduleShot(key, key === 'm4' ? 4600 : 250);
+  }
+  /* ---------- 미션 완성 화면 저장 (교사 보고서용) ---------- */
+  const SHOT_NAME = { m1: '미션 1 · 망원경을 찾아라 (무게중심)', m2: '미션 2 · 오솔길의 입구 (내분점)', m3: '미션 3 · 네 개의 함정 (평행이동)', m4: '미션 4 · 악어의 늪 (평행이동)', m5: '미션 5 · 안개 속 다리 (수직인 직선)', m6: '미션 6 · 보물상자 (원의 방정식)', m7: '미션 7 · 자물쇠 (평행·대칭이동)' };
+  function scheduleShot(key, delay) {
+    setTimeout(() => { if (S.prog.screen === key && S.plots[0]) captureShot(key).catch(() => { }); }, delay);
+  }
+  const shotBusy = {};
+  async function captureShot(key) {
+    const p = S.plots[0]; if (S.closed || !p || !p.cv.width || shotBusy[key] || S.prog[key].shot) return;
+    shotBusy[key] = true;
+    const restore = S.shotPrep ? S.shotPrep() : null;
+    p.draw();
+    const src = p.cv, W = 900, gh = Math.round(src.height * W / src.width), band = 78;
+    const out = document.createElement('canvas'); out.width = W; out.height = gh + band;
+    const c = out.getContext('2d');
+    c.fillStyle = '#fff'; c.fillRect(0, 0, W, gh + band);
+    try { c.drawImage(src, 0, 0, W, gh); } catch (e) { if (restore) restore(); shotBusy[key] = false; return; }
+    if (restore) { restore(); p.draw(); }
+    c.fillStyle = '#0a3640'; c.fillRect(0, gh, W, band);
+    c.fillStyle = '#fff'; c.font = '700 24px sans-serif'; c.textBaseline = 'middle';
+    c.fillText(SHOT_NAME[key] + '  ·  ' + S.sid + ' ' + S.name, 18, gh + 24);
+    c.fillStyle = '#f4ead0'; c.font = '19px sans-serif';
+    let ans = String(S.prog[key].ans || '');
+    for (let i = 0; i < 4; i++) ans = ans.replace(/\(\(([^()]*)\)\/\(([^()]*)\)\)/g, '$1/$2').replace(/\(\(-?[0-9.]+\)\)/g, m => m.slice(1, -1));
+    ans = ans.replace(/\^\(2\)/g, '²').replace(/\^\(3\)/g, '³').replace(/\(([0-9.]+)\)/g, (m, n, off, str) => /[a-z0-9)]/i.test(str[off - 1] || '') ? m : n);
+    if (ans.length > 80) ans = ans.slice(0, 78) + '…';
+    c.fillText('최종 답: ' + ans, 18, gh + 56);
+    let url; try { url = out.toDataURL('image/jpeg', 0.82); } catch (e) { shotBusy[key] = false; return; }
+    S.prog[key].shot = 'saving';
+    try { const r = await API.saveShot(S.token, key, url); S.prog[key].shot = (r && r.fileId) || true; save(); }
+    catch (e) { S.prog[key].shot = null; }
+    finally { shotBusy[key] = false; }
+  }
+  function wrong(key, extra) { const m = S.prog[key]; if (!m.solved) m.wrong = (m.wrong || 0) + 1; Object.assign(m, extra || {}); save(); }
+
+  /* ---------- 수식 입력 ---------- */
+  let MATHLIVE = false;
+  // 입력칸 안의 자판 버튼 (데스모스처럼 누를 때만 자판이 열림)
+  function withKeyBtn(field) {
+    const btn = el('button', { class: 'kp-toggle', type: 'button', title: '수식 자판', 'aria-label': '수식 자판 열기' }, el('span', { 'aria-hidden': 'true', text: '⌨' }));
+    btn.addEventListener('pointerdown', e => e.preventDefault());
+    btn.addEventListener('click', () => { if (KP.isOpenFor(field)) { KP.close(); return; } KP.open(field); try { field.focus(); } catch (e) { } });
+    const wrap = el('span', { class: 'mf-wrap' }, [field, btn]);
+    wrap.field = field; wrap.tex = field.tex; wrap.plain = field.plain; wrap.setTex = field.setTex;
+    Object.defineProperty(wrap, 'value', { get: () => field.value, set: v => { field.value = v; } });
+    wrap.focus = () => field.focus();
+    return wrap;
+  }
+  function mathInput(tex, onEnter, onInput) {
+    if (MATHLIVE) {
+      const mf = new window.MathfieldElement();
+      mf.setAttribute('math-virtual-keyboard-policy', 'manual');
+      mf.addEventListener('focusin', () => KP.retarget(mf));
+      mf.value = tex || '';
+      try { mf.menuItems = []; } catch (e) { }
+      mf.smartFence = true;
+      mf.addEventListener('keydown', e => { if (e.key === 'Enter' && onEnter) { e.preventDefault(); onEnter(); } });
+      if (onInput) mf.addEventListener('input', () => onInput());
+      mf.tex = () => mf.value; mf.plain = () => M.latexToPlain(mf.value); mf.setTex = v => { mf.value = v; };
+      return withKeyBtn(mf);
+    }
+    const inp = el('input', { class: 'mf-fallback', type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+    inp.addEventListener('focusin', () => KP.retarget(inp));
+    inp.value = M.latexToPlain(tex || '').replace(/\(\(([^()]*)\)\/\(([^()]*)\)\)/g, '$1/$2');
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && onEnter) onEnter(); });
+    if (onInput) inp.addEventListener('input', () => onInput());
+    inp.tex = () => inp.value; inp.plain = () => inp.value.replace(/×/g, '*').replace(/÷/g, '/'); inp.setTex = v => { inp.value = M.latexToPlain(v); };
+    return withKeyBtn(inp);
+  }
+
+
+  /* ---------- 수식 자판 (앱 안에 직접 그리는 키패드) ---------- */
+  const KP = (function () {
+    let target = null, box = null;
+    const K = [
+      [['x', 'x'], ['y', 'y'], ['f', 'f'], ['g', 'g'], ['h', 'h'], ['i', 'i'], ['(', '('], [')', ')'], [',', ','], ['=', '=']],
+      [['7', '7'], ['8', '8'], ['9', '9'], ['+', '+'], ['−', '-'], ['×', 'times'], ['÷', 'div'], ['분수', 'frac'], ['x²', 'sq'], ['xⁿ', 'pow']],
+      [['4', '4'], ['5', '5'], ['6', '6'], ['1', '1'], ['2', '2'], ['3', '3'], ['0', '0'], ['.', '.'], ['√', 'sqrt'], ['⌫', 'back']],
+      [['◀', 'left'], ['▶', 'right'], ['모두 지우기', 'clear', 3], ['자판 닫기', 'close', 3], ['입력 ↵', 'enter', 2]]
+    ];
+    const TEX = { times: '\\times', div: '\\div', frac: '\\frac{#?}{#?}', sq: '^2', pow: '^{#?}', sqrt: '\\sqrt{#?}' };
+    const TXT = { times: '*', div: '/', frac: '/', sq: '^2', pow: '^', sqrt: 'sqrt(' };
+    function press(code) {
+      if (code === 'close') return close();
+      const t = target; if (!t) return;
+      const isMF = t.tagName === 'MATH-FIELD';
+      if (code === 'enter') { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); return; }
+      if (isMF) {
+        if (code === 'back') t.executeCommand('deleteBackward');
+        else if (code === 'left') t.executeCommand('moveToPreviousChar');
+        else if (code === 'right') t.executeCommand('moveToNextChar');
+        else if (code === 'clear') { t.value = ''; }
+        else t.executeCommand(['insert', TEX[code] || code, { format: 'latex', focus: true }]);
+        t.focus();
+      } else {
+        const a = t.selectionStart ?? t.value.length, b = t.selectionEnd ?? a, v = t.value;
+        if (code === 'back') { const c = a === b ? Math.max(0, a - 1) : a; t.value = v.slice(0, c) + v.slice(b); t.setSelectionRange(c, c); }
+        else if (code === 'left') t.setSelectionRange(Math.max(0, a - 1), Math.max(0, a - 1));
+        else if (code === 'right') t.setSelectionRange(a + 1, a + 1);
+        else if (code === 'clear') t.value = '';
+        else { const ins = TXT[code] || code; t.value = v.slice(0, a) + ins + v.slice(b); t.setSelectionRange(a + ins.length, a + ins.length); }
+      }
+      t.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    function build() {
+      box = el('div', { class: 'keypad', role: 'group', 'aria-label': '수식 자판', hidden: '' });
+      K.forEach(row => {
+        const r = el('div', { class: 'kp-row' });
+        row.forEach(([label, code, span]) => {
+          const b = el('button', { class: 'kp-key' + (/^[0-9.]$/.test(code) ? ' num' : '') + (['close', 'enter', 'clear', 'back'].includes(code) ? ' fn' : ''), type: 'button', text: label, style: span ? `grid-column:span ${span}` : null });
+          b.addEventListener('pointerdown', e => { e.preventDefault(); press(code); });
+          b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); press(code); } });
+          r.appendChild(b);
+        });
+        box.appendChild(r);
+      });
+      document.body.appendChild(box);
+    }
+    function open(t) {
+      if (!box) build();
+      const dock = document.querySelector('.ws-dock');
+      if (dock) { if (box.parentElement !== dock) dock.appendChild(box); box.classList.add('docked'); }
+      else { if (box.parentElement !== document.body) document.body.appendChild(box); box.classList.remove('docked'); }
+      target = t; box.hidden = false; document.body.classList.add('kp-open'); mark();
+      setTimeout(() => { try { (t.closest ? (t.closest('.mf-wrap') || t) : t).scrollIntoView({ block: 'nearest' }); } catch (e) { } }, 60);
+    }
+    function close() { if (box) box.hidden = true; document.body.classList.remove('kp-open'); mark(); }
+    function isOpen() { return !!box && !box.hidden; }
+    function mark() { document.querySelectorAll('.mf-wrap').forEach(w => w.classList.toggle('kp-on', isOpen() && w.field === target)); }
+    function retarget(t) { if (isOpen()) { target = t; mark(); } }
+    function isOpenFor(t) { return isOpen() && target === t; }
+    return { open, close, retarget, isOpenFor };
+  })();
+
+  /* ---------- 상단 · 하단 ---------- */
+  function setTopH() { const t = $('#topbar'); if (t) document.documentElement.style.setProperty('--topH', t.offsetHeight + 'px'); }
+  window.addEventListener('resize', () => setTimeout(setTopH, 50));
+  function layoutWorkspace(main) {
+    const p = S.plots[0]; if (!p) return;
+    const box = p.box, oldParent = box.parentElement;
+    const scroll = el('div', { class: 'ws-scroll' }), dock = el('div', { class: 'ws-dock' });
+    const panel = el('div', { class: 'ws-panel' }, [scroll, dock]), area = el('div', { class: 'ws-graph' });
+    area.appendChild(box);
+    if (oldParent && oldParent.classList.contains('below') && !oldParent.children.length) oldParent.remove();
+    while (main.firstChild) scroll.appendChild(main.firstChild);
+    main.append(panel, area); main.classList.add('ws');
+    setTopH();
+    const ratio = (p.view.x1 - p.view.x0) / (p.view.y1 - p.view.y0);
+    const fit = () => {
+      const cs = getComputedStyle(area), r = area.getBoundingClientRect();
+      const w = r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), h = r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      if (w > 20 && h > 20) box.style.width = Math.floor(Math.min(w, h * ratio)) + 'px';
+    };
+    const ro = new ResizeObserver(fit); ro.observe(area); fit();
+    const destroy = p.destroy.bind(p); p.destroy = () => { ro.disconnect(); destroy(); };
+  }
+  function renderTop() {
+    const bar = $('#topbar'); bar.innerHTML = '';
+    bar.appendChild(el('div', { class: 'brand', text: '보물을 찾아라' }));
+    bar.appendChild(el('div', { class: 'who', text: S.sid + ' ' + S.name }));
+    if (API.mode === 'demo') bar.appendChild(el('span', { class: 'demo-flag', text: '미리보기 · 이 기기에만 저장' }));
+    bar.appendChild(el('div', { class: 'spacer' }));
+    const pr = el('div', { class: 'progress' });
+    const items = [['map', '지도'], ['m1', '1'], ['m2', '2'], ['m3', '3'], ['m4', '4'], ['m5', '5'], ['m6', '6'], ['m7', '7'], ['tess', '테셀'], ['final', '제출']];
+    items.forEach(([k, t]) => {
+      const done = k === 'map' ? false : k === 'door' ? S.prog.door.stage >= 2 : k === 'tess' ? !!S.prog.tess.submitted : k === 'final' ? !!S.prog.submitted : S.prog[k].solved;
+      pr.appendChild(el('button', { class: 'chip' + (k === 'map' ? ' map' : '') + (done ? ' done' : '') + (S.prog.screen === k ? ' here' : ''), type: 'button', title: TITLES[k], onclick: () => go(k), text: t }));
+    });
+    bar.appendChild(pr);
+    setTimeout(setTopH, 0);
+    bar.appendChild(el('button', { class: 'chip', type: 'button', title: '로그아웃', onclick: () => { save(true); window.TM_logout(); }, text: '나가기' }));
+  }
+  function go(screen) {
+    const prev = S.prog && S.prog.screen;
+    if (MISSIONS.includes(prev) && S.prog[prev] && S.prog[prev].solved && !S.prog[prev].shot && S.plots[0]) captureShot(prev).catch(() => { });
+    S.plots.forEach(p => p.destroy()); S.plots = [];
+    KP.close();
+    S.prog.screen = screen; save();
+    const main = $('#main'); main.innerHTML = ''; main.classList.remove('ws');
+    renderTop();
+    S.shotPrep = null;
+    (SCREENS[screen] || SCREENS.map)(main);
+    layoutWorkspace(main);
+    if (MISSIONS.includes(screen) && S.prog[screen] && S.prog[screen].solved && !S.prog[screen].shot) scheduleShot(screen, 2200);
+    window.scrollTo(0, 0);
+  }
+  function header(main, tag, title) {
+    main.appendChild(el('div', { class: 'screen-title' }, [tag ? el('span', { class: 'tag', text: tag }) : null, el('h2', { text: title })]));
+  }
+  function plotIn(host, o) { const p = new Plot(host, o); S.plots.push(p); return p; }
+  function clueCard(title, lines) {
+    return el('div', { class: 'clue' }, [el('h3', { text: title }), ...lines.map(l => el('p', { html: l }))]);
+  }
+  function feedback(box, kind, msg) { box.innerHTML = ''; if (!msg) return; box.appendChild(el('div', { class: 'fb ' + kind, html: msg })); }
+  function solvedBanner(box, msg, nextKey) {
+    box.innerHTML = '';
+    const b = el('div', { class: 'solved-banner' }, [el('span', { class: 'stamp', text: '미션 성공!' }), el('span', { class: 'sp', text: msg })]);
+    if (nextKey) b.appendChild(el('button', { class: 'btn brass', type: 'button', onclick: () => walkThenGo(nextKey), text: '다음으로 이동 ▶' }));
+    box.appendChild(b);
+  }
+
+  /* ---------- 지도 위 경로 · 걷기 장면 ---------- */
+  const STATION = { start: [265, 690], m1: [395, 600], m2: [520, 500], m3: [545, 420], m4: [470, 355], m5: [690, 290], m6: [1125, 465], m7: [900, 610] };
+  const PATHS = {
+    m1: [[265, 690], [330, 640], [395, 600]], m2: [[395, 600], [470, 540], [520, 500]], m3: [[520, 500], [545, 450], [545, 420]],
+    m4: [[545, 420], [520, 385], [470, 355]], m5: [[455, 172], [530, 150], [610, 140], [650, 185], [662, 245], [684, 292]],
+    m6: [[690, 300], [850, 255], [990, 215], [1080, 260], [1150, 380], [1125, 465]], m7: [[1125, 465], [1000, 560], [900, 610]]
+  };
+  const WALK_CAP = {
+    m1: '경남이가 보물지도를 들고 바닷가 오솔길을 걸어갑니다…', m2: '망원경을 챙긴 경남이가 삼각산 쪽으로 올라갑니다…',
+    m3: '오솔길 입구에 도착! 길 어딘가에 함정이 숨어 있어요.', m4: '함정을 피해 오래된 선착장에 도착했어요.',
+    m5: '늪 건너편 단서를 챙겨 오솔길을 따라 표지판까지 걸어가요…', m6: '안개 속 다리를 건너 꽃밭으로 향합니다…', m7: '모래밭에서 드디어 보물상자를 찾았어요!'
+  };
+  /* 미션1 → 미션2 : 망원경을 줍고 삼각산을 오르는 장면 (m1_map 일부를 확대) */
+  function telescopeScene(onEnd) {
+    const CX = 560, CW = 840, CH = 700;
+    const pct = (x, y) => [(x - CX) / CW * 100, y / CH * 100];
+    const stage = el('div', { class: 'stage scene2', style: `aspect-ratio:${CW}/${CH};background-image:url(${IMG.m1_map.src});background-size:${(1400 / CW * 100).toFixed(2)}% auto;background-position:100% 0;background-repeat:no-repeat` });
+    const tele = el('img', { class: 'tele', src: IMG.telescope.src, alt: '망원경' });
+    const walker = el('img', { class: 'walker', src: IMG.boy_back.src, alt: '경남이', style: 'width:9%' });
+    const cap = el('div', { class: 'cap', text: '' });
+    let finished = false;
+    const end = () => { if (finished) return; finished = true; ov.remove(); onEnd(); };
+    stage.append(tele, walker, cap, el('button', { class: 'btn small skip', type: 'button', onclick: end, text: '건너뛰기' }));
+    const ov = el('div', { class: 'walk' }, stage); document.body.appendChild(ov);
+    const T = [815, 300];
+    const put = (img, x, y, sc, flip) => { const [l, t] = pct(x, y); img.style.left = l + '%'; img.style.top = t + '%'; if (img === walker) img.style.transform = `translate(-50%,-95%) scale(${sc || 1}) scaleX(${flip ? -1 : 1})`; };
+    put(tele, T[0], T[1]); put(walker, 600, 650, 1);
+    const steps = [
+      { cap: '어? 저기 반짝이는 게 뭐지?', walk: [[600, 650], [690, 500], [790, 355]], dur: 2300 },
+      { cap: '망원경을 찾았다! 배낭에 쏙~', pick: true, dur: 1200 },
+      { cap: '이제 망원경을 챙겨서 삼각산으로 올라가자!', walk: [[790, 355], [745, 305]], dur: 900 },
+      { cap: '영차, 영차… 삼각산 꼭대기까지!', walk: [[745, 305], [735, 190], [728, 110]], dur: 2200, sc: [1, 0.7] }
+    ];
+    let k = 0, t0 = performance.now();
+    cap.textContent = steps[0].cap;
+    (function frame(t) {
+      if (finished) return;
+      const st = steps[k]; const u = Math.min(1, (t - t0) / st.dur);
+      if (st.walk) {
+        const pts = st.walk, L = []; let tot = 0;
+        for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(d); tot += d; }
+        let d = u * tot, i = 0; while (i < L.length - 1 && d > L[i]) { d -= L[i]; i++; }
+        const a = pts[i], b = pts[i + 1], f = L[i] ? Math.min(1, d / L[i]) : 1;
+        const sc = st.sc ? st.sc[0] + (st.sc[1] - st.sc[0]) * u : (k >= 3 ? 0.7 : 1);
+        put(walker, a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f - Math.abs(Math.sin(t / 110)) * 5, sc, b[0] < a[0]);
+      }
+      if (st.pick) { put(tele, T[0] + (790 - T[0]) * u, T[1] + (300 - T[1]) * u); tele.style.opacity = String(1 - u); tele.style.width = (7 * (1 - 0.6 * u)) + '%'; }
+      if (u >= 1) {
+        k++; if (k >= steps.length) return setTimeout(end, 900);
+        t0 = t; cap.textContent = steps[k].cap;
+      }
+      requestAnimationFrame(frame);
+    })(t0);
+  }
+  function walkThenGo(target) {
+    if (target === 'm2') {
+      return telescopeScene(() => { S.prog.walked.m2 = 1; S.prog.station = 'm2'; go('m2'); });
+    }
+    if (!PATHS[target]) {
+      if (PATHS[target]) { S.prog.walked[target] = 1; S.prog.station = target; }
+      return go(target);
+    }
+    const pts = PATHS[target];
+    const stage = el('div', { class: 'stage' });
+    const base = el('img', { class: 'base', src: IMG.map_overview.src, alt: '보물섬 지도' });
+    const walker = el('img', { class: 'walker', src: IMG.boy_back.src, alt: '경남이' });
+    stage.append(base, walker, el('div', { class: 'cap', text: WALK_CAP[target] }));
+    let finished = false;
+    const end = () => { if (finished) return; finished = true; ov.remove(); S.prog.walked[target] = 1; S.prog.station = target; go(target); };
+    const skip = el('button', { class: 'btn small skip', type: 'button', onclick: end, text: '건너뛰기' });
+    stage.appendChild(skip);
+    const ov = el('div', { class: 'walk' }, stage); document.body.appendChild(ov);
+    const L = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(d); tot += d; }
+    const dur = Math.min(3800, Math.max(2200, tot * 6)); const t0 = performance.now();
+    const place = (x, y, bob) => { walker.style.left = (x / 1400 * 100) + '%'; walker.style.top = ((y - bob) / 933 * 100) + '%'; };
+    place(pts[0][0], pts[0][1], 0);
+    (function frame(t) {
+      if (finished) return;
+      let u = Math.min(1, (t - t0) / dur), d = u * tot, i = 0;
+      while (i < L.length - 1 && d > L[i]) { d -= L[i]; i++; }
+      const a = pts[i], b = pts[i + 1], f = L[i] ? Math.min(1, d / L[i]) : 1;
+      const x = a[0] + (b[0] - a[0]) * f, y = a[1] + (b[1] - a[1]) * f;
+      walker.style.transform = `translate(-50%,-92%) scaleX(${b[0] < a[0] ? -1 : 1})`;
+      place(x, y, Math.abs(Math.sin(t / 110)) * 6);
+      if (u < 1) requestAnimationFrame(frame); else setTimeout(end, 700);
+    })(t0);
+  }
+
+  /* ======================= 미션 데이터 ======================= */
+  const SHIFT = [[0, 0], [-3, 2], [2, -3], [-5, -4], [4, 3], [-2, -6]];
+  const vOf = (m) => SHIFT[S.prog.v[m] % 6];
+  // 미션1·2 지도 (m1_map, 1400×933)  1칸 = 43.17px, 원점 (378, 877)
+  const MAP1 = { x0: -6.842, x1: 22.09, y0: 1.03, y1: 20.31 };
+  const LAND = { stone: [5, 9], tent: [8, 15], skull: [17, 18] };
+  function shiftRect(r, v) { return { x0: r.x0 + v[0], x1: r.x1 + v[0], y0: r.y0 + v[1], y1: r.y1 + v[1] }; }
+  const add = (p, v) => [p[0] + v[0], p[1] + v[1]];
+
+  /* ---------- 펜(스케치) 도구 ---------- */
+  function addSketch(p) {
+    const ink = { type: 'custom', strokes: [], draw(c, pl) { c.strokeStyle = '#7a3fb0'; c.lineWidth = 3; c.lineCap = 'round'; c.lineJoin = 'round'; this.strokes.forEach(s => { c.beginPath(); s.forEach((q, i) => i ? c.lineTo(pl.sx(q[0]), pl.sy(q[1])) : c.moveTo(pl.sx(q[0]), pl.sy(q[1]))); c.stroke(); }); } };
+    p.add(ink); let on = false, cur = null;
+    const pen = p.addTool('펜', 'alt', () => { on = !on; pen.textContent = on ? '펜 끄기' : '펜'; pen.classList.toggle('alt', !on); });
+    p.addTool('지우기', 'alt', () => { ink.strokes = []; p.draw(); });
+    p.cv.addEventListener('pointerdown', e => { if (!on) return; const r = p.cv.getBoundingClientRect(); cur = [[p.wx(e.clientX - r.left), p.wy(e.clientY - r.top)]]; ink.strokes.push(cur); p.cv.setPointerCapture(e.pointerId); e.stopImmediatePropagation(); }, true);
+    p.cv.addEventListener('pointermove', e => { if (!on || !cur) return; const r = p.cv.getBoundingClientRect(); cur.push([p.wx(e.clientX - r.left), p.wy(e.clientY - r.top)]); p.draw(); }, true);
+    p.cv.addEventListener('pointerup', () => { cur = null; }, true);
+    return ink;
+  }
+
+  /* ======================= 화면들 ======================= */
+  const SCREENS = {};
+
+  SCREENS.intro = (main) => {
+    const box = el('div', { class: 'intro' }, [
+      el('img', { class: 'boy', src: IMG.boy.src, alt: '탐험가 경남이' }),
+      el('h2', { text: '경남고 1학년 학생 여러분 안녕하세요' }),
+      el('p', { text: '오늘 도형의 방정식 단원에서 좌표평면에서 선분의 내분점, 두 직선의 평행과 수직, 점과 직선 사이의 거리, 원의 방정식, 도형의 평행이동, 도형의 대칭이동을 배웠습니다.' }),
+      el('p', { text: '오늘은 여러분이 배운 개념들을 토대로 해적이 숨겨둔 보물을 찾기 위해 떠나보려고 합니다.' }),
+      el('p', { text: '어떤 문제는 반드시 앞의 문제를 해결해야 다음 방으로 넘어갈 수 있으며, 모든 문제를 해결해야 보물을 찾을 수 있습니다.' }),
+      el('p', { html: '<b>자~ 이제 보물을 찾으러 떠나봅시다.</b>' }),
+      el('button', { class: 'btn brass', type: 'button', onclick: () => go('map'), text: '시작하기' })
+    ]);
+    main.appendChild(box);
+  };
+
+  SCREENS.map = (main) => {
+    header(main, '보물지도', TITLES.map);
+    main.appendChild(el('p', { style: 'text-align:center;margin:0 0 12px', html: '1학년 경남이가 수학교과실에서 오래된 낡은 지도와 메모를 발견했다. 그 지도와 메모를 통해 해적들이 숨겨둔 보물을 발견할 수 있다고 적혀있다.<br><b>지도와 단서를 참고해서 보물을 찾으러 가보자~ 출발!</b> (깃발을 누르면 그 미션으로 이동해요)' }));
+    const hub = el('div', { class: 'hub' }); main.appendChild(hub);
+    hub.appendChild(el('img', { class: 'base', src: IMG.map_overview.src, alt: '보물섬 전체 지도' }));
+    MISSIONS.forEach((m, i) => {
+      const [x, y] = STATION[m], done = S.prog[m].solved;
+      hub.appendChild(el('button', { class: 'pin' + (done ? ' done' : ''), type: 'button', style: `left:${x / 14}%;top:${y / 9.33}%`, onclick: () => go(m) },
+        [el('span', { class: 'flag', text: (done ? '✓ ' : '') + '미션' + (i + 1) }), el('span', { class: 'stem' })]));
+    });
+    const st = STATION[S.prog.station] || STATION.start;
+    hub.appendChild(el('img', { class: 'walker', src: IMG.boy_back.src, alt: '', style: `left:${st[0] / 14}%;top:${st[1] / 9.33}%` }));
+    const nextM = MISSIONS.find(m => !S.prog[m].solved);
+    main.appendChild(el('div', { class: 'hub-actions' }, [
+      nextM ? el('button', { class: 'btn brass', type: 'button', onclick: () => walkThenGo(nextM), text: '미션 ' + (MISSIONS.indexOf(nextM) + 1) + ' 시작하기 ▶' }) : null,
+      el('button', { class: 'btn ghost', type: 'button', onclick: () => go('tess'), text: '테셀레이션 챌린지' }),
+      el('button', { class: 'btn ghost', type: 'button', onclick: () => go('treasure'), text: '보물 확인' }),
+      el('button', { class: 'btn ghost', type: 'button', onclick: () => go('final'), text: '탐험 보고서 제출' })
+    ]));
+  };
+
+  /* ---------- 미션 1 : 무게중심 ---------- */
+  function m1Plot(host, key) {
+    const v = vOf(key), r = shiftRect(MAP1, v);
+    const view = { x0: Math.min(-1.5, r.x0 + 5), x1: Math.max(1.5, r.x1), y0: Math.min(-1.5, r.y0 + 0.5), y1: Math.max(1.5, r.y1) };
+    const p = plotIn(host, { view, bg: { img: IMG.m1_map, ...r, alpha: 0.6 }, darkGrid: true, grid: 1, label: 2 });
+    return { p, v };
+  }
+  SCREENS.m1 = (main) => {
+    header(main, '미션 1', TITLES.m1);
+    const st = S.prog.m1, wrap = el('div', { class: 'two even' }); main.appendChild(wrap);
+    const clueBox = el('div', { class: 'panel' }), left = el('div', { class: 'panel' }); wrap.append(clueBox, left);
+    const below = el('div', { class: 'below narrow' }); main.appendChild(below);
+    const { p, v } = m1Plot(below, 'm1');
+    const A = add(LAND.stone, v), B = add(LAND.tent, v), C = add(LAND.skull, v);
+    const G = [(A[0] + B[0] + C[0]) / 3, (A[1] + B[1] + C[1]) / 3];
+    p.add({ type: 'point', x: A[0], y: A[1], color: '#d0473a', label: pt(A) });
+    p.add({ type: 'point', x: B[0], y: B[1], color: '#1d2a2f', label: pt(B) });
+    p.add({ type: 'point', x: C[0], y: C[1], color: '#7a3fb0', label: pt(C) });
+    addSketch(p);
+    const tele = { type: 'img', img: IMG.telescope, x: G[0], y: G[1], w: 2.4, hidden: !st.solved };
+    p.add(tele);
+    clueBox.append(clueCard('📜 단서 1', [
+      '<b>오솔길 입구로 걸어가 봐. 길가에 돌이 있을거야.</b>',
+      `돌 ${pt(A)}, 삼각산 ${pt(B)}, 해골 ${pt(C)} 을 삼각형으로 하는 도형의`,
+      '<b>무게중심의 위치에 망원경이 묻혀있어.</b>'
+    ]));
+    left.append(el('p', { class: 'task', text: '망원경의 좌표를 구하시오.' }));
+    const fb = el('div');
+    const mf = mathInput(st.tex || '\\left(\\placeholder{},\\placeholder{}\\right)', () => check());
+    const check = () => {
+      let q; try { q = M.parsePoint(mf.plain()); } catch (e) { return feedback(fb, 'no', e.message); }
+      if (near(q[0], G[0]) && near(q[1], G[1])) { solve('m1', { tex: mf.tex(), ans: pt(q) }); tele.hidden = false; p.draw(); solvedBanner(fb, '정답입니다! 망원경을 찾았어요.', 'm2'); }
+      else { wrong('m1', { tex: mf.tex(), ans: pt(q) }); feedback(fb, 'no', '다시 한번 생각해봅시다. 세 꼭짓점의 좌표를 다시 확인해 보세요.'); }
+    };
+    left.append(el('div', { class: 'ans-row' }, [mf, el('button', { class: 'btn', type: 'button', onclick: check, text: '제출' })]), fb);
+    if (st.solved) solvedBanner(fb, '정답입니다! 망원경을 찾았어요.', 'm2');
+  };
+
+  /* ---------- 미션 2 : 내분점 ---------- */
+  SCREENS.m2 = (main) => {
+    header(main, '미션 2', TITLES.m2);
+    const st = S.prog.m2, wrap = el('div', { class: 'two even' }); main.appendChild(wrap);
+    const clueBox = el('div', { class: 'panel' }), left = el('div', { class: 'panel' }); wrap.append(clueBox, left);
+    const below = el('div', { class: 'below narrow' }); main.appendChild(below);
+    const { p, v } = m1Plot(below, 'm2');
+    const A = add(LAND.tent, v), B = add(LAND.skull, v), P = [(2 * A[0] + B[0]) / 3, (2 * A[1] + B[1]) / 3];
+    p.add({ type: 'seg', x1: A[0], y1: A[1], x2: B[0], y2: B[1], color: '#0a3640', width: 3, dash: [8, 6] });
+    p.add({ type: 'point', x: A[0], y: A[1], color: '#1d2a2f', label: 'A' + pt(A) });
+    p.add({ type: 'point', x: B[0], y: B[1], color: '#7a3fb0', label: 'B' + pt(B) });
+    const mark = { type: 'point', x: 0, y: 0, color: '#e6a200', hidden: true, label: '' }; p.add(mark);
+    p.onTap = (x, y) => { if (S.prog.m2.solved) return; mark.x = Math.round(x * 2) / 2; mark.y = Math.round(y * 2) / 2; mark.label = pt([mark.x, mark.y]); mark.hidden = false; p.draw(); };
+    const flag = {
+      type: 'custom', hidden: !st.solved, draw(c, pl) {
+        const x = pl.sx(P[0]), y = pl.sy(P[1]), u = pl.unit();
+        c.strokeStyle = '#5b3a12'; c.lineWidth = 3; c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - 2.6 * u); c.stroke();
+        c.fillStyle = '#d0473a'; c.beginPath(); c.moveTo(x, y - 2.6 * u); c.lineTo(x + 1.6 * u, y - 2.1 * u); c.lineTo(x, y - 1.6 * u); c.fill();
+        pl._label('오솔길 입구 ' + pt(P), x, y, '#0a3640', 'below');
+      }
+    };
+    p.add(flag);
+    clueBox.append(clueCard('📜 단서 2', [
+      '<b>망원경을 찾았니?!</b>', '그럼 망원경을 배당에 넣고 삼각산으로 올라가.', '삼각산 <i>A</i> 과 해골 <i>B</i> 를 연결하여라.',
+      '오솔길의 입구는 두 지점을 연결한 <b>선분 <i>AB</i> 의 1:2 내분점</b>의 위치에 점을 찍어봐.', '그 곳이 오솔길의 입구야.'
+    ]));
+    left.append(el('p', { html: `경남이는 두 번째 단서를 발견했다.<br>삼각산과 해골의 위치가 각각 <b>A${pt(A)}, B${pt(B)}</b> 일 때, <b>오솔길 입구의 좌표를 찾아라.</b>` }),
+      el('p', { class: 'note', text: '지도를 누르면 그 자리에 점을 찍어 볼 수 있어요.' }));
+    const fb = el('div');
+    const mf = mathInput(st.tex || '\\left(\\placeholder{},\\placeholder{}\\right)', () => check());
+    const check = () => {
+      let q; try { q = M.parsePoint(mf.plain()); } catch (e) { return feedback(fb, 'no', e.message); }
+      if (near(q[0], P[0]) && near(q[1], P[1])) { solve('m2', { tex: mf.tex(), ans: pt(q) }); flag.hidden = false; mark.hidden = true; p.draw(); solvedBanner(fb, '정답입니다. 오솔길 입구를 찾으셨습니다.', 'm3'); }
+      else { wrong('m2', { tex: mf.tex(), ans: pt(q) }); feedback(fb, 'no', '다시 한번 생각해봅시다. A에 더 가까운 쪽이 1:2 내분점이에요.'); }
+    };
+    left.append(el('div', { class: 'ans-row' }, [mf, el('button', { class: 'btn', type: 'button', onclick: check, text: '제출' })]), fb);
+    if (st.solved) solvedBanner(fb, '정답입니다. 오솔길 입구를 찾으셨습니다.', 'm3');
+  };
+
+  /* ---------- 미션 3 : 구슬 굴리기 (평행이동) ---------- */
+  const M3_STARS = [[2, 3], [3, 1], [11, -1], [7, -0.5]];
+  SCREENS.m3 = (main) => {
+    header(main, '미션 3', TITLES.m3);
+    const st = S.prog.m3, v = vOf('m3'), wrap = el('div', { class: 'two even' }); main.appendChild(wrap);
+    const clueBox = el('div', { class: 'panel' }), left = el('div', { class: 'panel' }); wrap.append(clueBox, left);
+    const below = el('div', { class: 'below' }); main.appendChild(below);
+    const F = { f: (x, y) => x * y - 2 };
+    const view = { x0: -6 + v[0], x1: 22 + v[0], y0: -3 + v[1], y1: 13 + v[1] };
+    const p = plotIn(below, { view, grid: 1, label: 2 });
+    const stars = M3_STARS.map(s => ({ type: 'star', x: s[0] + v[0], y: s[1] + v[1], size: 0.34 }));
+    S.shotPrep = () => { const saved = stars.map(q => [q.hidden, q.scale]); stars.forEach(q => { q.hidden = false; q.scale = 1; }); return () => stars.forEach((q, i) => { q.hidden = saved[i][0]; q.scale = saved[i][1]; }); };
+    stars.forEach(s => p.add(s));
+    const curve = { type: 'curve', f: F.f, color: '#2d6fb7', width: 3 }; p.add(curve);
+    const ball = { type: 'point', x: 0, y: 0, r: 11, color: '#7a5bc4' }; p.add(ball);
+    const pathOf = (f) => {
+      const lines = M.chain(M.contour(f, view, 320).segs, 1e-7);
+      let best = null, by = -Infinity;
+      lines.forEach(l => { const a = l[0], b = l[l.length - 1]; if (a[1] > by) { by = a[1]; best = l; } if (b[1] > by) { by = b[1]; best = l.slice().reverse(); } });
+      return best;
+    };
+    const putBall = (f) => { const pth = pathOf(f); if (pth) { ball.x = pth[0][0]; ball.y = pth[0][1]; } p.draw(); };
+    putBall(F.f);
+    clueBox.append(clueCard('📜 단서 3', ['경남이가 오솔길의 입구에서 단서를 발견했다.', '오솔길에는 <b>4개의 함정</b>이 숨겨져있어.', '이 함정을 미리 제거해야지만 안전하게 갈 수 있어.', '구슬을 굴려서 함정을 먼저 제거하여라.', '<b>구슬이 이동하기 위한 함수식을 찾아 함정을 제거하자.</b>']));
+    left.append(el('ol', { class: 'rules' }, [el('li', { text: '구슬(●)이 네 개의 길 위의 폭탄(별 ★)을 모두 통과해야지만 제거된다.' }), el('li', { text: '구슬이 모두 통과할 수 있도록 구슬이 굴러 가는 길 f(x, y)=0 을 만들자.' }), el('li', { text: '도형의 평행이동을 이용하여 함수 f(x, y)=0 의 변수 x, y를 바꿔 보세요. 식을 고치면 길이 바로 움직여요. 길이 맞으면 [발사] 버튼을 눌러 모든 별을 제거하자.' })]));
+    const fb = el('div');
+    let running = false;
+    const live = () => {
+      if (running) return;
+      let fn; try { fn = M.compileXY(mf.plain(), F).f; } catch (e) { return; }
+      curve.f = fn; curve._segs = null; stars.forEach(s => { s.hidden = false; s.scale = 1; }); putBall(fn);
+    };
+    const mf = mathInput(st.tex || 'f\\left(x,y\\right)', () => fire(), debounce(live, 120));
+    const fire = () => {
+      if (running) return;
+      let fn; try { fn = M.compileXY(mf.plain(), F).f; } catch (e) { return feedback(fb, 'no', e.message); }
+      const pth = pathOf(fn); if (!pth) return feedback(fb, 'no', '화면 안에 길이 보이지 않아요. 식을 다시 확인하세요.');
+      curve.f = fn; curve._segs = null; stars.forEach(s => { s.hidden = false; s.scale = 1; });
+      feedback(fb, 'info', '구슬 발사!'); running = true; btn.disabled = true;
+      const L = [0]; for (let i = 1; i < pth.length; i++) L.push(L[i - 1] + Math.hypot(pth[i][0] - pth[i - 1][0], pth[i][1] - pth[i - 1][1]));
+      const tot = L[L.length - 1], speed = Math.max(7, tot / 5.5); const t0 = performance.now(); let k = 0; const hit = new Set();
+      (function frame(t) {
+        const d = Math.min(tot, (t - t0) / 1000 * speed);
+        while (k < L.length - 2 && L[k + 1] < d) k++;
+        const f = (d - L[k]) / ((L[k + 1] - L[k]) || 1), x = pth[k][0] + (pth[k + 1][0] - pth[k][0]) * f, y = pth[k][1] + (pth[k + 1][1] - pth[k][1]) * f;
+        ball.x = x; ball.y = y;
+        stars.forEach((s, i) => { if (!hit.has(i) && Math.hypot(s.x - x, s.y - y) < 0.62) { hit.add(i); s.scale = 1.8; setTimeout(() => { s.hidden = true; p.draw(); }, 180); } });
+        p.draw();
+        if (d < tot) return requestAnimationFrame(frame);
+        running = false; btn.disabled = false;
+        if (hit.size === 4) { solve('m3', { tex: mf.tex(), ans: mf.plain() }); solvedBanner(fb, '네 개의 함정을 모두 제거했어요! 이제 안전하게 늪으로 갈 수 있어요.', 'm4'); }
+        else { wrong('m3', { tex: mf.tex(), ans: mf.plain() }); feedback(fb, 'no', `함정이 ${4 - hit.size}개 남았어요. 길의 위치를 다시 옮겨 보세요.`); setTimeout(() => { stars.forEach(s => { s.hidden = false; s.scale = 1; }); putBall(fn); }, 1600); }
+      })(t0);
+    };
+    const btn = el('button', { class: 'btn brass', type: 'button', onclick: fire, text: '발사' });
+    p.addTool('처음 길 보기', 'alt', () => { curve.f = F.f; curve._segs = null; stars.forEach(s => { s.hidden = false; s.scale = 1; }); putBall(F.f); });
+    left.append(el('div', { class: 'ans-row' }, [mf, el('span', { class: 'lbl eq0', text: '= 0' }), btn]), fb);
+    if (st.solved) solvedBanner(fb, '네 개의 함정을 모두 제거했어요!', 'm4');
+    if (st.tex) setTimeout(live, 50);
+  };
+
+  /* ---------- 미션 4 : 악어의 늪 ---------- */
+  const SW = (px, py) => [(px - 40) / 80, (850 - py) / 80];
+  const CROCS = [[900, 312, 52, 14, -25], [958, 347, 52, 14, -25], [962, 416, 42, 14, -5], [962, 488, 62, 17, -12], [898, 567, 44, 13, 0],
+  [636, 386, 62, 18, -22], [600, 474, 72, 19, 2], [503, 529, 73, 19, 8], [566, 586, 66, 19, -32], [633, 640, 58, 19, -15]]
+    .map(([px, py, a, b, d]) => { const c = SW(px, py); return { x: c[0], y: c[1], a: (a + 6) / 80, b: (b + 4) / 80, ang: d * Math.PI / 180 }; });
+  const SWAMP = [[400, 610], [408, 540], [440, 475], [500, 415], [580, 365], [660, 330], [760, 300], [860, 285], [950, 288], [1030, 310], [1085, 350], [1100, 410], [1088, 465], [1050, 510], [1000, 545], [955, 575], [930, 590], [880, 600], [840, 602], [790, 625], [760, 660], [720, 700], [650, 730], [560, 735], [480, 715], [430, 670]].map(q => SW(q[0], q[1]));
+  const DOCK = SW(830, 598), GOAL = SW(800, 262);
+  const M4_START = [[[14, 2], [0, 6], [2, 1]], [[15, 6.5], [0, 4], [13, 1]], [[1, 5], [0, 2], [3, 1]], [[2, 2], [0, 6.5], [15, 1]], [[13, 1], [0, 3], [1, 6]], [[3, 6], [0, 1.5], [15.5, 6]]];
+  function inPoly(x, y, poly) { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; }
+  function inCroc(x, y, c, pad) { const dx = x - c.x, dy = y - c.y, cs = Math.cos(c.ang), sn = Math.sin(c.ang); const u = dx * cs + dy * sn, w = -dx * sn + dy * cs; return (u / (c.a + pad)) ** 2 + (w / (c.b + pad)) ** 2 <= 1; }
+  function m4Funcs() {
+    const s = M4_START[S.prog.v.m4 % 6];
+    return {
+      f: (x, y) => (x - s[0][0]) ** 2 + (y - s[0][1]) ** 2 - 0.4 ** 2,
+      g: (x, y) => (2 * (x - s[1][0]) / 0.7) ** 4 + ((y - s[1][1]) / 0.7) ** 4 - 0.5,
+      h: (x, y) => { const X = (x - s[2][0]) / 0.5, Y = (y - s[2][1]) / 0.5; return 0.3 * (X * X + Y * Y - 0.086) ** 3 - X * X * Y * Y; }
+    };
+  }
+  const M4_COL = { f: '#d0473a', g: '#222', h: '#2d6fb7' }, M4_NAME = { f: '둥근 돌', g: '네모 돌', h: '클로버 돌' };
+  SCREENS.m4 = (main) => {
+    header(main, '미션 4', TITLES.m4);
+    const st = S.prog.m4, wrap = el('div', { class: 'two even' }); main.appendChild(wrap);
+    const clueBox = el('div', { class: 'panel' }), left = el('div', { class: 'panel' }); wrap.append(clueBox, left);
+    const below = el('div', { class: 'below' }); main.appendChild(below);
+    const F = m4Funcs(), view = { x0: -0.8, x1: 17, y0: -0.8, y1: 9 };
+    const p = plotIn(below, { view, bg: { img: IMG.m4_swamp, x0: -0.5, x1: 17, y0: -1.0375, y1: 10.625, alpha: 0.6 }, darkGrid: true, grid: 1, label: 1 });
+    const crocL = CROCS.map(c => p.add({ type: 'ellipse', ...c, color: '#ff2d2d', width: 3, hidden: true }));
+    p.add({ type: 'star', x: GOAL[0], y: GOAL[1] + 0.25, size: 0.32, color: '#e23b3b' });
+    p.add({ type: 'text', x: GOAL[0], y: GOAL[1] + 0.85, text: '단서', color: '#c0392b' });
+    const route = { type: 'poly', pts: [], color: '#ffe066', width: 4, dash: [10, 8], hidden: true }; p.add(route);
+    const KS = ['f', 'g', 'h'];
+    const curves = {}; KS.forEach(k => curves[k] = p.add({ type: 'curve', f: F[k], color: M4_COL[k], width: 4 }));
+    const boy = p.add({ type: 'img', img: IMG.boy_back, x: DOCK[0], y: DOCK[1] - 0.15, w: 0.75, anchorY: 0.95 });
+    function bbox(pts) { const b = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity }; pts.forEach(q => { b.x0 = Math.min(b.x0, q[0]); b.x1 = Math.max(b.x1, q[0]); b.y0 = Math.min(b.y0, q[1]); b.y1 = Math.max(b.y1, q[1]); }); return b; }
+    const dims = {}; KS.forEach(k => { const b = bbox(M.samplePoints(F[k], view, 300)); dims[k] = [b.x1 - b.x0, b.y1 - b.y0].sort((a, b) => a - b); });
+    const ruleTexts = ['아래의 돌의 방정식의 변수 x, y를 바꿔서 돌을 이동시켜라.', '악어 위에 도형이 있어서는 안 된다.', '돌들은 서로 겹쳐서는 안 된다.', '돌은 모두 늪(물) 안에 놓아야 한다.', '선착장에서 단서(★)까지 징검다리처럼 건널 수 있어야 한다. (돌 사이가 너무 멀면 건널 수 없어요.)'];
+    const rulesEl = el('ol', { class: 'rules' }, ruleTexts.map(t => el('li', { text: t })));
+    clueBox.append(clueCard('📜 단서 4', ['<b>오솔길을 안전하게 나왔니?!</b>', '이제 오래된 선착장이 있을거야.', '악어가 사는 늪을 통과해야만 다음 단서를 찾을 수 있어.', '<b>늪의 한 가운데로 3개의 돌을 놓고 건너라.</b>']));
+    left.append(el('p', { html: '흩어져 있는 돌 3개의 방정식은 각각 <b>f(x, y)=0, g(x, y)=0, h(x, y)=0</b> 과 같다. <b>평행이동</b>을 이용하여 악어의 늪을 건너라. <span class="note">(단, 돌의 순서는 중요하지 않다.)</span>' }), rulesEl,
+      el('p', { class: 'note', text: '식을 고치면 돌이 바로 움직여요. 위치가 마음에 들면 그 돌의 [놓기] 버튼을 누르세요.' }));
+    const fb = el('div'), fields = {}, marks = {}, state = {}, data = {};
+    const placed = st.placed || {};
+    const evalStone = (k) => {
+      let fn; try { fn = M.compileXY(fields[k].plain(), F).f; } catch (e) { return { err: e.message }; }
+      const pts = M.samplePoints(fn, view, 340);
+      if (!pts.length) return { fn, err: '화면 밖으로 나갔어요.' };
+      return { fn, pts, bb: bbox(pts) };
+    };
+    const liveMove = (k) => { const r = evalStone(k); if (r.fn) { curves[k].f = r.fn; curves[k]._segs = null; } if (placed[k]) { placed[k] = false; setMark(k); } route.hidden = true; p.draw(); };
+    const setMark = (k) => { marks[k].textContent = placed[k] ? '놓음 ✓' : ''; marks[k].style.color = 'var(--leaf)'; };
+    const stoneProblems = (k, r) => {
+      const msgs = [], bad = new Set(), crocIdx = [];
+      const d = [r.bb.x1 - r.bb.x0, r.bb.y1 - r.bb.y0].sort((a, b) => a - b);
+      if (Math.abs(d[0] - dims[k][0]) > 0.15 * dims[k][0] + 0.06 || Math.abs(d[1] - dims[k][1]) > 0.15 * dims[k][1] + 0.06) { bad.add(0); msgs.push(`${M4_NAME[k]}(${k})의 모양이나 크기가 달라졌어요. 평행이동만 사용하세요.`); }
+      if (r.pts.some(q => !inPoly(q[0], q[1], SWAMP))) { bad.add(3); msgs.push(`${M4_NAME[k]}(${k})이 늪 밖에 있어요.`); }
+      CROCS.forEach((c, i) => { if (r.pts.some(q => inCroc(q[0], q[1], c, 0.03)) || (c.x > r.bb.x0 && c.x < r.bb.x1 && c.y > r.bb.y0 && c.y < r.bb.y1)) { bad.add(1); crocIdx.push(i); } });
+      if (crocIdx.length) msgs.push(`${M4_NAME[k]}(${k})이 악어 위에 있어요!`);
+      return { msgs, bad, crocIdx };
+    };
+    const showRules = (bad) => [...rulesEl.children].forEach((li, i) => { li.className = bad == null ? '' : bad.has(i) ? 'bad' : 'good'; });
+    const placeOne = (k, silent) => {
+      const r = evalStone(k); if (r.err) return feedback(fb, 'no', `${M4_NAME[k]}(${k}) 식: ${r.err}`);
+      curves[k].f = r.fn; curves[k]._segs = null; data[k] = r;
+      const pr = stoneProblems(k, r);
+      crocL.forEach(c => c.hidden = true); pr.crocIdx.forEach(i => crocL[i].hidden = false);
+      st.tex = st.tex || {}; st.tex[k] = fields[k].tex();
+      if (pr.bad.size) { placed[k] = false; setMark(k); showRules(pr.bad); p.draw(); if (!silent) { wrong('m4', { tex: st.tex }); feedback(fb, 'no', pr.msgs.join('<br>')); } return; }
+      placed[k] = true; setMark(k); st.placed = placed; save();
+      const left3 = KS.filter(q => !placed[q]);
+      if (left3.length) { showRules(null); p.draw(); if (!silent) feedback(fb, 'info', `${M4_NAME[k]}을 놓았어요. 남은 돌: ${left3.map(q => M4_NAME[q]).join(', ')}`); return; }
+      checkAll(silent);
+    };
+    const checkAll = (silent) => {
+      KS.forEach(k => { if (!data[k]) data[k] = evalStone(k); });
+      const bad = new Set(), msgs = [];
+      KS.forEach(k => { const pr = stoneProblems(k, data[k]); pr.bad.forEach(b => bad.add(b)); msgs.push(...pr.msgs); });
+      for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) { const a = data[KS[i]].bb, b = data[KS[j]].bb; if (a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1) { bad.add(2); msgs.push(`${M4_NAME[KS[i]]}과 ${M4_NAME[KS[j]]}이 겹쳤어요.`); } }
+      const cen = {}; KS.forEach(k => { const b = data[k].bb; cen[k] = [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2]; });
+      const perms = [['f', 'g', 'h'], ['f', 'h', 'g'], ['g', 'f', 'h'], ['g', 'h', 'f'], ['h', 'f', 'g'], ['h', 'g', 'f']];
+      let bestPath = null, bestHop = Infinity;
+      perms.forEach(o => { const path = [DOCK, cen[o[0]], cen[o[1]], cen[o[2]], GOAL]; let mx = 0; for (let i = 1; i < 5; i++) mx = Math.max(mx, Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1])); if (mx < bestHop) { bestHop = mx; bestPath = path; } });
+      if (bestHop > 1.6) { bad.add(4); msgs.push('돌 사이(또는 선착장·단서와의 거리)가 너무 멀어서 건널 수 없어요. 1.6칸 이내로 이어지게 놓아 보세요.'); }
+      showRules(bad);
+      const ans = KS.map(k => `${k}: ${fields[k].plain()}`).join(' / ');
+      if (bad.size) { route.hidden = true; p.draw(); if (!silent) { wrong('m4', { ans }); feedback(fb, 'no', msgs.slice(0, 4).join('<br>')); } return; }
+      route.pts = bestPath; route.hidden = false; p.draw();
+      solve('m4', { ans, placed });
+      if (silent) { boy.x = GOAL[0]; boy.y = GOAL[1] - 0.1; p.draw(); return solvedBanner(fb, '징검다리 완성! 악어의 늪을 건넜어요.', 'm5'); }
+      feedback(fb, 'ok', '징검다리 완성! 경남이가 돌을 밟고 건너가요…');
+      hop(bestPath, () => solvedBanner(fb, '징검다리 완성! 경남이가 악어의 늪을 무사히 건넜어요.', 'm5'));
+    };
+    const hop = (path, done) => {
+      let i = 0; const seg = 650;
+      const stepTo = () => {
+        if (i >= path.length - 1) return done();
+        const a = path[i], b = path[i + 1], t0 = performance.now();
+        (function fr(t) {
+          const u = Math.min(1, (t - t0) / seg);
+          boy.x = a[0] + (b[0] - a[0]) * u; boy.y = a[1] + (b[1] - a[1]) * u - 0.1 + Math.sin(u * Math.PI) * 0.55;
+          p.draw();
+          if (u < 1) requestAnimationFrame(fr); else { i++; setTimeout(stepTo, 120); }
+        })(t0);
+      };
+      stepTo();
+    };
+    KS.forEach(k => {
+      fields[k] = mathInput((st.tex && st.tex[k]) || k + '\\left(x,y\\right)', () => placeOne(k), debounce(() => liveMove(k), 120));
+      marks[k] = el('span', { class: 'lbl mark', text: '' });
+      left.appendChild(el('div', { class: 'ans-row' }, [el('span', { class: 'lbl', html: `<i class="dot" style="background:${M4_COL[k]}"></i>` }), fields[k], el('span', { class: 'lbl eq0', text: '= 0' }),
+        el('button', { class: 'btn small', type: 'button', title: M4_NAME[k] + ' 놓기', onclick: () => placeOne(k), text: '놓기' }), marks[k]]));
+    });
+    left.append(fb);
+    if (st.tex) setTimeout(() => { KS.forEach(k => { const r = evalStone(k); if (r.fn) { curves[k].f = r.fn; curves[k]._segs = null; } setMark(k); }); p.draw(); if (st.solved) checkAll(true); }, 60);
+  };
+
+  /* ---------- 미션 5 : 수직인 직선 ---------- */
+  const CL = (px, py) => [(px - 659) / 17.5, (548 - py) / 17.5];
+  const SIGN = CL(136, 512), TIE1 = CL(698, 352), TIE2 = CL(762, 700);
+  const M5_START = [[[-14, 22], [-1, 22], [12, 22]], [[12, 23], [-16, 22], [-2, 23]], [[-20, 22], [16, 23], [-4, 22]], [[5, 23], [-12, 22], [20, 23]], [[-26, 23], [-2, 22], [11, 23]], [[18, 22], [-20, 23], [-1, 22]]];
+  SCREENS.m5 = (main) => {
+    header(main, '미션 5', TITLES.m5);
+    const st = S.prog.m5, wrap = el('div', { class: 'two even' }); main.appendChild(wrap);
+    const clueBox = el('div', { class: 'panel' }), left = el('div', { class: 'panel' }); wrap.append(clueBox, left);
+    const below = el('div', { class: 'below' }); main.appendChild(below);
+    const view = { x0: -36, x1: 40, y0: -20, y1: 26 };
+    const p = plotIn(below, { view, bg: { img: IMG.m5_cliff, x0: -37.66, x1: 42.34, y0: -22, y1: 31.31 }, grid: 2, label: 10 });
+    const start = M5_START[S.prog.v.m5 % 6];
+    const pos = st.pts || { A: start[0], B: start[1], C: start[2] };
+    const boy = { type: 'img', img: IMG.boy, x: SIGN[0] - 3.2, y: SIGN[1] - 3, w: 3, anchorY: 1 }; p.add(boy);
+    const line = { type: 'curve', f: () => NaN, color: '#7a3fb0', width: 3, hidden: true }; p.add(line);
+    const bridge = { type: 'seg', x1: 0, y1: 0, x2: 0, y2: 0, color: '#8a5a1f', width: 7, dash: [14, 6], hidden: true }; p.add(bridge);
+    const P = {};
+    const mk = (n, col) => { P[n] = p.add({ type: 'point', x: pos[n][0], y: pos[n][1], r: 10, color: col, draggable: !st.locked, snap: 1, ring: true, label: n + pt(pos[n]), onMove: l => { l.label = n + pt([l.x, l.y]); } }); };
+    mk('A', '#1d2a2f'); mk('B', '#d0473a'); mk('C', '#7a3fb0');
+    clueBox.append(clueCard('📜 단서 5', ['오솔길을 걸어가면 절벽이 나와. 😱', '이 절벽에는 다리가 놓여 있는데 어찌나 안개가 끼어서 보이지 않으니…', '내 말대로 하면 건널 수 있어.', '반대편에 <b>두 나무 사이에 팽팽하게 메어진 밧줄</b>이 보이니?', '<b>표지판에서부터 시작해서 그 밧줄에 수직이 되는 방향</b>으로 똑바로 걸어가면 다리를 건널 수 있어.', '다리가 어디 있는지 직선으로 그어 봐.']));
+    const step1 = el('div', { class: 'panel' }), step2 = el('div', { class: 'panel' }); left.append(step1, step2);
+    const fb1 = el('div'), fb = el('div');
+    step1.append(el('p', { class: 'task', html: '① 아래 지도에서 점 A를 표지판으로 움직이고, 밧줄이 묶인 두 나무 위로 점 B, C를 옮긴 뒤 [위치 확인]을 누르세요.' }),
+      el('div', { class: 'row' }, [el('button', { class: 'btn', type: 'button', onclick: () => lockPts(), text: '위치 확인' }), el('button', { class: 'btn ghost small', type: 'button', onclick: () => resetAll(), text: '다시 해보기' })]), fb1);
+    function lockPts() {
+      const A = [P.A.x, P.A.y], B = [P.B.x, P.B.y], C = [P.C.x, P.C.y];
+      const okA = Math.abs(A[0] - SIGN[0]) <= 3 && A[1] >= SIGN[1] - 4.5 && A[1] <= SIGN[1] + 3.5;
+      const nb = (q, t) => Math.hypot(q[0] - t[0], q[1] - t[1]) <= 3;
+      const okBC = (nb(B, TIE1) && nb(C, TIE2)) || (nb(B, TIE2) && nb(C, TIE1));
+      if (!okA) return feedback(fb1, 'no', '점 A를 표지판 위에 정확히 놓아 주세요.');
+      if (!okBC) return feedback(fb1, 'no', '점 B, C를 밧줄이 묶인 두 나무(밧줄 끝)에 놓아 주세요.');
+      st.locked = true; st.pts = { A, B, C }; save();
+      ['A', 'B', 'C'].forEach(n => P[n].draggable = false); p.draw();
+      feedback(fb1, 'ok', `좋아요! A${pt(A)}, B${pt(B)}, C${pt(C)}`); showTable();
+    }
+    function resetAll() {
+      st.locked = false; delete st.pts; save();
+      ['A', 'B', 'C'].forEach((n, i) => { P[n].draggable = true; P[n].x = start[i][0]; P[n].y = start[i][1]; P[n].label = n + pt(start[i]); });
+      line.hidden = true; bridge.hidden = true; p.draw(); feedback(fb1); step2.innerHTML = ''; feedback(fb);
+    }
+    let fields = null;
+    function showTable() {
+      step2.innerHTML = '';
+      const { A, B, C } = st.pts;
+      step2.append(el('p', { class: 'task', html: `② 세 점 A, B, C의 좌표는 A${pt(A)}, B${pt(B)}, C${pt(C)} 이다.<br>안개 속 다리를 찾기 위해 다음 표를 채워봅시다.` }));
+      const tex = st.tex || {};
+      fields = { s: mathInput(tex.s || ''), q: mathInput(tex.q || ''), l: mathInput(tex.l || 'y=') };
+      const tb = el('table', { class: 'tbl' }, [
+        el('tr', {}, [el('th', { text: '직선 BC의 기울기' }), el('td', { id: 'c5s' }, fields.s)]),
+        el('tr', {}, [el('th', { text: '직선 BC에 수직인 기울기' }), el('td', { id: 'c5q' }, fields.q)]),
+        el('tr', {}, [el('th', { html: '⭐ 안개 속 다리의 방정식<br><span class="note">(예) y = mx + n</span>' }), el('td', { id: 'c5l' }, fields.l)])]);
+      step2.append(tb, el('div', { class: 'row' }, [el('button', { class: 'btn brass', type: 'button', onclick: () => checkTable(), text: '그래프 확인하기' })]), fb);
+      if (S.prog.m5.solved) checkTable(true);
+    }
+    function checkTable(silent) {
+      const { A, B, C } = st.pts; const m = (C[1] - B[1]) / (C[0] - B[0]), q = -1 / m;
+      const tex = { s: fields.s.tex(), q: fields.q.tex(), l: fields.l.tex() }; st.tex = tex;
+      const res = {}; let lineF = null;
+      try { res.s = near(M.parseNumber(fields.s.plain()), m, 1e-9); } catch (e) { res.s = false; }
+      try { res.q = near(M.parseNumber(fields.q.plain()), q, 1e-9); } catch (e) { res.q = false; }
+      try {
+        let pl = fields.l.plain(); if (!pl.includes('=')) pl = 'y=' + pl;
+        lineF = M.compileXY(pl, {}).f;
+        const z1 = lineF(A[0], A[1]), z2 = lineF(A[0] + 1, A[1] + q), z3 = lineF(A[0] + 3, A[1] + 3 * q), nz = lineF(A[0], A[1] + 1);
+        res.l = Math.abs(z1) < 1e-7 && Math.abs(z2) < 1e-7 && Math.abs(z3) < 1e-7 && Math.abs(nz) > 1e-7;
+      } catch (e) { res.l = false; }
+      [['s', 'c5s'], ['q', 'c5q'], ['l', 'c5l']].forEach(([k, id]) => { const td = document.getElementById(id); if (td) td.className = res[k] ? 'ok' : 'no'; });
+      if (lineF) { line.f = lineF; line._segs = null; line.hidden = false; }
+      const ans = `B, C 기울기: ${fields.s.plain()} / 수직 기울기: ${fields.q.plain()} / 다리: ${fields.l.plain()}`;
+      if (res.s && res.q && res.l) {
+        // 밧줄 직선과 만나는 점까지 다리
+        const t = ((B[0] - A[0]) * 1 + (B[1] - A[1]) * q) / (1 + q * q); // 대략적 투영
+        const foot = (() => { const x = (A[1] - B[1] + m * B[0] - q * A[0]) / (m - q); return [x, B[1] + m * (x - B[0])]; })();
+        Object.assign(bridge, { x1: A[0], y1: A[1], x2: foot[0], y2: foot[1], hidden: false }); void t;
+        p.draw(); solve('m5', { tex, ans, pts: st.pts, locked: true });
+        solvedBanner(fb, '안개 속 다리가 나타났어요! 표지판에서 밧줄과 수직인 방향으로 건너면 돼요.', 'm6');
+      } else {
+        p.draw(); if (!silent) { wrong('m5', { tex, ans }); feedback(fb, 'no', '빨간 칸을 다시 확인해 보세요. 수직인 두 직선의 기울기의 곱은 -1이에요.'); }
+      }
+    }
+    if (st.locked && st.pts) { feedback(fb1, 'ok', `A${pt(st.pts.A)}, B${pt(st.pts.B)}, C${pt(st.pts.C)}`); showTable(); }
+  };
+
+  /* ---------- 미션 6 : 두 원의 교점 ---------- */
+  const FIELD = { x0: -8.03, x1: 7.52, y0: -4.79, y1: 5.58 };
+  SCREENS.m6 = (main) => {
+    header(main, '미션 6', TITLES.m6);
+    const st = S.prog.m6, v = [[0, 0], [2, -1], [-1, 2], [3, 1], [-2, -2], [1, -3]][S.prog.v.m6 % 6];
+    const wrap = el('div', { class: 'two even' }); main.appendChild(wrap);
+    const clueBox = el('div', { class: 'panel' }), left = el('div', { class: 'panel' }); wrap.append(clueBox, left);
+    const below = el('div', { class: 'below' }); main.appendChild(below);
+    const fr = shiftRect(FIELD, v), view = { x0: Math.min(fr.x0, -1.5), x1: Math.max(fr.x1, 1.5), y0: Math.min(fr.y0, -1.5), y1: Math.max(fr.y1, 1.5) };
+    const p = plotIn(below, { view, bg: { img: IMG.m6_field, ...shiftRect(FIELD, v), alpha: 0.5 }, darkGrid: true, grid: 1, label: 1 });
+    const S1 = add([-5, 0], v), E1 = add([1, 3], v), T = add([-1, 3], v), T2 = add([-0.2, 1.4], v);
+    const C1 = (x, y) => (x - S1[0]) ** 2 + (y - S1[1]) ** 2 - 25, C2 = (x, y) => (x - E1[0]) ** 2 + (y - E1[1]) ** 2 - 4;
+    p.add({ type: 'point', x: S1[0], y: S1[1], color: '#d0473a', r: 7, label: "'나무밑동'", labelColor: '#c0392b', labelPos: 'above' });
+    p.add({ type: 'point', x: E1[0], y: E1[1], color: '#2d6fb7', r: 7, label: "'입구'", labelColor: '#2d6fb7', labelPos: 'above' });
+    const cv = [p.add({ type: 'curve', f: C1, color: '#c0392b', width: 3, hidden: true }), p.add({ type: 'curve', f: C2, color: '#c0392b', width: 3, hidden: true })];
+    const ip = [p.add({ type: 'point', x: T[0], y: T[1], r: 7, color: '#3b2bb5', label: pt(T), labelPos: 'left', hidden: true }), p.add({ type: 'point', x: T2[0], y: T2[1], r: 7, color: '#2c8a4a', label: pt(T2), labelPos: 'left', hidden: true })];
+    const chest = { type: 'img', img: IMG.chest, x: T[0], y: T[1], w: 1.3, hidden: true }; p.add(chest);
+    clueBox.append(clueCard('📜 단서 6', ['<b>이제 다 왔어. 조금만 힘 내!</b>', '오솔길을 따라서 아름다운 꽃밭을 지나 모래밭이 나오네.', '모래밭 입구에 찍힌 점 보이니?? 나무 밑둥은?', '<b>그 나무밑둥에서 5만큼 떨어지고, 모래밭 입구에서 2만큼 떨어진 위치</b>에 점을 찍어봐.', '보물은 <b>해안가에서 멀고, 꽃밭에 더 가까워.</b>', '그 곳을 파면 보물상자가 나와.']));
+    left.append(el('p', { html: '경남이가 보물을 찾기 위해 원의 방정식을 사용했다. 단서6에 따라 경남이가 사용해야 할 <b>두 원의 방정식을 올바르게 고쳐서 \'제출\'</b>하라. [교점확인] 버튼을 이용해 보물의 위치를 찾으시오.' }));
+    const init = ['\\left(x+1\\right)^2+\\left(y+2\\right)^2=3', '\\left(x-3\\right)^2+\\left(y-2\\right)^2=1'];
+    const tex = st.tex || {}; const ok = st.eqOk || [false, false];
+    const fbs = [el('div'), el('div')], fields = [];
+    const mine = [p.add({ type: 'curve', f: () => NaN, color: '#7a3fb0', width: 3, hidden: true }), p.add({ type: 'curve', f: () => NaN, color: '#e07b00', width: 3, hidden: true })];
+    const drawMine = (i) => { let fn; try { fn = M.compileXY(fields[i].plain(), {}).f; } catch (e) { return null; } mine[i].f = fn; mine[i]._segs = null; mine[i].hidden = false; p.draw(); return fn; };
+    const checkEq = (i) => {
+      let fn; try { fn = M.compileXY(fields[i].plain(), {}).f; } catch (e) { return feedback(fbs[i], 'no', e.message); }
+      drawMine(i);
+      const NAME = ['나무밑동', '입구'];
+      const mine6 = M.curvesMatch([C1, C2][i], fn, view), swapped = !mine6 && M.curvesMatch([C1, C2][1 - i], fn, view);
+      if (mine6) { ok[i] = true; feedback(fbs[i], 'ok', `✔ 중심이 '${NAME[i]}'인 올바른 원의 방정식이에요.`); }
+      else { ok[i] = false; if (!S.prog.m6.solved) S.prog.m6.wrong = (S.prog.m6.wrong || 0) + 1; feedback(fbs[i], 'no', swapped ? `이건 '${NAME[1 - i]}' 원이에요. ${i ? '위' : '아래'} 칸에 써 주세요.` : `다시 생각해 보세요. '${NAME[i]}'의 좌표(원의 중심)와 반지름을 확인하세요.`); }
+      st.eqOk = ok; st.tex = { 0: fields[0].tex(), 1: fields[1].tex() }; save(); crossBtn.disabled = !(ok[0] && ok[1]);
+    };
+    [0, 1].forEach(i => {
+      fields[i] = mathInput(tex[i] || init[i], () => checkEq(i));
+      left.append(el('div', { class: 'ans-row' }, [el('span', { class: 'lbl m6name', style: `color:${i ? '#c25f00' : '#6a35a0'}`, text: i ? "'입구'" : "'나무밑동'" }), fields[i], el('button', { class: 'btn', type: 'button', onclick: () => checkEq(i), text: '제출' })]), fbs[i]);
+      if (ok[i]) feedback(fbs[i], 'ok', `✔ 중심이 '${i ? '입구' : '나무밑동'}'인 올바른 원의 방정식이에요.`);
+      if (tex[i]) setTimeout(() => drawMine(i), 40);
+    });
+    const crossBtn = p.addTool('교점확인', '', () => { mine.forEach(c => c.hidden = true); cv.forEach(c => c.hidden = false); ip.forEach(c => c.hidden = false); p.draw(); st.cross = true; save(); });
+    crossBtn.disabled = !(ok[0] && ok[1]);
+    if (st.cross && ok[0] && ok[1]) { setTimeout(() => { mine.forEach(c => c.hidden = true); p.draw(); }, 60); cv.forEach(c => c.hidden = false); ip.forEach(c => c.hidden = false); }
+    const fb = el('div');
+    const mf = mathInput(st.atex || '\\left(\\placeholder{},\\placeholder{}\\right)', () => check());
+    const check = () => {
+      let q; try { q = M.parsePoint(mf.plain()); } catch (e) { return feedback(fb, 'no', e.message); }
+      const ans = `원: ${fields[0].plain()} , ${fields[1].plain()} / 보물: ${pt(q)}`;
+      if (near(q[0], T[0]) && near(q[1], T[1])) { st.atex = mf.tex(); chest.hidden = false; p.draw(); solve('m6', { ans }); solvedBanner(fb, '잘했습니다! 보물의 위치를 찾았습니다.', 'm7'); }
+      else { st.atex = mf.tex(); wrong('m6', { ans }); feedback(fb, 'no', near(q[0], T2[0]) && near(q[1], T2[1]) ? '그 곳은 해안가에 더 가까워요. 다른 교점을 살펴보세요.' : '다시 한번 생각해봅시다.'); }
+    };
+    left.append(el('p', { class: 'task', text: '보물의 위치를 구하자.' }), el('div', { class: 'ans-row' }, [mf, el('button', { class: 'btn', type: 'button', onclick: check, text: '제출' })]), fb);
+    if (st.solved) { chest.hidden = false; solvedBanner(fb, '잘했습니다! 보물의 위치를 찾았습니다.', 'm7'); }
+  };
+
+  /* ---------- 미션 7 : 자물쇠 (평행·대칭이동) ---------- */
+  const S5 = Math.sqrt(5);
+  const M7F = {
+    f: (x, y) => { if (!((-x + 2) ** 2 + y ** 2 < 1)) return NaN; return ((5 + 2 * S5) * (-x + 2) ** 2 - (y - 1) ** 2) * ((5 - 2 * S5) * (-x + 2) ** 2 - (y + (3 - S5) / 2) ** 2) * ((S5 - 1) / 4 - y); },
+    g: (x, y) => (2 * x - 1) ** 4 + (y - 2) ** 4 - 0.5,
+    h: (x, y) => 0.3 * ((x + 2) ** 2 + (y - 3) ** 2 - 0.086) ** 3 - (x + 2) ** 2 * (y - 3) ** 2,
+    i: (x, y) => ((-x + 1) ** 2 + (y - 4) ** 2 - 0.486) ** 3 - (-x + 1) ** 2 * (y - 4) ** 3
+  };
+  const M7_ORDER = [['h', 'f', 'i', 'g'], ['f', 'h', 'g', 'i'], ['g', 'i', 'h', 'f'], ['i', 'g', 'f', 'h'], ['h', 'i', 'f', 'g'], ['g', 'f', 'i', 'h']];
+  const M7_COL = { f: '#d64545', g: '#222222', h: '#2d6fb7', i: '#f08a24' };
+  function m7Targets() {
+    const ord = M7_ORDER[S.prog.v.m7 % 6], X = [-3, -1, 1, 3], T = {};
+    ord.forEach((k, j) => {
+      const cx = X[j];
+      T[k] = k === 'h' ? (x, y) => M7F.h(x - cx - 2, y + 6) : k === 'f' ? (x, y) => M7F.f(x + 2 - cx, -y - 3) : k === 'i' ? (x, y) => M7F.i(y + 4, x + 4 - cx) : (x, y) => M7F.g(y + 3.5, x + 2 - cx);
+    });
+    return T;
+  }
+  SCREENS.m7 = (main) => {
+    header(main, '미션 7', TITLES.m7);
+    const st = S.prog.m7;
+    if (!st.intro) {
+      main.appendChild(el('div', { class: 'two' }, [
+        el('div', { class: 'panel' }, [el('p', { html: '경남이가 드디어 보물상자를 찾았어요.<br>그런데 보물상자에 자물쇠🔒가 있네요.' }),
+        clueCard('📜 단서 7', ['이제 보물 상자를 열기 위해 암호를 풀어야 해.', '<b>평행이동과 대칭이동을 이용해서 모든 도형이 점선 위에 올 수 있게 배치해 봐.</b>']),
+        el('button', { class: 'btn brass', type: 'button', onclick: () => { st.intro = 1; save(); go('m7'); }, text: '자물쇠 살펴보기 ▶' })]),
+        el('div', {}, el('img', { class: 'scene', src: IMG.m7_chest.src, alt: '네 기호 자물쇠가 달린 보물상자' }))]));
+      return;
+    }
+    const wrap = el('div', { class: 'two' }); main.appendChild(wrap);
+    const left = el('div', { class: 'panel' }), right = el('div', { class: 'panel' }); wrap.append(left, right);
+    const view = { x0: -8, x1: 8, y0: -6.5, y1: 6 };
+    const p = plotIn(right, { view, bg: { img: IMG.lock, x0: -6.3, x1: 6.3, y0: -5.34, y1: -0.56, alpha: 0.6 }, darkGrid: true, grid: 1, label: 1 });
+    const T = m7Targets();
+    ['f', 'g', 'h', 'i'].forEach(k => p.add({ type: 'curve', f: T[k], color: '#5b4520', width: 3, alpha: 0.75 }));
+    const curves = {}; ['f', 'g', 'h', 'i'].forEach(k => curves[k] = p.add({ type: 'curve', f: M7F[k], color: M7_COL[k], width: 3.5 }));
+    left.append(el('p', { html: '🧰 보물상자의 암호를 풀기 위해선 <b>색깔 도형(f, g, h, i)의 방정식의 x, y를 알맞게 변형</b>하여 자물쇠 위 갈색 도형 자리로 이동시켜라. 식을 고치면 도형이 바로 움직여요.' }));
+    const fields = {}, marks = {}; const fb = el('div');
+    ['f', 'g', 'h', 'i'].forEach(k => {
+      fields[k] = mathInput((st.tex && st.tex[k]) || k + '\\left(x,y\\right)', () => check(), debounce(() => { try { curves[k].f = M.compileXY(fields[k].plain(), M7F).f; curves[k]._segs = null; marks[k].textContent = ''; p.draw(); } catch (e) { } }, 120));
+      marks[k] = el('span', { class: 'lbl', text: '' });
+      left.appendChild(el('div', { class: 'ans-row' }, [el('span', { class: 'lbl', html: `<i class="dot" style="background:${M7_COL[k]}"></i>` }), fields[k], el('span', { class: 'lbl eq0', text: '= 0' }), marks[k]]));
+    });
+    const check = (silent) => {
+      const tex = {}, res = {};
+      for (const k of ['f', 'g', 'h', 'i']) {
+        tex[k] = fields[k].tex();
+        let fn; try { fn = M.compileXY(fields[k].plain(), M7F).f; } catch (e) { res[k] = false; marks[k].textContent = '✗'; marks[k].style.color = 'var(--coral)'; continue; }
+        curves[k].f = fn; curves[k]._segs = null;
+        res[k] = M.curvesMatch(T[k], fn, view);
+        marks[k].textContent = res[k] ? '✓' : '✗'; marks[k].style.color = res[k] ? 'var(--leaf)' : 'var(--coral)';
+      }
+      p.draw();
+      const ans = ['f', 'g', 'h', 'i'].map(k => `${k}: ${fields[k].plain()}`).join(' / ');
+      if (['f', 'g', 'h', 'i'].every(k => res[k])) { solve('m7', { tex, ans }); solvedBanner(fb, '철컥! 자물쇠가 열렸어요. 보물상자를 열어 봅시다!', 'treasure'); }
+      else if (!silent) { wrong('m7', { tex, ans }); feedback(fb, 'no', `${['f', 'g', 'h', 'i'].filter(k => res[k]).length}개 도형이 제자리에 있어요. ✗ 표시된 도형을 다시 옮겨 보세요.`); }
+    };
+    left.append(el('div', { class: 'row' }, [el('button', { class: 'btn brass', type: 'button', onclick: () => check(), text: '암호 맞추기' })]), fb);
+    if (st.solved) check(true);
+  };
+
+  /* ---------- 테셀레이션 ---------- */
+  const TESS = {
+    reflect: { name: 'y축 대칭이동', label: 'y축 대칭이동 사용하여 만들기', how: '한 칸 안에 그리면 세로 점선(y축과 평행한 직선)에 대해 대칭이동되어 평면 전체에 반복돼요.' },
+    diag: { name: '직선 y=x 대칭이동', label: '직선 y=x 대칭이동 사용하여 만들기', how: '한 칸 안에 그리면 대각선 점선(직선 y=x 방향)에 대해 대칭이동되어 평면 전체에 반복돼요.' },
+    rot90: { name: '회전이동(90도)', label: '회전이동(90도) 사용하여 만들기', how: '한 칸 안에 그리면 칸의 꼭짓점을 중심으로 90도씩 회전이동되어 평면 전체에 반복돼요.' },
+    rot60: { name: '회전이동(60도)', label: '회전이동(60도) 사용하여 만들기', how: '점 근처에 그리면 점을 중심으로 60도씩 회전이동되어 평면 전체에 반복돼요.' },
+    translate: { name: '평행이동', label: '평행이동 사용하여 만들기', how: '한 칸 안에 그리면 평행이동되어 평면 전체에 반복돼요.', hidden: true }
+  };
+  const TESS_ORDER = ['reflect', 'diag', 'rot90', 'rot60'];
+  function tessOps(type, c, W) {
+    const ops = []; const R = (a) => [Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a)];
+    if (type === 'rot60') {
+      const a1 = [c, 0], a2 = [c / 2, c * Math.sqrt(3) / 2];
+      for (let j = -2; j <= Math.ceil(W / a2[1]) + 2; j++) for (let i = -Math.ceil(j / 2) - 2; i <= Math.ceil(W / c) - Math.floor(j / 2) + 2; i++) {
+        const t = [i * a1[0] + j * a2[0], i * a1[1] + j * a2[1]];
+        for (let k = 0; k < 6; k++) ops.push({ m: R(k * Math.PI / 3), t });
+      }
+      return ops;
+    }
+    const n = Math.ceil(W / c) + 1;
+    for (let j = -1; j <= n; j++) for (let i = -1; i <= n; i++) {
+      const t = [i * c, j * c];
+      if (type === 'diag') { ops.push({ m: [1, 0, 0, 1], t }); ops.push({ m: [0, -1, -1, 0], t: [t[0] + c, t[1] + c] }); }
+      else if (type === 'reflect') { ops.push({ m: [1, 0, 0, 1], t }); ops.push({ m: [-1, 0, 0, 1], t }); }
+      else if (type === 'rot90') [0, 1, 2, 3].forEach(k => ops.push({ m: R(k * Math.PI / 2), t }));
+      else ops.push({ m: [1, 0, 0, 1], t });
+    }
+    return ops;
+  }
+  function drawTess(ctx, W, type, strokes, opts) {
+    opts = opts || {}; const c = W / 5;
+    ctx.fillStyle = '#fffdf6'; ctx.fillRect(0, 0, W, W);
+    ctx.strokeStyle = 'rgba(120,100,60,.18)'; ctx.lineWidth = 1;
+    if (type === 'rot60') { ctx.fillStyle = 'rgba(120,100,60,.35)'; tessOps('rot60', c, W).filter((o, i) => i % 6 === 0).forEach(o => { ctx.beginPath(); ctx.arc(o.t[0], o.t[1], 2.2, 0, 7); ctx.fill(); }); }
+    else { for (let k = 0; k <= 5; k++) { ctx.beginPath(); ctx.moveTo(k * c, 0); ctx.lineTo(k * c, W); ctx.moveTo(0, k * c); ctx.lineTo(W, k * c); ctx.stroke(); } }
+    ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(14,90,104,.3)';
+    if (type === 'reflect') { for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(k * c + c / 2, 0); ctx.lineTo(k * c + c / 2, W); ctx.stroke(); } }
+    if (type === 'diag') { for (let m = 1; m <= 10; m++) { ctx.beginPath(); ctx.moveTo(m * c, 0); ctx.lineTo(0, m * c); ctx.stroke(); } }
+    ctx.setLineDash([]);
+    if (opts.firstCell && type !== 'rot60') { ctx.fillStyle = 'rgba(196,138,28,.10)'; ctx.fillRect(0, 0, c, c); }
+    const ops = tessOps(type, c, W);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    strokes.forEach(s => {
+      ctx.strokeStyle = s.c; ctx.lineWidth = s.w * W / 600; ctx.globalAlpha = opts.copyAlpha || 0.6;
+      ops.forEach(o => {
+        ctx.beginPath();
+        s.p.forEach((q, i) => { const x = q[0] * W, y = q[1] * W; const X = o.m[0] * x + o.m[1] * y + o.t[0], Y = o.m[2] * x + o.m[3] * y + o.t[1]; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+        ctx.stroke();
+      });
+      if (!opts.noBase) { ctx.globalAlpha = 1; ctx.lineWidth = s.w * W / 600 + 1.5; ctx.beginPath(); s.p.forEach((q, i) => i ? ctx.lineTo(q[0] * W, q[1] * W) : ctx.moveTo(q[0] * W, q[1] * W)); ctx.stroke(); }
+    });
+    ctx.globalAlpha = 1;
+  }
+  const SAMPLE = {
+    translate: [{ c: '#2d6fb7', w: 6, p: [[0.04, 0.17], [0.16, 0.05], [0.17, 0.17], [0.04, 0.17]] }],
+    reflect: [{ c: '#d0473a', w: 6, p: [[0.02, 0.15], [0.07, 0.08], [0.1, 0.03]] }, { c: '#2d6fb7', w: 6, p: [[0.03, 0.04], [0.06, 0.02], [0.1, 0.02]] }],
+    diag: [{ c: '#2c8a4a', w: 6, p: [[0.03, 0.03], [0.1, 0.04], [0.06, 0.1], [0.03, 0.03]] }, { c: '#f08a24', w: 6, p: [[0.13, 0.03], [0.17, 0.08]] }],
+    rot90: [{ c: '#2c8a4a', w: 6, p: [[0.1, 0.1], [0.14, 0.04], [0.19, 0.08], [0.14, 0.1]] }],
+    rot60: [{ c: '#7a3fb0', w: 6, p: [[0.0, 0.0], [0.06, 0.02], [0.1, 0.07]] }, { c: '#f08a24', w: 6, p: [[0.1, 0.07], [0.14, 0.03], [0.17, 0.08], [0.12, 0.1]] }]
+  };
+  let TESS_STROKES = null;
+  SCREENS.tess = (main) => {
+    header(main, '추가 미션', TITLES.tess);
+    const st = S.prog.tess;
+    const box = el('div', { class: 'panel' }); main.appendChild(box);
+    if (!st.type || st.choosing || !TESS[st.type]) {
+      box.append(el('div', { class: 'clue' }, [el('h3', { text: '어떤 이동을 사용하여 테셀레이션을 만들어볼까요?' }),
+      el('p', { html: '<b>테셀레이션(Tesselation)</b>이란 우리말로는 \'쪽매맞춤\'이라고 하며, \'어떠한 틈이나 포개짐 없이 평면이나 공간을 도형으로 완벽하게 덮는 것\'을 말한다. 화장실 벽면에 깔린 타일이나 모자이크, 보도블록을 통해 쉽게 볼 수 있다.' }),
+      el('p', { text: '현대의 테셀레이션은 도형의 단순 반복(평행이동)이 아니라 뒤집기(대칭이동), 돌리기(회전이동)등의 수학적 원리를 사용해 아름다움을 선보이고 있다. 네덜란드의 미술가 에셔(Escher)는 테셀레이션을 하나의 예술 장르로 정착시키는 데 공헌했다. 스페인의 무어 건축, 중동의 이슬람 건축은 테셀레이션의 훌륭한 예이다.' }),
+      el('p', { html: '지금부터 여러분들이 직접 테셀레이션 무늬를 만들어 봅시다.<br><b>*테셀레이션 무늬를 만들 때 아무렇게나 낙서하지말고 의미가 있는 무늬를 만들어주세요!!!</b>' })]),
+        el('p', { class: 'task', text: '어떤 이동을 이용하여 테셀레이션을 만들지 아래에서 선택해주세요.' }));
+      const grid = el('div', { class: 'tess-types' }); box.appendChild(grid);
+      TESS_ORDER.forEach(k => {
+        const cv = el('canvas', { width: 300, height: 300 });
+        grid.appendChild(el('button', { class: 'ttype' + (st.type === k ? ' sel' : ''), type: 'button', onclick: () => { if (st.type !== k) TESS_STROKES = []; st.type = k; st.choosing = false; save(); go('tess'); } }, [cv, el('b', { text: TESS[k].label })]));
+        drawTess(cv.getContext('2d'), 300, k, SAMPLE[k], { copyAlpha: 0.9, noBase: true });
+      });
+      box.appendChild(el('p', { class: 'note', text: '위 그림은 각 이동으로 만든 무늬의 예시예요.' }));
+      return;
+    }
+    const T = TESS[st.type];
+    box.append(el('p', { html: `<b>[${T.name} 사용하여 테셀레이션 만들기]</b> ${T.how} 진한 선이 내가 그린 원본이에요.` }));
+    const colors = ['#2d6fb7', '#d0473a', '#2c8a4a', '#7a3fb0', '#f08a24', '#e05a9b', '#8a5a1f', '#1d2a2f'];
+    let color = colors[0], tool = 'pen', width = 6;
+    const cv = el('canvas', { class: 'tess-canvas', width: 900, height: 900, 'aria-label': '테셀레이션 그리기 판' });
+    const ctx = cv.getContext('2d');
+    const fb = el('div');
+    const strokes = TESS_STROKES || [];
+    const history = [];
+    const snap = () => { history.push(JSON.stringify(strokes)); if (history.length > 60) history.shift(); };
+    const redraw = () => drawTess(ctx, 900, st.type, strokes, { firstCell: true });
+    const tb = el('div', { class: 'toolbar' });
+    const tools = [['pen', '✎', '펜'], ['line', '╱', '직선'], ['erase', '⌫', '지우개']];
+    const tBtns = tools.map(([k, ic, nm]) => el('button', { class: 'tool' + (tool === k ? ' sel' : ''), type: 'button', title: nm, 'aria-label': nm, onclick: () => { tool = k; tBtns.forEach((b, i) => b.classList.toggle('sel', tools[i][0] === k)); cv.classList.toggle('erasing', k === 'erase'); } }, [el('span', { text: ic }), el('small', { text: nm })]));
+    const undoBtn = el('button', { class: 'tool', type: 'button', title: '실행 취소', 'aria-label': '실행 취소', onclick: () => { if (!history.length) return; const prev = JSON.parse(history.pop()); strokes.length = 0; prev.forEach(s => strokes.push(s)); redraw(); draft(); } }, [el('span', { text: '↶' }), el('small', { text: '취소' })]);
+    const clearBtn = el('button', { class: 'tool', type: 'button', title: '모두 지우기', 'aria-label': '모두 지우기', onclick: () => { if (!strokes.length) return; snap(); strokes.length = 0; redraw(); draft(); } }, [el('span', { text: '✕' }), el('small', { text: '전체' })]);
+    const sw = colors.map((c0, ci) => el('button', { class: 'swatch' + (c0 === color ? ' sel' : ''), type: 'button', 'aria-label': '색 ' + (ci + 1), style: 'background:' + c0, onclick: () => { color = c0; sw.forEach((s, j) => s.classList.toggle('sel', j === ci)); if (tool === 'erase') tBtns[0].click(); } }));
+    const wSel = el('select', { 'aria-label': '선 굵기', class: 'wsel', onchange: (e) => { width = +e.target.value; } }, [['얇게', 3], ['보통', 6], ['굵게', 10]].map(([t, v]) => { const o = el('option', { value: v, text: t }); if (v === 6) o.selected = true; return o; }));
+    tb.append(...tBtns, undoBtn, clearBtn, el('span', { class: 'tb-sep' }), ...sw, wSel,
+      el('button', { class: 'btn ghost small', type: 'button', onclick: () => { st.choosing = true; go('tess'); }, text: '이동 종류 바꾸기' }));
+    // 제목 · 설명
+    const ttl = el('input', { id: 'tess-title', type: 'text', maxlength: '40', placeholder: '예) 바다를 헤엄치는 물고기 떼' }); ttl.value = st.title || '';
+    const dsc = el('textarea', { id: 'tess-desc', maxlength: '600', placeholder: `예) 한 칸 안에 물고기를 그리고, ${T.name}을 이용해 서로 마주 보는 물고기가 되도록 반복했어요.` }); dsc.value = st.desc || '';
+    ttl.addEventListener('input', () => { st.title = ttl.value; save(); });
+    dsc.addEventListener('input', () => { st.desc = dsc.value; save(); });
+    const form = el('div', { class: 'panel tess-form' }, [
+      el('div', { class: 'field' }, [el('label', { for: 'tess-title', text: '작품 제목' }), ttl]),
+      el('div', { class: 'field' }, [el('label', { for: 'tess-desc', text: '사용한 변환 설명' }), dsc,
+      el('p', { class: 'note', text: '어떤 그림을 그렸는지, 어떤 이동(변환)을 이용해 어떻게 반복되도록 만들었는지 수학 용어를 써서 설명해 주세요.' })])]);
+    box.append(tb, el('div', { class: 'tess-work' }, [cv, form]));
+    let cur = null, erasing = false;
+    const P = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+    const eraseAt = (q) => {
+      const R2 = 0.022;
+      const hit = strokes.findIndex(s => s.p.some((a, i) => { const b = s.p[i + 1] || a; const dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy; const t = L ? Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / L)) : 0; return Math.hypot(a[0] + t * dx - q[0], a[1] + t * dy - q[1]) < R2; }));
+      if (hit >= 0) { strokes.splice(hit, 1); redraw(); return true; }
+      return false;
+    };
+    cv.addEventListener('pointerdown', e => {
+      cv.setPointerCapture(e.pointerId);
+      if (tool === 'erase') { snap(); erasing = true; if (!eraseAt(P(e))) { } return; }
+      snap(); cur = { c: color, w: width, p: [P(e)] }; if (tool === 'line') cur.p.push(P(e)); strokes.push(cur); redraw();
+    });
+    cv.addEventListener('pointermove', e => {
+      if (erasing) { eraseAt(P(e)); return; }
+      if (!cur) return; const q = P(e); if (tool === 'line') cur.p[1] = q; else { const l = cur.p[cur.p.length - 1]; if (Math.hypot(q[0] - l[0], q[1] - l[1]) > 0.003) cur.p.push(q); } redraw();
+    });
+    const endS = () => {
+      if (erasing) { erasing = false; if (history.length && history[history.length - 1] === JSON.stringify(strokes)) history.pop(); draft(); return; }
+      if (!cur) return; cur.p = cur.p.map(q => [Math.round(q[0] * 1000) / 1000, Math.round(q[1] * 1000) / 1000]); cur = null; draft();
+    };
+    cv.addEventListener('pointerup', endS); cv.addEventListener('pointercancel', endS);
+    let dT = null; const draft = () => { TESS_STROKES = strokes; clearTimeout(dT); dT = setTimeout(() => API.saveTess(S.token, '', strokes, st.type).catch(() => { }), 4000); };
+    const submit = el('button', {
+      class: 'btn brass', type: 'button', text: st.submitted ? '다시 제출하기' : '챌린지 제출', onclick: async () => {
+        if (!strokes.length) return feedback(fb, 'no', '먼저 무늬를 그려 주세요.');
+        if (!ttl.value.trim()) { ttl.focus(); return feedback(fb, 'no', '작품 제목을 적어 주세요.'); }
+        if (dsc.value.trim().length < 10) { dsc.focus(); return feedback(fb, 'no', '사용한 변환 설명을 10글자 이상 적어 주세요.'); }
+        st.title = ttl.value.trim(); st.desc = dsc.value.trim();
+        submit.disabled = true; feedback(fb, 'info', '제출하는 중…');
+        const W = 800, out = el('canvas', { width: W, height: W + 90 }), oc = out.getContext('2d');
+        drawTess(oc, W, st.type, strokes, { copyAlpha: 0.75 });
+        oc.fillStyle = '#0a3640'; oc.fillRect(0, W, W, 90);
+        oc.fillStyle = '#fff'; oc.font = '700 34px sans-serif'; oc.textBaseline = 'middle'; oc.fillText(st.title.slice(0, 26), 24, W + 34);
+        oc.fillStyle = '#f4ead0'; oc.font = '22px sans-serif'; oc.fillText(`${S.sid} ${S.name} · ${T.name}`, 24, W + 70);
+        try {
+          const r = await API.saveTess(S.token, out.toDataURL('image/png'), strokes, st.type);
+          st.submitted = true; st.at = now(); if (r && r.fileId) st.fileId = r.fileId; save(true); renderTop();
+          feedback(fb, 'ok', '챌린지 제출 완료! 선생님께 작품이 전달되었어요.'); submit.textContent = '다시 제출하기';
+        } catch (e) { feedback(fb, 'no', '제출하지 못했어요. 잠시 후 다시 눌러 주세요.'); }
+        submit.disabled = false;
+      }
+    });
+    form.append(el('div', { class: 'row' }, [submit]), fb);
+    if (st.submitted) feedback(fb, 'ok', '이미 제출한 작품이 있어요. 고쳐서 다시 제출할 수 있어요.');
+    redraw();
+    if (!TESS_STROKES) API.loadTess(S.token).then(d => { if (d && d.strokes && d.type === st.type && !strokes.length) { (typeof d.strokes === 'string' ? JSON.parse(d.strokes) : d.strokes).forEach(s => strokes.push(s)); TESS_STROKES = strokes; redraw(); } }).catch(() => { });
+    TESS_STROKES = strokes;
+  };
+
+  /* ---------- 보물 · 마무리 ---------- */
+  SCREENS.treasure = (main) => {
+    header(main, '', TITLES.treasure);
+    if (!S.prog.m7.solved) {
+      main.appendChild(el('div', { class: 'intro' }, [el('img', { src: IMG.chest.src, alt: '잠긴 보물상자', style: 'width:180px' }), el('p', { text: '보물상자가 아직 잠겨 있어요. 미션 7의 자물쇠를 풀면 열 수 있어요.' }), el('button', { class: 'btn brass', type: 'button', onclick: () => go('m7'), text: '미션 7로 가기' })]));
+      return;
+    }
+    const ALT = '보물섬 탐험 성공 축하 편지: 내가 남긴 진짜 보물은 금은보화가 아니라, 어려운 문제 앞에서도 포기하지 않고 스스로 또는 같이 해결 방법을 찾아낸 끈기와 지혜란다.';
+    const actions = el('div', { class: 'hub-actions' }, [
+      el('button', { class: 'btn ghost', type: 'button', onclick: () => play(), text: '상자 다시 열기' }),
+      el('button', { class: 'btn ghost', type: 'button', onclick: () => go('tess'), text: '테셀레이션 챌린지' }),
+      el('button', { class: 'btn brass', type: 'button', onclick: () => go('final'), text: '오늘의 탐험 정리하기 ▶' })]);
+    const holder = el('div'); main.append(holder, actions);
+    const showLetter = (anim) => { holder.innerHTML = ''; holder.appendChild(el('div', { class: 'letter' + (anim ? ' rise' : '') }, el('img', { src: IMG.letter.src, alt: ALT }))); };
+    const cs = document.getElementById('tm-chest-src'), chestSrc = cs ? cs.getAttribute('src') : IMG.chest.src;
+    function play() {
+      holder.innerHTML = '';
+      const parts = [];
+      const colors = ['#ffd84d', '#ffc21a', '#f5a400', '#ff6b6b', '#4fc3f7', '#7ee081', '#ffffff'];
+      for (let i = 0; i < 26; i++) {
+        const ang = (-90 + (Math.random() * 120 - 60)) * Math.PI / 180, dist = 140 + Math.random() * 220;
+        const gem = i % 4 === 3;
+        parts.push(el('i', { class: 'cs-p' + (gem ? ' gem' : ''), style: `--dx:${Math.cos(ang) * dist}px;--dy:${Math.sin(ang) * dist}px;--r:${Math.random() * 720 - 360}deg;--d:${(Math.random() * 0.5).toFixed(2)}s;--c:${colors[i % colors.length]}` }));
+      }
+      const stage = el('div', { class: 'cs-stage', role: 'img', 'aria-label': '보물상자가 열리는 장면' }, [
+        el('div', { class: 'cs-rays' }), el('div', { class: 'cs-glow' }),
+        el('div', { class: 'cs-chest' }, [
+          el('img', { class: 'cs-base', src: chestSrc, alt: '' }),
+          el('div', { class: 'cs-light' }),
+          ...parts,
+          el('img', { class: 'cs-lid', src: chestSrc, alt: '' })
+        ]),
+        el('div', { class: 'cs-cap', text: '찰칵… 보물상자가 열린다!' }),
+        el('button', { class: 'btn small skip', type: 'button', onclick: () => finish(), text: '건너뛰기' })
+      ]);
+      holder.appendChild(stage);
+      let done = false; const timers = [];
+      const finish = () => { if (done) return; done = true; timers.forEach(clearTimeout); showLetter(true); };
+      timers.push(setTimeout(() => stage.classList.add('open'), 1300));
+      timers.push(setTimeout(() => { const c = stage.querySelector('.cs-cap'); if (c) c.textContent = '축하합니다! 보물을 찾았습니다!'; }, 1700));
+      timers.push(setTimeout(finish, 4300));
+    }
+    play();
+  };
+
+  /* ---------- 탐험 보고서 PDF (수행평가용: 제출할 때 브라우저에서 만들어 보관함에 올림) ---------- */
+  const REPORT_MISSION = { m1: '미션1 망원경을 찾아라 (무게중심)', m2: '미션2 오솔길의 입구 (내분점)', m3: '미션3 네 개의 함정 (평행이동)', m4: '미션4 악어의 늪 (평행이동)', m5: '미션5 안개 속 다리 (수직인 직선)', m6: '미션6 보물상자 (원의 방정식)', m7: '미션7 자물쇠 (평행·대칭이동)' };
+  const TESS_KO = { reflect: 'y축 대칭이동', diag: '직선 y=x 대칭이동', rot90: '회전이동(90도)', rot60: '회전이동(60도)', translate: '평행이동' };
+  function prettyAns(a) {
+    let s = String(a || '');
+    for (let i = 0; i < 4; i++) s = s.replace(/\(\(([^()]*)\)\/\(([^()]*)\)\)/g, '$1/$2').replace(/\(\(-?[0-9.]+\)\)/g, m => m.slice(1, -1));
+    return s.replace(/\^\(2\)/g, '²').replace(/\^\(3\)/g, '³').replace(/\(([0-9.]+)\)/g, (m, n, off, str) => /[a-z0-9)]/i.test(str[off - 1] || '') ? m : n);
+  }
+  const kst = (t, full) => { if (!t) return ''; try { return new Date(t).toLocaleString('ko-KR', Object.assign({ timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }, full ? { year: 'numeric' } : {})); } catch (e) { return ''; } };
+  function loadScript(src) { return new Promise((res, rej) => { if (window.jspdf) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('PDF 도구를 불러오지 못했어요')); document.head.appendChild(s); }); }
+  function loadImg(url) { return new Promise(res => { if (!url) return res(null); const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; }); }
+  async function makeReportPdf(onStep) {
+    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    onStep && onStep('미션 완성 화면을 모으는 중…');
+    let urls = {}; try { urls = await API.myFiles(); } catch (e) { if (S.closed) throw e; }
+    const imgs = {}; await Promise.all(Object.keys(urls).map(async k => { imgs[k] = await loadImg(urls[k]); }));
+    onStep && onStep('보고서 쪽을 그리는 중…');
+    const P = S.prog, W = 1240, H = 1754, MX = 90, FONT = "'Gowun Dodum','Malgun Gothic','Apple SD Gothic Neo',sans-serif", HEAD = "'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif";
+    const pages = []; let c, y;
+    const newPage = () => { const cv = document.createElement('canvas'); cv.width = W; cv.height = H; c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); c.textBaseline = 'top'; pages.push(cv); y = 80; };
+    const need = h => { if (y + h > H - 90) newPage(); };
+    const text = (t, size, o) => {
+      o = o || {}; c.font = `${o.bold ? '700 ' : ''}${size}px ${o.head ? HEAD : FONT}`; c.fillStyle = o.color || '#1d2a2f';
+      const maxW = o.w || (W - MX * 2), x = o.x || MX, lh = Math.round(size * 1.5);
+      const lines = []; String(t).split('\n').forEach(par => { let line = ''; for (const ch of par) { if (c.measureText(line + ch).width > maxW && line) { lines.push(line); line = ch; } else line += ch; } lines.push(line); });
+      if (o.measure) return lines.length * lh;
+      lines.forEach(l => { if (!o.noBreak) need(lh); c.fillText(l, x, y); y += lh; });
+    };
+    const h2 = t => { need(80); y += 22; text(t, 34, { head: true, color: '#0a3640' }); c.fillStyle = '#c48a1c'; c.fillRect(MX, y + 2, W - MX * 2, 3); y += 18; };
+    const n = solvedCount(P), sc = scoreOf(P);
+
+    newPage();
+    text('도형의 방정식 탐험 보고서: 보물을 찾아라', 46, { head: true, color: '#0a3640' }); y += 8;
+    text(`학번 ${S.sid}   이름 ${S.name}   제출 ${kst(new Date(), true)}`, 26);
+    y += 10;
+    text(`평가 미션(1~7) 해결: ${n} / 7   →   [도형의 방정식 문제 해결 및 공학도구 구현] 참고 수준: ${sc.level.replace('(', ' (').replace(')', '점)')}`, 26, { bold: true });
+    const variants = P.v ? Object.keys(P.v).sort().map(k => k.replace('m', '') + ':' + (P.v[k] + 1)).join(' ') : '';
+    if (variants) text('문제 유형 번호(미션:유형) ' + variants, 20, { color: '#666' });
+
+    h2('미션 기록');
+    const cols = [[MX, 330, '미션'], [MX + 330, 110, '결과'], [MX + 440, 380, '최종 답'], [MX + 820, 110, '오답 횟수'], [MX + 930, 130, '해결 시각']];
+    const rowH = (cells) => Math.max(52, ...cells.map((t, i) => text(t, 20, { w: cols[i][1] - 16, measure: true }) + 16));
+    const drawRow = (cells, head) => {
+      const h = rowH(cells); need(h);
+      cells.forEach((t, i) => {
+        const [x, w] = cols[i];
+        c.fillStyle = head ? '#f3e7c4' : '#fff'; c.fillRect(x, y, w, h); c.strokeStyle = '#d9c99a'; c.lineWidth = 1.5; c.strokeRect(x, y, w, h);
+        const y0 = y; y += 8;
+        text(t, 20, { x: x + 8, w: w - 16, bold: head || i === 1, noBreak: true, color: !head && i === 1 ? (t === '성공' ? '#2c8a4a' : '#c9472f') : '#1d2a2f' });
+        y = y0;
+      });
+      y += h;
+    };
+    drawRow(cols.map(q => q[2]), true);
+    MISSIONS.forEach(m => { const s = P[m] || {}; drawRow([REPORT_MISSION[m], s.solved ? '성공' : '미완료', prettyAns(s.ans), String(s.wrong || 0), kst(s.at)]); });
+
+    h2('미션별 완성 화면');
+    const shotKeys = MISSIONS.filter(k => imgs[k]);
+    if (!shotKeys.length) text('(저장된 완성 화면이 없어요)', 22);
+    shotKeys.forEach(k => {
+      const im = imgs[k], w = 860, h = Math.round(im.height * w / im.width);
+      need(h + 60); text(REPORT_MISSION[k], 22, { bold: true }); y += 4;
+      c.drawImage(im, (W - w) / 2, y, w, h); c.strokeStyle = '#d9c99a'; c.strokeRect((W - w) / 2, y, w, h); y += h + 24;
+    });
+
+    h2('추가 미션: 테셀레이션 챌린지');
+    const t = P.tess || {};
+    text('작품 제목: ' + (t.title || '(없음)'), 22);
+    text('사용한 이동: ' + (TESS_KO[t.type] || '선택 안 함') + '   제출: ' + (t.submitted ? kst(t.at) : '미제출'), 22);
+    text('사용한 변환 설명: ' + (t.desc || '(없음)'), 22);
+    if (imgs.tess && t.submitted) { const w = 560, h = Math.round(imgs.tess.height * w / imgs.tess.width); need(h + 20); y += 8; c.drawImage(imgs.tess, (W - w) / 2, y, w, h); y += h + 10; }
+
+    h2('자기 평가');
+    const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'], F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
+    const ev = P.eval || {};
+    text('도형의 방정식 이해도: ' + U[(ev.u || 3) - 1] + '   /   오늘 수업: ' + F[(ev.f || 3) - 1], 22);
+    text('질문·느낀 점: ' + (ev.c || '(없음)'), 22);
+    y += 30; text('최선지 선생님', 18, { color: '#666' });
+
+    // 쪽 번호
+    pages.forEach((cv, i) => { const g = cv.getContext('2d'); g.font = `18px ${FONT}`; g.fillStyle = '#999'; g.textAlign = 'center'; g.fillText(`${S.sid} ${S.name} · ${i + 1} / ${pages.length}`, W / 2, H - 50); });
+    const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+    pages.forEach((cv, i) => { if (i) doc.addPage(); doc.addImage(cv.toDataURL('image/jpeg', 0.86), 'JPEG', 0, 0, 210, 297); });
+    doc.setProperties({ title: `${S.sid}_${S.name}_탐험보고서`, author: '최선지 선생님' });
+    return 'data:application/pdf;base64,' + btoa(doc.output());
+  }
+
+  SCREENS.final = (main) => {
+    header(main, '마무리', TITLES.final);
+    const P = S.prog, ev = P.eval;
+    const sum = el('div', { class: 'summary' });
+    [...MISSIONS.map((m, i) => [m, '미션 ' + (i + 1), P[m].solved]), ['tess', '테셀레이션', !!P.tess.submitted]].forEach(([k, t, d]) => {
+      sum.appendChild(el('button', { class: 's' + (d ? ' done' : ''), type: 'button', style: 'text-align:left;cursor:pointer', onclick: () => go(k) }, [el('b', { text: t }), d ? '해결 ✓' : '아직이에요 →']));
+    });
+    const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'], Fn = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
+    const FACE = ['😭', '😟', '🙂', '😊', '😄'];
+    const slider = (title, key, labels) => {
+      const val = el('div', { class: 'val', text: labels[ev[key] - 1] });
+      const big = el('div', { class: 'face-now', 'aria-hidden': 'true', text: FACE[ev[key] - 1] });
+      const r = el('input', { type: 'range', min: 1, max: 5, step: 1, value: ev[key], 'aria-label': title, oninput: (e) => { ev[key] = +e.target.value; val.textContent = labels[ev[key] - 1]; big.textContent = FACE[ev[key] - 1]; save(); } });
+      return el('div', { class: 'slider-card' }, [el('b', { text: title }), el('div', { class: 'slider-row' }, [el('span', { class: 'face', title: labels[0], text: '😢' }), r, el('span', { class: 'face', title: labels[4], text: '😄' })]), big, val]);
+    };
+    const ta = el('textarea', { id: 'evc', placeholder: '수업과 관련해서 하고 싶은 질문이나 느낀점을 적어주세요.', oninput: (e) => { ev.c = e.target.value; save(); } }); ta.value = ev.c || '';
+    const fb = el('div');
+    const btn = el('button', {
+      class: 'btn brass', type: 'button', text: P.submitted ? '탐험 보고서 다시 제출하기' : '탐험 보고서 제출하기', onclick: async () => {
+        if (S.closed) return feedback(fb, 'no', '마감되어 제출할 수 없어요.');
+        btn.disabled = true; feedback(fb, 'info', '탐험 보고서(PDF)를 만드는 중이에요. 10~20초 걸릴 수 있어요…');
+        try {
+          const step = m => feedback(fb, 'info', m);
+          const pdf = await makeReportPdf(step);
+          step('보고서를 선생님께 보내는 중…');
+          const up = await API.uploadReport(pdf);
+          P.submitted = now(); P.report = up.path;
+          const r = await API.finish(P);
+          if (!r || !r.ok) throw new Error((r && r.code) || 'save');
+          renderTop();
+          feedback(fb, 'ok', '제출 완료! 탐험 보고서(PDF)가 선생님께 전달되었어요. 수고했어요!');
+        } catch (e) { console.error(e); if (!S.closed) feedback(fb, 'no', '제출하지 못했어요. 인터넷 연결을 확인하고 잠시 후 다시 눌러 주세요.'); }
+        btn.disabled = false;
+      }
+    });
+    main.append(el('div', { class: 'two' }, [
+      el('div', { class: 'panel' }, [el('p', { html: '왼쪽의 슬라이드를 이용하여 <b>[도형의 방정식 탐험 보고서: 보물을 찾아라]</b>를 하면서 오늘 수업을 재밌게 들었는지 체크해주세요.' }), slider('도형의 방정식에 대해 얼마나 잘 이해했나요?', 'u', U), slider('오늘 수업은 어땠나요?', 'f', Fn)]),
+      el('div', { class: 'panel' }, [el('label', { for: 'evc', class: 'task', text: '혹시 지금까지 수업과 관련해서 하고 싶은 질문이나 느낀점을 아래에 적어주세요.' }), ta,
+      el('p', { class: 'task', text: '나의 탐험 기록' }), sum,
+      el('p', { class: 'note', text: '제출하면 지금까지의 기록이 PDF 보고서로 만들어져 선생님께 전달돼요. 미션을 더 해결한 뒤 다시 제출해도 괜찮아요.' }), btn, fb])
+    ]), copyrightEl());
+  };
+
+  /* ======================= 로그인 · 시작 (수학나라 공통 로그인) ======================= */
+  function start(en) {
+    S.token = en.token; S.sid = en.student.no; S.name = en.student.name;
+    let p = en.record && en.record.detail; if (p && typeof p === 'object' && !Object.keys(p).length) p = null;
+    S.prog = Object.assign(newProgress(), p || {});
+    MISSIONS.forEach(m => { S.prog[m] = S.prog[m] || { solved: false, wrong: 0 }; if (S.prog.v[m] == null) S.prog.v[m] = Math.floor(Math.random() * 6); });
+    const root = $('#root'); root.innerHTML = '';
+    root.appendChild(el('div', { class: 'app' }, [el('header', { class: 'topbar', id: 'topbar' }), el('main', { class: 'main', id: 'main' })]));
+    if (en.readOnly) S.closed = true;
+    go(ORDER.includes(S.prog.screen) ? S.prog.screen : 'map');
+    if (en.readOnly) window.TM_onClosed(en.code);
+    else if (!p) save(true);
+  }
+
+  /* 첫 화면 (표지) — 그림은 index.html 안에 들어 있어 바로 보임 */
+  /* 저작권 표시 */
+  function copyrightEl() {
+    return el('footer', { class: 'copyright' }, [
+      el('p', { class: 'cr1', text: '© 2026 경남고등학교 수학과 최선지 선생님 · 도형의 방정식 탐험 「보물을 찾아라」' }),
+      el('p', { class: 'cr2', text: '원 저작자(경남고 수학과 최선지 선생님)를 표시하면 비영리 교육 목적으로 이용할 수 있어요(CC BY-NC 4.0).' }), el('p', { class: 'cr2', text: '저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.' }), el('p', { class: 'cr2', text: '자료 이용을 원하시면 연락 주세요.' }),
+      el('p', { class: 'cr3', text: 'Math Land Explorers · 수식 입력: MathLive (MIT License) · PDF: jsPDF (MIT License)' })]);
+  }
+  function titleScreen(ready) {
+    const root = $('#root'); root.innerHTML = '';
+    const btn = el('button', { class: 'btn brass title-start', type: 'button', text: '탐험 시작하기 ▶' });
+    const msg = el('div', { class: 'title-msg', 'aria-live': 'polite' });
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = '보물지도를 펼치는 중…';
+      const go = await ready;
+      go();
+    });
+    const ts = document.getElementById('tm-title-src'), src = ts ? ts.getAttribute('src') : '';
+    root.appendChild(el('div', { class: 'title-wrap' }, [
+      el('div', { class: 'title-card' }, [
+        src ? el('img', { class: 'title-img', src, alt: '경남이의 도형의 방정식을 이용한 보물찾기탐험' }) : el('h1', { class: 'title-fallback', text: '경남이의 도형의 방정식을 이용한 보물찾기탐험' }),
+        btn
+      ]), msg, copyrightEl()
+    ]));
+  }
+  async function boot() {
+    window.TM_STAGE = 'title';
+    const ml = (window.customElements && customElements.whenDefined) ? Promise.race([customElements.whenDefined('math-field').then(() => true), new Promise(r => setTimeout(() => r(false), 7000))]) : Promise.resolve(false);
+    const ready = (async () => {
+      window.TM_STAGE = 'images';
+      try { await loadImages(); } catch (e) { window.TM_showErr && window.TM_showErr('그림 불러오기 실패: ' + (e && e.message || e)); }
+      window.TM_STAGE = 'mathlive';
+      MATHLIVE = await ml;
+      if (MATHLIVE && window.MathfieldElement) { try { window.MathfieldElement.soundsDirectory = null; window.MathfieldElement.fontsDirectory = window.EMBED_IMAGES ? null : ['https:', '', 'cdn.jsdelivr.net', 'npm', 'mathlive@0.108.2', 'fonts', ''].join('/'); } catch (e) { } }
+      return async () => { window.TM_STAGE = 'login'; const en = await API.start(); window.TM_STAGE = 'run'; start(en); };
+    })();
+    titleScreen(ready);
+  }
+  // 선생님이 마감하면(또는 기간이 끝나면): 더 이상 고칠 수 없다는 안내를 화면 전체에 띄움. 지금까지 기록은 볼 수 있음
+  window.TM_onClosed = (code) => {
+    if (document.querySelector('.closed-ov')) return;
+    S.closed = true;
+    try { KP.close(); } catch (e) { }
+    const ev = !ACT.practice;
+    const title = code === 'ended' ? '기간이 끝났어요' : ev ? '수행평가가 마감되었어요' : '활동이 마감되었어요';
+    const body = (code === 'ended' ? '이 활동의 기간이 지났어요. ' : ev ? '선생님이 이 반의 수행평가를 마감했어요. ' : '선생님이 이 활동을 마감했어요. ')
+      + '지금까지 저장된 기록은 선생님께 그대로 전달되고, 더 이상 고치거나 제출할 수 없어요.';
+    const ov = el('div', { class: 'closed-ov', role: 'alertdialog', 'aria-label': title }, el('div', { class: 'closed-card' }, [
+      el('div', { class: 'closed-ic', text: '🔒' }), el('h2', { text: title }), el('p', { text: body }),
+      el('div', { class: 'row', style: 'justify-content:center' }, [
+        el('button', { class: 'btn ghost', type: 'button', onclick: () => ov.remove(), text: '내 기록 보기' }),
+        el('button', { class: 'btn brass', type: 'button', onclick: () => window.TM_logout(), text: '나가기' })])]));
+    document.body.appendChild(ov);
+  };
+  window.TM_logout = () => { try { API.flush(); } catch (e) { } window.Land.logout(); };
+  window.TM_state = S; window.TM_go = (k) => go(k);
+  window.TM_STAGE = 'app-loaded';
+  let started = false;
+  const startOnce = () => { if (started) return; started = true; window.TM_STAGE = 'boot'; Promise.resolve().then(boot).catch(e => window.TM_showErr && window.TM_showErr('boot: ' + (e && e.message || e))); };
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', startOnce); window.addEventListener('load', startOnce); setTimeout(startOnce, 1500); } else startOnce();
+})();
+
+</script>
+</body>
+</html>
+

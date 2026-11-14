@@ -1,6 +1,6 @@
 # 진행 상태 (current_status)
 
-마지막 갱신: 2026-11-14
+마지막 갱신: 2026-11-14 (밤)
 
 ## 완료한 것
 - **무리수 사냥: 경남이의 정글 탈출**(중3 제곱근과 실수): `jungle-run.html`, `jungle-run-teacher.html`. 3줄 러너, 로그인(학번 4자리·이름·비번 4자리), 랭킹, 훈련소(오답 5유형), 천천히 모드, 교사 현황판(탐험가 성취, CSV), Supabase 표 runner_* 와 함수
@@ -29,12 +29,22 @@
   - 첫 화면 [선생님] 버튼 → `teacher/` 로 연결. 옛 `teacher.html`(보물 기록장 현황판)은 그대로 둠
   - `.gitignore`: 학생 기록 폴더·엑셀·CSV는 GitHub에 올라가지 않게 막음(학생 기록은 Supabase에만)
 
+- **2단계 ② 보물을 찾아라 옮기기** (2026-11-14 밤):
+  - 선생님 결정: 연습용·수행평가용을 **활동 두 개로 따로** 둠(문제 선택 기능은 만들지 않음)
+    - `activities/treasure/` = 「보물을 찾아라」(수행평가 문제, slug `treasure`, v2.0) — 제출하면 **PDF 자동 생성**
+    - `activities/treasure-practice/` = 「보물을 찾아라 (연습)」(연습 문제, slug `treasure-practice`, v2.0) — PDF 없이 제출 기록만. 그림은 `../treasure/img/` 같이 씀
+  - 원본: 선생님이 보낸 앱스 스크립트 최신 코드(`treasure_src/`, GitHub에 안 올림). 미션·그래프·수식 자판·테셀레이션 코드는 그대로, 바뀐 곳은 로그인(Land.start)·저장(Land.saver)·그림 올리기·제출뿐
+  - 첫 화면 그림·큰 보물상자 그림은 HTML에서 꺼내 `activities/treasure/img/title_cover.webp`, `chest_open.webp`로
+  - 점수: 수행평가 `score`=환산 점수, `level`=「상-(49)」. 연습 `score`=해결 수, `level`=「n/7 해결」. `summary`=소감. 진행 내용은 `detail`(테셀레이션 선은 `detail.tessData`)
+  - Supabase(실행 완료): 활동 `treasure-practice` 등록, 비공개 보관함 **`land-files`**(선생님 계정만 보기), 확인 함수 `land_file_check`(service_role만), 서버 작업(Edge Function) **`land-upload`**(학생 그림·PDF 올리기 + 자기 파일 10분 주소). 파일 위치 `<slug>/<학년도>/run<운영>/<학번>/m1.jpg · tess.png · report.pdf`. SQL `supabase/migrations/20261114_land_treasure_files.sql`, 코드 `supabase/functions/land-upload/index.ts`
+  - 시험(Playwright, 시험 학생 3999·3학년 9반만 대상 운영): 로그인·이어하기·저장·미션 완성 화면 자동 저장·실제 미션3 풀이·PDF(3쪽) 생성·업로드·연습 제출·반 마감 안내·「내 기록 보기」 모두 확인
+
 ## 진행 중
 - **Supabase 표 land_activities + 함수 land_list_activities()**: SQL 파일 `supabase/migrations/20261113_land_activities.sql` 작성 완료. 아직 실행 전. 실행 전까지 첫 화면은 코드 안의 기본 목록 3개를 보여 줌(「서버와 연결되지 않아 기본 목록을 보여 주고 있어요」 문구)
 - 첫 화면에서 아직 비어 있는 것: 보물을 찾아라 입장 주소(entry_url, 앱스 스크립트 웹 앱 주소), 마감 날짜·도전 기한 글자(due_text), [내 기록 보기] 링크(공통 로그인 뒤 연결)
 
 ## 다음 단계
-- 보물 옮기기 ②: 보물 학생 화면을 `activities/treasure/`로 옮기고 저장 부분만 Land.saver로 바꾸기 (새 대화에서 진행 권장)
+- 보물 ③: 교사 현황판(미션 완성 화면·테셀레이션·소감·PDF 보기/다시 만들기)을 `teacher/board.html` 또는 `activities/treasure/teacher.html`로. 보관함 파일은 선생님 로그인으로 서명 주소를 만들어 봄
 - 그 뒤 ③ 현황판·PDF 자동 생성·마감 ④ 2026 기록 옮기기(드라이브 내보내기 폴더 → Supabase) ⑤ 30명 동시 접속 시험
 
 ## 예전 1단계 목록 (참고)
