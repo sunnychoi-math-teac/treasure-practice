@@ -48,6 +48,14 @@
   - Supabase(선생님 허락 받고 실행): 보관함 land-files 에 선생님 계정의 `…/report.pdf` 올리기·덮어쓰기 권한. SQL `supabase/migrations/20261115_land_files_teacher_report.sql`
   - 시험: 가짜 자료로 화면·버튼 동작 확인(진행 현황·자세히·PDF 만들기·비번 초기화·반 마감·미션 화면·테셀레이션·소감). **실제 선생님 계정으로는 GitHub에 올린 뒤 확인 필요**
 
+- **무리수 사냥 공통 틀 연결** (2026-11-15 새벽):
+  - 학생 `activities/jungle-run/` (공통 로그인 Land.start, 「연습만 하기」 유지), 교사 `activities/jungle-run/teacher.html` (학년도·운영·반 고르기, 탐험가 성취·훈련 면제·판 삭제·CSV 등 그대로). 교사 홈 「현황판」 버튼이 여기로 감
+  - 옛 `jungle-run.html` → 새 주소로 자동 이동 페이지. 옛 `jungle-run-teacher.html`은 예전 기록(runner_*) 보관용으로 남김(선생님 결정: 예전 기록은 옮기지 않음)
+  - Supabase(선생님 허락, 실행 완료): 표 `land_jr_games`·`land_jr_trainings`·`land_jr_state`, 학생 함수 land_jr_state/submit/train_done/top/my_games(서버가 훈련 대기·마감·이상 기록 거절), 교사 함수 land_t_jr_data/clear_training/delete_game. land_records에는 학생당 1줄 요약(score=최고점, level=완주/거리, finished_at=첫 완주). SQL `supabase/migrations/20261115_land_jungle_run.sql`
+  - 랭킹은 같은 운영 안에서만(전체 TOP 20 / 우리 반 / 내 기록)
+  - `common/land.js`: Land.start({cancelText}) — 로그인·안내 창에 취소 버튼(누르면 null)
+  - 시험: 실제 사이트에서 로그인·저장·훈련 강제·훈련 통과·랭킹 화면 확인, 교사 현황판은 가짜 자료로 화면 확인
+
 ## 진행 중
 - **Supabase 표 land_activities + 함수 land_list_activities()**: SQL 파일 `supabase/migrations/20261113_land_activities.sql` 작성 완료. 아직 실행 전. 실행 전까지 첫 화면은 코드 안의 기본 목록 3개를 보여 줌(「서버와 연결되지 않아 기본 목록을 보여 주고 있어요」 문구)
 - 첫 화면에서 아직 비어 있는 것: 보물을 찾아라 입장 주소(entry_url, 앱스 스크립트 웹 앱 주소), 마감 날짜·도전 기한 글자(due_text), [내 기록 보기] 링크(공통 로그인 뒤 연결)

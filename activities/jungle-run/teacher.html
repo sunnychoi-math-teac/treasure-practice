@@ -74,7 +74,7 @@
   <div id="boardView" class="hidden">
     <div class="bar">
       <div><h1>🗝️ 무리수 사냥 · 정글 탈출 현황판</h1><p class="sub" id="who"></p>
-        <p class="sub" style="margin-top:2px"><a href="../../teacher/">← 활동 모음(교사 홈)</a> · <a id="commonBoard" href="../../teacher/board.html?slug=jungle-run">공통 현황판</a> · <a href="../../teacher/students.html">학생 관리</a></p></div>
+        <p class="sub" style="margin-top:2px"><a href="../../teacher/">← 활동 모음(교사 홈)</a> · <a href="../../teacher/students.html">학생 관리</a></p></div>
       <div class="right">
         <select id="yearSel" aria-label="학년도"></select>
         <select id="runSel" aria-label="운영"></select>
@@ -224,7 +224,6 @@
     sel.innerHTML = rs.length ? rs.map(r => `<option value="${r.id}">${esc(runName(r))} · ${r.target_classes.length ? r.target_classes.map(Land.classLabel).join(', ') : '모든 반'}</option>`).join('')
                               : '<option value="">운영 없음</option>';
     if (rs.some(r => r.id === prev)) sel.value = prev;
-    $('commonBoard').href = `../../teacher/board.html?slug=${SLUG}`;
     load();
   }
   async function load() {
