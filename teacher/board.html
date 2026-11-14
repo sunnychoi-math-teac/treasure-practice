@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>현황판 — Math Land Explorers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../common/teacher.css">
+<style>
+.cls-sum td,.cls-sum th{white-space:nowrap}
+tr.pick{cursor:pointer}
+tr.pick:hover td{background:#F7F8FC}
+.bar-in{height:8px;border-radius:99px;background:var(--sheet);overflow:hidden;min-width:80px}
+.bar-in i{display:block;height:100%;background:var(--mint)}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand display" href="../" translate="no">Math Land Explorers</a>
+  <nav class="nav" aria-label="선생님 메뉴">
+    <a href="./">활동 모음</a>
+    <a href="students.html">학생 관리</a>
+  </nav>
+  <span class="grow"></span>
+  <span class="who" id="who"></span>
+  <button class="btn sm hidden" id="logout" type="button">로그아웃</button>
+</div></header>
+
+<main>
+  <div id="gate"></div>
+  <div id="board" class="hidden">
+    <h1 id="title">현황판</h1>
+    <p class="sub" id="meta"></p>
+    <div class="bar">
+      <label>학년도 <select id="yearSel"></select></label>
+      <label>운영 <select id="runSel"></select></label>
+      <label>반 <select id="classSel"></select></label>
+      <input type="search" id="q" placeholder="학번·이름 찾기" aria-label="학번·이름 찾기">
+      <span class="grow"></span>
+      <button class="btn" id="csv" type="button">CSV 내려받기</button>
+      <button class="btn" id="refresh" type="button">새로 고침</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="card" style="margin-bottom:16px;padding:12px 16px">
+      <h2 style="font-size:16px;margin:0 0 8px">반별 요약</h2>
+      <div style="overflow:auto"><table class="cls-sum" id="clsSum"></table></div>
+    </div>
+    <h2 style="font-size:16px;margin:0 0 8px">진행 현황 <span class="muted" style="font-weight:400;font-size:13px">학생을 누르면 자세한 기록을 볼 수 있어요</span></h2>
+    <div class="scroll"><table id="tbl"></table></div>
+  </div>
+</main>
+
+<dialog id="detDlg" aria-labelledby="detTitle">
+  <div class="dlg-h"><h2 id="detTitle">기록</h2><button class="btn sm" type="button" id="detClose" aria-label="닫기">✕</button></div>
+  <div class="dlg-b" id="detBody"></div>
+</dialog>
+
+<footer>
+  <p>© 2026 경남고등학교 수학과 최선지 선생님 · Math Land Explorers</p>
+  <p>원 저작자를 표시하면 비영리 교육 목적으로 이용할 수 있어요(CC BY-NC 4.0).</p>
+  <p>저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../common/land.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const { esc, fmt, rpc, MODE } = Land;
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('slug');
+  let act = null, rows = [];
+
+  const clsOf = r => `${r.grade}-${r.class_no}`;
+  function filtered() {
+    const run = $('runSel').value, cls = $('classSel').value, q = $('q').value.trim();
+    return rows.filter(r => (!run || String(r.run_id) === run) && (!cls || clsOf(r) === cls)
+      && (!q || r.no.includes(q) || r.name.includes(q)));
+  }
+  function render() {
+    const list = filtered();
+    const done = list.filter(r => r.finished_at).length;
+    const scored = list.filter(r => r.score != null);
+    const avg = scored.length ? (scored.reduce((s, r) => s + Number(r.score), 0) / scored.length).toFixed(1) : '–';
+    $('stats').innerHTML = [
+      ['참여', list.length + '명'], ['완료·제출', done + '명'], ['진행 중', (list.length - done) + '명'], ['평균 점수', avg]
+    ].map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('');
+
+    // 반별 요약 (운영·검색 조건 반영, 반 조건은 무시)
+    const base = rows.filter(r => (!$('runSel').value || String(r.run_id) === $('runSel').value));
+    const by = {};
+    base.forEach(r => { const k = clsOf(r); (by[k] = by[k] || []).push(r); });
+    const keys = Object.keys(by).sort();
+    $('clsSum').innerHTML = keys.length ? `<thead><tr><th>반</th><th class="num">참여</th><th class="num">완료</th><th>완료 비율</th><th class="num">평균 점수</th></tr></thead><tbody>` +
+      keys.map(k => {
+        const a = by[k], d = a.filter(r => r.finished_at).length, sc = a.filter(r => r.score != null);
+        const av = sc.length ? (sc.reduce((s, r) => s + Number(r.score), 0) / sc.length).toFixed(1) : '–';
+        return `<tr><td>${Land.classLabel(k)}</td><td class="num">${a.length}</td><td class="num">${d}</td>
+          <td><div class="bar-in"><i style="width:${Math.round(d / a.length * 100)}%"></i></div></td><td class="num">${av}</td></tr>`;
+      }).join('') + '</tbody>' : '<tbody><tr><td class="muted">아직 기록이 없어요.</td></tr></tbody>';
+
+    $('tbl').innerHTML = `<thead><tr><th>학번</th><th>이름</th><th>운영</th><th>시작</th><th>마지막 저장</th><th>완료·제출</th>
+      <th class="num">점수</th><th>수준</th><th>소감·설명</th></tr></thead><tbody>` +
+      (list.length ? list.map(r => `<tr class="pick" data-id="${r.record_id}" tabindex="0">
+        <td>${esc(r.no)}</td><td>${esc(r.name)}${r.student_status === 'moved' ? ' <span class="chip">전출</span>' : ''}</td>
+        <td><span class="chip ${r.mode}">${MODE[r.mode]}</span> ${esc(r.run_label || '')}</td>
+        <td>${fmt(r.started_at)}</td><td>${fmt(r.saved_at)}</td>
+        <td>${r.finished_at ? '<span class="chip open">✓ ' + fmt(r.finished_at) + '</span>' : '<span class="muted">진행 중</span>'}</td>
+        <td class="num">${r.score ?? ''}</td><td>${esc(r.level || '')}</td>
+        <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.summary || '')}</td></tr>`).join('')
+        : '<tr><td colspan="9" class="muted">조건에 맞는 기록이 없어요.</td></tr>') + '</tbody>';
+  }
+
+  async function loadYear() {
+    const y = +$('yearSel').value;
+    $('tbl').innerHTML = '<tbody><tr><td class="muted">불러오는 중…</td></tr></tbody>';
+    rows = await rpc('land_t_records', { p_slug: slug, p_year: y });
+    const runs = act.runs.filter(r => r.year === y);
+    $('runSel').innerHTML = '<option value="">전체</option>' + runs.map(r =>
+      `<option value="${r.id}">${MODE[r.mode]} · ${esc(r.label || '이름 없음')}</option>`).join('');
+    const classes = [...new Set(rows.map(clsOf))].sort();
+    const keep = $('classSel').value;
+    $('classSel').innerHTML = '<option value="">모든 반</option>' + classes.map(k => `<option value="${k}">${Land.classLabel(k)}</option>`).join('');
+    if (classes.includes(keep)) $('classSel').value = keep;
+    render();
+  }
+
+  async function init() {
+    if (!slug) { $('title').textContent = '활동을 골라 주세요'; $('meta').innerHTML = '<a href="./">활동 모음으로</a>'; return; }
+    const acts = await rpc('land_t_activities');
+    act = acts.find(a => a.slug === slug);
+    if (!act) { $('title').textContent = '없는 활동이에요'; return; }
+    document.title = `${act.title} 현황판 — Math Land Explorers`;
+    $('title').textContent = `${act.title} 현황판`;
+    $('meta').textContent = `${act.grade_label || ''} · ${act.unit || ''} · 지금 버전 v${act.version}`;
+    let years = await rpc('land_t_years', { p_slug: slug });
+    const now = Land.schoolYear();
+    if (!years.includes(now)) years = [now, ...years];
+    $('yearSel').innerHTML = years.map(y => `<option value="${y}">${y}학년도${y === now ? ' (올해)' : ' (보관)'}</option>`).join('');
+    const want = +params.get('year'); if (years.includes(want)) $('yearSel').value = want;
+    await loadYear();
+  }
+
+  // 자세한 기록 보기
+  async function openDetail(id) {
+    const r = rows.find(x => x.record_id === +id);
+    $('detTitle').textContent = `${r.no} ${r.name} — 기록`;
+    $('detBody').innerHTML = '<p class="muted">불러오는 중…</p>';
+    $('detDlg').showModal();
+    const d = await rpc('land_t_record_detail', { p_record_id: +id });
+    $('detBody').innerHTML = `
+      <p><span class="chip ${r.mode}">${MODE[r.mode]}</span> ${esc(r.run_label || '')} · 버전 v${esc(r.version)} · 저장 ${r.save_count}번</p>
+      <p>시작 ${fmt(r.started_at)} · 마지막 저장 ${fmt(r.saved_at)}${r.finished_at ? ' · 완료 ' + fmt(r.finished_at) : ''}</p>
+      ${r.score != null || r.level ? `<p>점수 <b>${r.score ?? '–'}</b> ${esc(r.level || '')}</p>` : ''}
+      ${r.summary ? `<p><b>소감·설명</b><br>${esc(r.summary)}</p>` : ''}
+      <p class="lab" style="font-weight:700;margin:12px 0 6px">활동별 진행 내용</p>
+      <pre class="json">${esc(JSON.stringify(d, null, 2))}</pre>
+      <p class="muted" style="font-size:12px">활동마다 보기 좋은 화면(미션 완성 화면·작품 등)은 활동을 옮기면서 붙일 거예요.</p>`;
+  }
+  $('tbl').addEventListener('click', e => { const tr = e.target.closest('tr.pick'); if (tr) openDetail(tr.dataset.id); });
+  $('tbl').addEventListener('keydown', e => { const tr = e.target.closest('tr.pick'); if (tr && e.key === 'Enter') openDetail(tr.dataset.id); });
+  $('detClose').addEventListener('click', () => $('detDlg').close());
+
+  $('yearSel').addEventListener('change', loadYear);
+  ['runSel', 'classSel'].forEach(id => $(id).addEventListener('change', render));
+  $('q').addEventListener('input', render);
+  $('refresh').addEventListener('click', loadYear);
+  $('csv').addEventListener('click', () => {
+    const head = ['학번', '이름', '반', '모드', '운영', '버전', '시작', '마지막 저장', '완료·제출', '점수', '수준', '소감·설명'];
+    const body = filtered().map(r => [r.no, r.name, Land.classLabel(clsOf(r)), MODE[r.mode], r.run_label || '', r.version,
+      fmt(r.started_at), fmt(r.saved_at), fmt(r.finished_at), r.score ?? '', r.level || '', r.summary || '']);
+    const csv = '﻿' + [head, ...body].map(x => x.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `${act.title}_${$('yearSel').value}학년도_현황.csv`; a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  $('logout').addEventListener('click', Land.teacherLogout);
+  Land.teacherGate($('gate'), user => {
+    $('gate').innerHTML = ''; $('board').classList.remove('hidden');
+    $('who').textContent = user.email; $('logout').classList.remove('hidden');
+    init().catch(e => { console.error(e); $('meta').innerHTML = '<span class="err">불러오지 못했어요.</span>'; });
+  });
+})();
+</script>
+</body>
+</html>

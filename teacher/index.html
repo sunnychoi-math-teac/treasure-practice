@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>선생님 홈 — Math Land Explorers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../common/teacher.css">
+<style>
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.act{display:flex;flex-direction:column;gap:12px}
+.act-h{display:flex;align-items:flex-start;gap:12px}
+.act-ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.act-h h2{margin:0;font-size:19px}
+.act-meta{font-size:13px;color:var(--ink2);margin-top:2px}
+.runs{display:flex;flex-direction:column;gap:6px}
+.run{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--sheet);border-radius:12px;padding:8px 10px;font-size:13px}
+.run .t{font-weight:700}
+.run .grow{min-width:8px}
+.acts-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.empty{font-size:13px;color:var(--ink3);background:var(--sheet);border-radius:12px;padding:10px}
+.url{font-size:12px;color:var(--ink3);word-break:break-all}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand display" href="../" translate="no">Math Land Explorers</a>
+  <nav class="nav" aria-label="선생님 메뉴">
+    <a href="./" aria-current="page">활동 모음</a>
+    <a href="students.html">학생 관리</a>
+  </nav>
+  <span class="grow"></span>
+  <span class="who" id="who"></span>
+  <button class="btn sm hidden" id="logout" type="button">로그아웃</button>
+</div></header>
+
+<main>
+  <div id="gate"></div>
+  <div id="home" class="hidden">
+    <h1>활동 모음</h1>
+    <p class="sub"><span id="yearText"></span> · 활동을 반에 열고(운영 설정), 학생 주소를 나눠 주고, 현황판에서 결과를 봐요.</p>
+    <div class="acts" id="acts"><p class="muted">불러오는 중…</p></div>
+  </div>
+</main>
+
+<!-- 운영 설정 -->
+<dialog id="runDlg" aria-labelledby="runTitle">
+  <form method="dialog" id="runForm">
+    <div class="dlg-h"><h2 id="runTitle">운영 설정</h2><button class="btn sm" value="cancel" type="submit" aria-label="닫기">✕</button></div>
+    <div class="dlg-b">
+      <input type="hidden" id="runId">
+      <div class="field"><span class="lab">모드</span>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="mode" value="free"> 자유 도전</label>
+          <label><input type="radio" name="mode" value="class"> 수업</label>
+          <label><input type="radio" name="mode" value="eval"> 수행평가</label>
+        </div></div>
+      <div class="field"><label for="runLabel">이름 (선택)</label>
+        <input type="text" id="runLabel" maxlength="40" placeholder="예: 1학기 수행평가, 겨울방학 도전">
+        <div class="hint">같은 활동을 한 해에 여러 번 열 때 구분하는 이름이에요.</div></div>
+      <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label for="runStart">시작</label><input type="datetime-local" id="runStart"><div class="hint">비우면 바로 시작</div></div>
+        <div><label for="runEnd">끝</label><input type="datetime-local" id="runEnd"><div class="hint">비우면 마감할 때까지</div></div>
+      </div>
+      <div class="field"><span class="lab">대상 반 <span class="muted" style="font-weight:400">(아무것도 고르지 않으면 모든 반)</span></span>
+        <div class="cls-grid" id="clsGrid"></div></div>
+      <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label for="runYear">학년도</label><input type="number" id="runYear" min="2025" max="2099"></div>
+        <div><span class="lab">버전</span><div id="runVer" style="padding-top:8px"></div></div>
+      </div>
+      <p class="err" id="runMsg"></p>
+    </div>
+    <div class="dlg-f">
+      <button class="btn" value="cancel" type="submit">취소</button>
+      <button class="btn dark" id="runSave" type="button">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 반별 마감 -->
+<dialog id="closeDlg" aria-labelledby="closeTitle">
+  <div class="dlg-h"><h2 id="closeTitle">반별 마감</h2><button class="btn sm" type="button" data-close aria-label="닫기">✕</button></div>
+  <div class="dlg-b"><p class="sub" style="margin-bottom:12px">반을 누르면 그 반만 마감돼요(다시 누르면 풀림). 마감된 반 학생은 저장할 수 없어요.</p>
+    <div class="cls-grid" id="closeGrid"></div></div>
+  <div class="dlg-f"><button class="btn dark" type="button" data-close>닫기</button></div>
+</dialog>
+
+<!-- 카드 정보 -->
+<dialog id="infoDlg" aria-labelledby="infoTitle">
+  <form method="dialog">
+    <div class="dlg-h"><h2 id="infoTitle">첫 화면 카드</h2><button class="btn sm" value="cancel" type="submit" aria-label="닫기">✕</button></div>
+    <div class="dlg-b">
+      <div class="field"><label for="infoUrl">학생 입장 주소</label><input type="text" id="infoUrl" placeholder="예: jungle-run.html 또는 https://…">
+        <div class="hint">사이트 안 파일이면 파일 이름만 적어도 돼요.</div></div>
+      <div class="field"><label for="infoDue">첫 화면 기한 글자</label><input type="text" id="infoDue" maxlength="40" placeholder="예: 11월 30일까지"></div>
+      <div class="field"><span class="lab">첫 화면 표시</span>
+        <div class="seg">
+          <label><input type="radio" name="st" value="open"> 열림</label>
+          <label><input type="radio" name="st" value="closed"> 마감</label>
+          <label><input type="radio" name="st" value="soon"> 준비 중</label>
+          <label><input type="radio" name="st" value="hidden"> 숨김</label>
+        </div><div class="hint">첫 화면 카드에 보이는 표시예요. 학생 저장 가능 여부는 「운영 설정」이 정해요.</div></div>
+      <p class="err" id="infoMsg"></p>
+    </div>
+    <div class="dlg-f"><button class="btn" value="cancel" type="submit">취소</button><button class="btn dark" id="infoSave" type="button">저장</button></div>
+  </form>
+</dialog>
+
+<footer>
+  <p>© 2026 경남고등학교 수학과 최선지 선생님 · Math Land Explorers</p>
+  <p>원 저작자를 표시하면 비영리 교육 목적으로 이용할 수 있어요(CC BY-NC 4.0).</p>
+  <p>저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../common/land.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const { esc, fmt, rpc, MODE } = Land;
+  const ICON = { treasure: '🗝️', jungle: '🌴', merge: '🔢' };
+  // 활동별 고유 현황판(있으면 버튼을 하나 더 보여 줌)
+  const OWN_BOARD = { 'jungle-run': '../jungle-run-teacher.html' };
+  const YEAR = Land.schoolYear();
+  let acts = [];
+
+  const siteRoot = new URL('../', location.href);
+  const studentUrl = a => a.entry_url ? new URL(a.entry_url, siteRoot).href : '';
+
+  function runState(r) {
+    const now = Date.now();
+    if (r.status === 'closed') return ['closed', '마감'];
+    if (r.starts_at && now < Date.parse(r.starts_at)) return ['wait', '시작 전'];
+    if (r.ends_at && now > Date.parse(r.ends_at)) return ['closed', '기간 끝'];
+    return ['open', '열림'];
+  }
+  function runRow(a, r) {
+    const [cls, txt] = runState(r);
+    const target = r.target_classes.length ? r.target_classes.map(Land.classLabel).join(', ') : '모든 반';
+    const period = (r.starts_at || r.ends_at) ? `${r.starts_at ? fmt(r.starts_at) : '바로'} ~ ${r.ends_at ? fmt(r.ends_at) : '마감 때까지'}` : '기한 없음';
+    const closedTxt = r.closed_classes.length ? ` · 반 마감: ${r.closed_classes.map(Land.classLabel).join(', ')}` : '';
+    return `<div class="run">
+      <span class="chip ${cls}">${txt}</span><span class="chip ${r.mode}">${MODE[r.mode]}</span>
+      <span class="t">${esc(r.label || '이름 없음')}</span>
+      <span class="muted">${esc(target)} · ${esc(period)}${esc(closedTxt)} · 참여 ${r.records}명(완료 ${r.finished})</span>
+      <span class="grow"></span>
+      <button class="btn sm" data-act="edit" data-slug="${esc(a.slug)}" data-id="${r.id}" type="button">설정</button>
+      <button class="btn sm" data-act="cls" data-slug="${esc(a.slug)}" data-id="${r.id}" type="button">반별 마감</button>
+      ${r.status === 'open'
+        ? `<button class="btn sm warn" data-act="close" data-id="${r.id}" type="button">전체 마감</button>`
+        : `<button class="btn sm" data-act="open" data-id="${r.id}" type="button">다시 열기</button>`}
+    </div>`;
+  }
+  function render() {
+    $('acts').innerHTML = acts.map(a => {
+      const runs = a.runs.filter(r => r.year === YEAR);
+      const past = a.runs.length - runs.length;
+      const url = studentUrl(a);
+      return `<article class="card act">
+        <div class="act-h">
+          <div class="act-ic" style="background:${esc(a.theme)}" aria-hidden="true">${ICON[a.art] || '📘'}</div>
+          <div style="flex:1;min-width:0">
+            <h2>${esc(a.title)}</h2>
+            <div class="act-meta">${esc(a.grade_label || '')} · ${esc(a.unit || '')} · v${esc(a.version)}</div>
+          </div>
+          <span class="chip ${a.status === 'open' ? 'open' : a.status === 'closed' ? 'closed' : ''}">${{ open: '첫 화면: 열림', closed: '첫 화면: 마감', soon: '첫 화면: 준비 중', hidden: '첫 화면: 숨김' }[a.status]}</span>
+        </div>
+        <div class="runs">
+          ${runs.length ? runs.map(r => runRow(a, r)).join('') : `<div class="empty">${YEAR}학년도에 연 운영이 없어요. 「반에 열기」를 눌러 시작하세요.</div>`}
+          ${past ? `<div class="muted" style="font-size:12px">지난 학년도 운영 ${past}개는 현황판에서 학년도를 골라 볼 수 있어요.</div>` : ''}
+        </div>
+        <div class="url">${url ? '학생 주소: ' + esc(url) : '학생 주소가 아직 없어요(카드 정보에서 넣기)'}</div>
+        <div class="acts-btns">
+          <button class="btn dark" data-act="new" data-slug="${esc(a.slug)}" type="button">＋ 반에 열기</button>
+          <button class="btn" data-act="copy" data-slug="${esc(a.slug)}" type="button" ${url ? '' : 'disabled'}>주소 복사</button>
+          <a class="btn" href="board.html?slug=${encodeURIComponent(a.slug)}">현황판</a>
+          ${OWN_BOARD[a.slug] ? `<a class="btn" href="${OWN_BOARD[a.slug]}">${esc(a.title)} 현황판</a>` : ''}
+          <button class="btn" data-act="info" data-slug="${esc(a.slug)}" type="button">카드 정보</button>
+        </div>
+      </article>`;
+    }).join('');
+  }
+  async function load() {
+    try { acts = await rpc('land_t_activities'); render(); }
+    catch (e) { console.error(e); $('acts').innerHTML = '<p class="err">불러오지 못했어요. 새로 고침해 보세요.</p>'; }
+  }
+
+  // ── 운영 설정 창 ──
+  function clsGridHtml(name, selected) {
+    let h = '';
+    for (let g = 1; g <= 3; g++) {
+      h += `<span style="font-weight:700">${g}학년</span>`;
+      for (let c = 1; c <= 9; c++) {
+        const k = `${g}-${c}`;
+        h += `<label title="${g}학년 ${c}반"><input type="checkbox" name="${name}" value="${k}" ${selected.includes(k) ? 'checked' : ''}>${c}반</label>`;
+      }
+    }
+    return h;
+  }
+  const toLocal = t => { if (!t) return ''; const d = new Date(t); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+  const fromLocal = v => v ? new Date(v).toISOString() : null;
+  let editing = null;
+  function openRun(slug, id) {
+    const a = acts.find(x => x.slug === slug); const r = id ? a.runs.find(x => x.id === +id) : null;
+    editing = { slug, id: r ? r.id : null };
+    $('runTitle').textContent = `${a.title} — ${r ? '운영 설정 고치기' : '반에 열기'}`;
+    document.querySelectorAll('#runForm input[name=mode]').forEach(i => { i.checked = i.value === (r ? r.mode : a.mode); });
+    $('runLabel').value = r ? (r.label || '') : '';
+    $('runStart').value = r ? toLocal(r.starts_at) : '';
+    $('runEnd').value = r ? toLocal(r.ends_at) : '';
+    $('runYear').value = r ? r.year : YEAR; $('runYear').disabled = !!r;
+    $('runVer').textContent = 'v' + (r ? r.version : a.version) + (r ? '' : ' (지금 버전으로 열려요)');
+    $('clsGrid').innerHTML = clsGridHtml('cls', r ? r.target_classes : []);
+    $('runMsg').textContent = '';
+    $('runDlg').showModal();
+  }
+  $('runSave').addEventListener('click', async () => {
+    const mode = (document.querySelector('#runForm input[name=mode]:checked') || {}).value;
+    if (!mode) { $('runMsg').textContent = '모드를 골라 주세요.'; return; }
+    const s = fromLocal($('runStart').value), e = fromLocal($('runEnd').value);
+    if (s && e && s >= e) { $('runMsg').textContent = '끝이 시작보다 뒤여야 해요.'; return; }
+    const classes = [...document.querySelectorAll('#clsGrid input:checked')].map(i => i.value);
+    $('runSave').disabled = true;
+    try {
+      await rpc('land_t_save_run', { p_id: editing.id, p_slug: editing.slug, p_year: +$('runYear').value || YEAR,
+        p_mode: mode, p_label: $('runLabel').value, p_starts: s, p_ends: e, p_classes: classes });
+      $('runDlg').close(); Land.toast('저장했어요'); await load();
+    } catch (err) { console.error(err); $('runMsg').textContent = '저장하지 못했어요: ' + (err.message || ''); }
+    $('runSave').disabled = false;
+  });
+
+  // ── 반별 마감 창 ──
+  let closingRun = null;
+  function openClose(slug, id) {
+    const a = acts.find(x => x.slug === slug); const r = a.runs.find(x => x.id === +id);
+    closingRun = r;
+    $('closeTitle').textContent = `${a.title} — 반별 마감`;
+    $('closeGrid').innerHTML = clsGridHtml('cc', r.closed_classes);
+    // 대상 반이 정해져 있으면 그 반만 누를 수 있게
+    if (r.target_classes.length) $('closeGrid').querySelectorAll('input').forEach(i => {
+      if (!r.target_classes.includes(i.value)) { i.disabled = true; i.parentElement.style.opacity = .3; } });
+    $('closeDlg').showModal();
+  }
+  $('closeGrid').addEventListener('change', async e => {
+    const i = e.target; if (!i.matches('input')) return;
+    i.disabled = true;
+    try {
+      closingRun.closed_classes = await rpc('land_t_close_class', { p_id: closingRun.id, p_class: i.value, p_closed: i.checked });
+      Land.toast(`${Land.classLabel(i.value)} ${i.checked ? '마감했어요' : '마감을 풀었어요'}`);
+    } catch (err) { i.checked = !i.checked; alert('바꾸지 못했어요.'); }
+    i.disabled = false;
+  });
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { $('closeDlg').close(); load(); }));
+
+  // ── 카드 정보 창 ──
+  let infoSlug = null;
+  function openInfo(slug) {
+    const a = acts.find(x => x.slug === slug); infoSlug = slug;
+    $('infoTitle').textContent = `${a.title} — 첫 화면 카드`;
+    $('infoUrl').value = a.entry_url || ''; $('infoDue').value = a.due_text || '';
+    document.querySelectorAll('#infoDlg input[name=st]').forEach(i => { i.checked = i.value === a.status; });
+    $('infoMsg').textContent = ''; $('infoDlg').showModal();
+  }
+  $('infoSave').addEventListener('click', async () => {
+    const st = document.querySelector('#infoDlg input[name=st]:checked').value;
+    try {
+      await rpc('land_t_update_activity', { p_slug: infoSlug, p_entry_url: $('infoUrl').value, p_due_text: $('infoDue').value, p_status: st });
+      $('infoDlg').close(); Land.toast('저장했어요'); load();
+    } catch (err) { $('infoMsg').textContent = '저장하지 못했어요.'; }
+  });
+
+  // ── 버튼 ──
+  const armed = new Map();   // 전체 마감은 두 번 눌러 확인
+  $('acts').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const { act, slug, id } = b.dataset;
+    if (act === 'new') openRun(slug);
+    if (act === 'edit') openRun(slug, id);
+    if (act === 'cls') openClose(slug, id);
+    if (act === 'info') openInfo(slug);
+    if (act === 'copy') {
+      const url = studentUrl(acts.find(x => x.slug === slug));
+      try { await navigator.clipboard.writeText(url); Land.toast('학생 주소를 복사했어요'); }
+      catch (err) { prompt('이 주소를 복사하세요', url); }
+    }
+    if (act === 'close' || act === 'open') {
+      if (act === 'close' && !armed.get(id)) {
+        armed.set(id, true); b.textContent = '한 번 더 누르면 마감'; setTimeout(() => { armed.delete(id); b.textContent = '전체 마감'; }, 3000); return;
+      }
+      armed.delete(id);
+      await rpc('land_t_set_run_status', { p_id: +id, p_status: act === 'close' ? 'closed' : 'open' });
+      Land.toast(act === 'close' ? '마감했어요' : '다시 열었어요'); load();
+    }
+  });
+
+  $('yearText').textContent = `${YEAR}학년도`;
+  $('logout').addEventListener('click', Land.teacherLogout);
+  Land.teacherGate($('gate'), user => {
+    $('gate').innerHTML = ''; $('home').classList.remove('hidden');
+    $('who').textContent = user.email; $('logout').classList.remove('hidden');
+    load();
+  });
+})();
+</script>
+</body>
+</html>

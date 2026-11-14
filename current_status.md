@@ -1,6 +1,6 @@
 # 진행 상태 (current_status)
 
-마지막 갱신: 2026-11-13 (밤)
+마지막 갱신: 2026-11-14
 
 ## 완료한 것
 - **무리수 사냥: 경남이의 정글 탈출**(중3 제곱근과 실수): `jungle-run.html`, `jungle-run-teacher.html`. 3줄 러너, 로그인(학번 4자리·이름·비번 4자리), 랭킹, 훈련소(오답 5유형), 천천히 모드, 교사 현황판(탐험가 성취, CSV), Supabase 표 runner_* 와 함수
@@ -21,11 +21,23 @@
 - **첫 화면(index.html) v1** (2026-11-13): 앱 이름 Math Land Explorers(영문만). 디자인 C안 — 연보라 하늘에 고등학교 수학 구슬(∫ Σ π log lim sin θ ∞)이 굴러와 쌓이는 모션 + 검색창 + 왼쪽 분류 메뉴(전체/고등학교/중학교 복습/수행평가/자유 도전/준비 중) + 카드. 검색어·분류는 주소(?q=&cat=)에 남아 링크로 나눠 줄 수 있음. 글꼴 Baloo 2 + IBM Plex Sans KR. 「움직임 줄이기」 설정이면 움직임 없이 완성 화면. 디자인 시안 캔버스: https://claude.ai/artifact/6tsejeJbn5JtPwGp2QJ6v8
 - 예전 index.html(보물 기록장 연습 예제)은 삭제함(선생님 결정). practice_records 표는 그대로 둠
 
+- **1단계 ① 공통 틀** (2026-11-14):
+  - Supabase 표 `land_students`(학년도별 학생, 학번 4자리) · `land_sessions`(하루짜리 로그인 표) · `land_runs`(운영: 학년도·버전·모드·기한·대상 반·반별 마감·열림/마감) · `land_records`(기록: 공통 칸 + detail JSON) · `land_activity_versions`. SQL: `supabase/migrations/20261114_land_core.sql` (실행 완료)
+  - 학생 함수: land_login, land_logout, land_enter, land_save, land_my_records / 교사 함수: land_t_* (teachers 표 계정만)
+  - `common/land.js`: 학생 로그인 창, Land.start(활동 들어가기·마감 안내), Land.saver(4초 모아 저장·자동 재시도·제출), 교사 로그인(Land.teacherGate)
+  - `teacher/index.html` 활동 모음(반에 열기·운영 설정·반별 마감·전체 마감·주소 복사·카드 정보), `teacher/board.html?slug=` 활동별 현황판 틀(학년도·운영·반 고르기, 반별 요약, 진행 현황, 기록 자세히, CSV), `teacher/students.html` 학생 관리(비번 초기화·고치기·전출)
+  - 첫 화면 [선생님] 버튼 → `teacher/` 로 연결. 옛 `teacher.html`(보물 기록장 현황판)은 그대로 둠
+  - `.gitignore`: 학생 기록 폴더·엑셀·CSV는 GitHub에 올라가지 않게 막음(학생 기록은 Supabase에만)
+
 ## 진행 중
 - **Supabase 표 land_activities + 함수 land_list_activities()**: SQL 파일 `supabase/migrations/20261113_land_activities.sql` 작성 완료. 아직 실행 전. 실행 전까지 첫 화면은 코드 안의 기본 목록 3개를 보여 줌(「서버와 연결되지 않아 기본 목록을 보여 주고 있어요」 문구)
 - 첫 화면에서 아직 비어 있는 것: 보물을 찾아라 입장 주소(entry_url, 앱스 스크립트 웹 앱 주소), 마감 날짜·도전 기한 글자(due_text), [내 기록 보기] 링크(공통 로그인 뒤 연결)
 
-## 다음 단계 (1단계: 공통 틀)
+## 다음 단계
+- 보물 옮기기 ②: 보물 학생 화면을 `activities/treasure/`로 옮기고 저장 부분만 Land.saver로 바꾸기 (새 대화에서 진행 권장)
+- 그 뒤 ③ 현황판·PDF 자동 생성·마감 ④ 2026 기록 옮기기(드라이브 내보내기 폴더 → Supabase) ⑤ 30명 동시 접속 시험
+
+## 예전 1단계 목록 (참고)
 1. 미결정 사항 정하기(아래)
 2. Supabase 공통 표(land_*): land_activities는 SQL 준비됨 → 실행. 이어서 land_students·land_runs·land_records와 로그인·저장·운영 함수 설계 → 선생님 확인 후 만들기
 3. `common/` 공통 코드: 로그인, 운영 상태·기한 확인, 기록 저장
@@ -35,10 +47,8 @@
 7. 저장소 이름 바꾸고 새 주소 안내
 
 ## 미결정 이슈
-- 학번 자릿수(4자리·5자리 모두 받을지)
 - 저장소 새 이름
 - 1단계 시작 시기(제안: 2026 겨울방학)
-- 교사 로그인 방식(teachers 표 방식 유지?)
 - 화면 세부: 같은 활동을 한 해에 여러 번 열 때 표시 (카드 모양·학생 입구 꾸밈은 첫 화면 v1로 정함)
 - 제목 글꼴 최종 선택(지금 Baloo 2; 후보 Lilita One, Luckiest Guy, Bungee, Fredoka, Titan One)
 - 무리수 사냥 기존 기록(runner_*)을 공통 기록으로 옮길지, 그대로 둘지
