@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>무리수 사냥 현황판</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root { --deep:#0d3324; --leaf:#1f6b45; --fresh:#3fa45b; --gold:#ffc93c; --gold-d:#d99a13; --paper:#fffdf6; --bg:#f2f0e4; --ink:#1f2a22; --muted:#66705f; --line:#e6dfc8; --red:#c62828; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; padding: 20px 16px 40px; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1, h2 { font-family: "Jua", sans-serif; font-weight: 400; margin: 0; }
+  h1 { font-size: 28px; color: var(--deep); } h2 { font-size: 20px; color: var(--deep); margin-bottom: 10px; }
+  .card { background: var(--paper); border-radius: 16px; padding: 18px; box-shadow: 0 3px 12px rgba(0,0,0,.06); margin-bottom: 14px; }
+  .login { max-width: 380px; margin: 50px auto; }
+  label { display:block; margin:12px 0 6px; font-weight:700; }
+  input, select { width:100%; padding:11px; font-size:1rem; border:1px solid #d6ccb0; border-radius:10px; background:#fff; }
+  button { padding:10px 14px; font-size:.95rem; font-weight:700; border:0; border-radius:10px; background:var(--gold); color:#4a2f00; cursor:pointer; }
+  button.ghost { background:#ece5cf; color:var(--deep); }
+  button.danger { background:#fde3e3; color:var(--red); padding:6px 10px; font-size:.82rem; }
+  button.mini { padding:6px 10px; font-size:.82rem; background:#e8f3e8; color:var(--deep); }
+  .full { width:100%; margin-top:18px; padding:13px; }
+  .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .bar .right { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+  .bar select { width:auto; min-width:150px; }
+  .sub { color:var(--muted); font-size:.9rem; margin:4px 0 0; }
+  .kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:14px; }
+  .kpi { background:var(--paper); border-radius:14px; padding:14px; box-shadow:0 3px 12px rgba(0,0,0,.06); }
+  .kpi b { display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:30px; color:var(--deep); }
+  .kpi span { font-size:.85rem; color:var(--muted); }
+  .grid2 { display:grid; grid-template-columns: 1.15fr 1fr; gap:14px; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { padding:8px 7px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+  th { background:#f7f2e2; font-weight:700; color:var(--deep); }
+  td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; }
+  .scroll { overflow-x:auto; }
+  .tag { display:inline-block; background:var(--fresh); color:#fff; border-radius:999px; padding:1px 8px; font-size:.75rem; }
+  .barcell { position:relative; min-width:120px; }
+  .barcell i { position:absolute; left:0; top:6px; bottom:6px; background:#ffe3a6; border-radius:6px; }
+  .barcell span { position:relative; padding-left:6px; }
+  .muted { color:var(--muted); } .err { color:var(--red); }
+  .hidden { display:none; }
+  .rad { border-top:.07em solid currentColor; padding:0 .05em; }
+  footer { text-align:center; font-size:.75rem; color:var(--muted); margin-top:10px; }
+  .lv { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:3px 10px; font-size:.85rem; font-weight:700; white-space:nowrap; }
+  .lv-ex { background:#fff1c4; color:#8a5a00; } .lv-pa { background:#ffe1d6; color:#b23c12; } .lv-di { background:#e3f6e6; color:#1c6b34; }
+  .lv-ef { background:#e6eef8; color:#2a5b8f; } .lv-none { background:#eee; color:#888; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px; }
+  .chips button { background:#ece5cf; color:var(--deep); padding:7px 12px; font-size:.85rem; }
+  .chips button.on { background:var(--deep); color:#fff; }
+  .lvcount { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:12px; }
+  .lvcount div { border-radius:12px; padding:10px; text-align:center; } .lvcount b { display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:26px; }
+  .why { font-size:.8rem; color:var(--muted); white-space:normal; min-width:170px; }
+  a.nm { color:var(--deep); font-weight:700; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  .up { color:#1c6b34; font-weight:700; } .down { color:var(--red); font-weight:700; }
+  #detail { position:fixed; inset:0; background:rgba(13,30,20,.5); display:flex; align-items:flex-start; justify-content:center; padding:30px 14px; overflow-y:auto; z-index:10; }
+  #detail .card { max-width:760px; width:100%; }
+  #detail.hidden { display:none; }
+  .dhead { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .mini-kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:12px 0; }
+  .mini-kpis div { background:#f7f2e2; border-radius:10px; padding:8px; text-align:center; font-size:.8rem; color:var(--muted); }
+  .mini-kpis b { display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:22px; color:var(--deep); }
+  .chart { width:100%; height:auto; display:block; background:#fbf8ee; border-radius:12px; }
+  .chart-t { font-weight:700; color:var(--deep); margin:14px 0 6px; font-size:.95rem; }
+  .lvcount, .mini-kpis { } @media (max-width: 760px) { .lvcount { grid-template-columns:repeat(3,1fr); } .mini-kpis { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width: 760px) { .kpis { grid-template-columns:repeat(2,1fr); } .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loginView"></div>
+
+  <div id="boardView" class="hidden">
+    <div class="bar">
+      <div><h1>🗝️ 무리수 사냥 · 정글 탈출 현황판</h1><p class="sub" id="who"></p>
+        <p class="sub" style="margin-top:2px"><a href="../../teacher/">← 활동 모음(교사 홈)</a> · <a id="commonBoard" href="../../teacher/board.html?slug=jungle-run">공통 현황판</a> · <a href="../../teacher/students.html">학생 관리</a></p></div>
+      <div class="right">
+        <select id="yearSel" aria-label="학년도"></select>
+        <select id="runSel" aria-label="운영"></select>
+        <select id="classSel" aria-label="반"></select>
+        <button id="refresh" class="ghost">새로고침</button>
+        <button id="logout" class="ghost">로그아웃</button>
+      </div>
+    </div>
+    <p id="boardMsg" class="muted"></p>
+
+    <div class="kpis">
+      <div class="kpi"><b id="kStudents">0</b><span>참여 학생</span></div>
+      <div class="kpi"><b id="kRuns">0</b><span>달린 판 수</span></div>
+      <div class="kpi"><b id="kClear">0</b><span>보물상자 연 학생</span></div>
+      <div class="kpi"><b id="kAcc">-</b><span>무리수 판별 정확도</span></div>
+      <div class="kpi"><b id="kDue">0</b><span>훈련 대기 학생</span></div>
+    </div>
+
+    <div class="card">
+      <h2>🧭 탐험가 성취</h2>
+      <p class="sub" style="margin:-4px 0 10px">선생님만 보는 화면이에요. 🏆 우수: 완주 + 정확도 85% 이상(판정 10회 이상) · 🔥 열정: 훈련 통과 뒤 정확도 10%p 이상 상승 또는 최고점 갱신 · 🌱 성실: 5판 이상 또는 훈련 3번 이상 시도 · 💪 노력: 그 밖의 참여 학생</p>
+      <div class="lvcount" id="lvCount"></div>
+      <div class="scroll"><table id="lvClassTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>🏕️ 도움이 필요한 학생</h2>
+      <p class="sub" style="margin:-4px 0 8px">훈련이 밀려 있거나 정확도가 70% 아래인 학생이에요. 훈련을 마쳐야 다음 판을 달릴 수 있어요. 꼭 필요할 때만 [훈련 면제]를 눌러 주세요.</p>
+      <div class="scroll"><table id="helpTable"></table></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>반별 참여</h2>
+        <div class="scroll"><table id="classTable"></table></div>
+      </div>
+      <div class="card">
+        <h2>유형별로 헷갈린 횟수</h2>
+        <p class="sub" style="margin:-4px 0 8px">유리수를 무리수로 알고 먹었거나 관문에서 틀린 횟수를 유형별로 모았어요.</p>
+        <div class="scroll"><table id="typeTable"></table></div>
+        <h2 style="margin-top:16px">가장 많이 헷갈린 수 TOP 10</h2>
+        <p class="sub" style="margin:-4px 0 8px">유리수인데 무리수로 알고 먹은 수, 틀린 관문 문제</p>
+        <div class="scroll"><table id="wrongTable"></table></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bar" style="margin-bottom:4px"><h2 id="stuTitle" style="margin:0">학생 종합표</h2><button class="ghost" id="csvBtn">⬇️ 엑셀(CSV)로 받기</button></div>
+      <p class="sub" style="margin:0 0 6px">이름을 누르면 그 학생의 점수·정확도 변화와 훈련 기록을 자세히 볼 수 있어요. 비밀번호를 잊은 학생은 [비번 초기화].</p>
+      <div class="chips" id="lvChips"></div>
+      <div class="scroll"><table id="stuTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>최근 기록 30판</h2>
+      <p class="sub" style="margin:-4px 0 8px">이상한 기록은 [삭제]로 지울 수 있어요. 지우면 랭킹에서도 빠져요.</p>
+      <div class="scroll"><table id="recentTable"></table></div>
+    </div>
+  </div>
+  <footer>© 2026 경남고등학교 수학과 최선지 선생님 · 무리수 사냥<br>원 저작자를 표시하면 비영리 교육 목적으로 이용할 수 있어요(CC BY-NC 4.0). 저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</footer>
+</div>
+<div id="detail" class="hidden"><div class="card" id="detailCard"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../../common/land.js"></script>
+<script>
+  // 수학나라 공통 틀: 교사 로그인 Land.teacherGate, 자료는 land_t_jr_data(운영)
+  const SLUG = 'jungle-run';
+  const rpc = Land.rpc;
+  let runList = [];  // 이 활동의 운영(학년도별)
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const classOf = no => `${no[0]}학년 ${no[1]}반`;
+  const fmtT = t => new Date(t).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  let players = [], runs = [], trains = [];
+  const TYPES = { 1: '① 제곱수의 제곱근', 2: '② 소수·분수의 제곱근', 3: '③ 계산하면 유리수', 4: '④ 유리수의 뜻·순환소수', 5: '⑤ 근호 밖으로 꺼내기·크기 비교' };
+  const BADGE = { 1: '제곱수', 2: '소수·분수', 3: '계산', 4: '순환소수', 5: '근호' };
+  const TYPE_OF = {"0":4,"3":4,"7":4,"−5":4,"1/2":4,"0.25":4,"√16":1,"0.333…":4,"√9":1,"−√25":1,"2.5":4,"0.1212…":4,"√(4/9)":2,"√0.04":2,"√2×√8":3,"√0.09":2,"(√3)²":3,"√12÷√3":3,"√1.21":2,"−√(1/4)":2,"관문:√12 = ?":5,"관문:√18 = ?":5,"관문:√2 × √8 = ?":3,"관문:가장 큰 수는?":5,"관문:(√5)² = ?":3,"관문:√27 ÷ √3 = ?":3,"관문:2√3 = ?":5,"관문:무리수인 것은?":1,"관문:√0.16 = ?":2,"관문:√3에 가장 가까운 수는?":5,"관문:3√2 = ?":5,"관문:√50 = ?":5};
+
+  const LV = {
+    ex: { icon: '🏆', name: '우수 탐험가' }, pa: { icon: '🔥', name: '열정 탐험가' }, di: { icon: '🌱', name: '성실 탐험가' },
+    ef: { icon: '💪', name: '노력 탐험가' }, none: { icon: '·', name: '미참여' }
+  };
+  const LV_ORDER = ['ex', 'pa', 'di', 'ef', 'none'];
+  const lvTag = (k, plusPa) => `<span class="lv lv-${k}">${LV[k].icon} ${LV[k].name}</span>${plusPa ? ' <span class="lv lv-pa" title="훈련으로 성장">🔥</span>' : ''}`;
+  const pct = v => v == null ? '-' : Math.round(v * 100) + '%';
+  const accOf = list => { const c = list.reduce((a, x) => a + x.correct, 0), w = list.reduce((a, x) => a + x.wrong, 0); return c + w ? c / (c + w) : null; };
+  let lvFilter = 'all', lastStuds = [];
+
+  // 성취 분류: 우수 → 열정 → 성실 → 노력 순서로 먼저 맞는 것
+  function classify(s, myTrains) {
+    const runsAsc = s.runs.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const c = runsAsc.reduce((a, x) => a + x.correct, 0), w = runsAsc.reduce((a, x) => a + x.wrong, 0), judged = c + w, acc = judged ? c / judged : null;
+    const clears = runsAsc.filter(x => x.cleared).length;
+    const passes = myTrains.filter(x => x.passed).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    let growth = null;
+    if (passes.length) {
+      const t0 = new Date(passes[0].created_at);
+      const before = runsAsc.filter(x => new Date(x.created_at) < t0), after = runsAsc.filter(x => new Date(x.created_at) > t0);
+      const aB = accOf(before), aA = accOf(after);
+      const bestB = before.length ? Math.max(...before.map(x => x.score)) : null, bestA = after.length ? Math.max(...after.map(x => x.score)) : null;
+      const accUp = aB != null && aA != null && aA - aB >= 0.10, bestUp = bestB != null && bestA != null && bestA > bestB;
+      if (accUp || bestUp) growth = { aB, aA, bestB, bestA, accUp, bestUp };
+    }
+    const excellent = clears >= 1 && judged >= 10 && acc >= 0.85;
+    const passion = passes.length >= 1 && !!growth;
+    const diligent = runsAsc.length >= 5 || myTrains.length >= 3;
+    let lv = !runsAsc.length ? 'none' : excellent ? 'ex' : passion ? 'pa' : diligent ? 'di' : 'ef';
+    const gtxt = growth ? (growth.accUp ? `훈련 뒤 정확도 ${pct(growth.aB)} → ${pct(growth.aA)}` : `훈련 뒤 최고점 ${growth.bestB.toLocaleString()} → ${growth.bestA.toLocaleString()}`) : '';
+    const why = {
+      ex: `완주 ${clears}회 · 정확도 ${pct(acc)} (판정 ${judged}회)` + (passion ? ` · ${gtxt}` : ''),
+      pa: `훈련 통과 ${passes.length}회 · ${gtxt}`,
+      di: `${runsAsc.length}판 도전 · 훈련 시도 ${myTrains.length}회 · 정확도 ${pct(acc)}`,
+      ef: `${runsAsc.length}판 · 정확도 ${pct(acc)}` + (myTrains.length ? ` · 훈련 시도 ${myTrains.length}회` : ''),
+      none: '아직 달린 기록이 없어요'
+    }[lv];
+    const first = accOf(runsAsc.slice(0, 2)), recent = accOf(runsAsc.slice(-2));
+    return { lv, why, plusPa: lv === 'ex' && passion, acc, judged, clears, passes: passes.length, tries: myTrains.length, first, recent, runsAsc };
+  }
+
+  function table(el, head, rows) {
+    el.innerHTML = '<tr>' + head.map(([h, c]) => `<th class="${c || ''}">${h}</th>`).join('') + '</tr>' +
+      (rows.length ? rows.join('') : `<tr><td colspan="${head.length}" class="muted">아직 기록이 없어요.</td></tr>`);
+  }
+
+  const MODE = { free: '자유 도전', class: '수업', eval: '수행평가' };
+  const runName = r => `${r.label || MODE[r.mode] + ' 운영'}${r.status === 'closed' ? ' (마감)' : ''}`;
+  const q = new URLSearchParams(location.search);
+
+  // 학년도·운영 목록 → 고른 운영의 자료
+  async function loadRuns() {
+    $('boardMsg').textContent = '불러오는 중…';
+    try {
+      const acts = await rpc('land_t_activities');
+      const act = acts.find(a => a.slug === SLUG) || { runs: [] };
+      runList = act.runs;
+      const years = [...new Set([Land.schoolYear(), ...runList.map(r => r.year)])].sort((a, b) => b - a);
+      const ys = $('yearSel'), prevY = +ys.value || +q.get('year') || years[0];
+      ys.innerHTML = years.map(y => `<option value="${y}">${y}학년도</option>`).join('');
+      ys.value = years.includes(prevY) ? prevY : years[0];
+      fillRuns();
+    } catch (e) { $('boardMsg').textContent = '불러오지 못했어요: ' + (e.message || e); }
+  }
+  function fillRuns() {
+    const y = +$('yearSel').value, rs = runList.filter(r => r.year === y);
+    const sel = $('runSel'), prev = +sel.value || +q.get('run');
+    sel.innerHTML = rs.length ? rs.map(r => `<option value="${r.id}">${esc(runName(r))} · ${r.target_classes.length ? r.target_classes.map(Land.classLabel).join(', ') : '모든 반'}</option>`).join('')
+                              : '<option value="">운영 없음</option>';
+    if (rs.some(r => r.id === prev)) sel.value = prev;
+    $('commonBoard').href = `../../teacher/board.html?slug=${SLUG}`;
+    load();
+  }
+  async function load() {
+    const runId = +$('runSel').value;
+    if (!runId) {
+      players = []; runs = []; trains = [];
+      $('boardMsg').textContent = '이 학년도에는 연 운영이 없어요. 교사 홈에서 [＋ 반에 열기]로 열어 주세요.';
+      $('classSel').innerHTML = '<option value="">전체 반</option>'; render(); return;
+    }
+    $('boardMsg').textContent = '불러오는 중…';
+    let d;
+    try { d = await rpc('land_t_jr_data', { p_run_id: runId }); }
+    catch (e) { $('boardMsg').textContent = '불러오지 못했어요: ' + (e.message || e); return; }
+    const noOf = {}; d.students.forEach(x => noOf[x.record_id] = x.student_no);
+    players = d.students;
+    runs = d.runs.map(x => ({ ...x, student_no: noOf[x.record_id] }));
+    trains = d.trains.map(x => ({ ...x, student_no: noOf[x.record_id] }));
+    const r = runList.find(x => x.id === runId);
+    const closed = r && r.closed_classes.length ? ` · 반별 마감: ${r.closed_classes.map(Land.classLabel).join(', ')}` : '';
+    $('boardMsg').textContent = (players.length ? '' : '아직 참여한 학생이 없어요.') + (r && r.status === 'closed' ? ' 이 운영은 마감되었어요(보기만).' : '') + closed;
+    const sel = $('classSel'), prev = sel.value;
+    const classes = [...new Set(players.map(x => x.student_no.slice(0, 2)))].sort();
+    sel.innerHTML = '<option value="">전체 반</option>' + classes.map(c => `<option value="${c}">${c[0]}학년 ${c[1]}반</option>`).join('');
+    if (classes.includes(prev)) sel.value = prev;
+    render();
+  }
+
+  function render() {
+    const pick = $('classSel').value;
+    const inCls = no => !pick || no.startsWith(pick);
+    const P = players.filter(x => inCls(x.student_no)), R = runs.filter(x => inCls(x.student_no));
+    // 학생별 요약
+    const by = {};
+    P.forEach(x => by[x.student_no] = { ...x, runs: [], best: null });
+    R.forEach(x => { const s = by[x.student_no]; if (!s) return; s.runs.push(x);
+      if (!s.best || (x.cleared && !s.best.cleared) || (x.cleared === s.best.cleared && x.score > s.best.score)) s.best = x; });
+    const studs = Object.values(by);
+    const played = studs.filter(s => s.runs.length);
+    const cor = R.reduce((a, x) => a + x.correct, 0), wr = R.reduce((a, x) => a + x.wrong, 0);
+    $('kStudents').textContent = played.length; $('kRuns').textContent = R.length;
+    $('kClear').textContent = played.filter(s => s.runs.some(x => x.cleared)).length;
+    $('kAcc').textContent = cor + wr ? Math.round(cor / (cor + wr) * 100) + '%' : '-';
+    $('kDue').textContent = studs.filter(s => (s.train_due || []).length).length;
+    const T = trains.filter(x => inCls(x.student_no));
+
+    // 학생별 유형 오답
+    const typeCnt = {}, stuType = {};
+    R.forEach(x => x.wrong_items.forEach(w => { const ty = TYPE_OF[w]; if (!ty) return;
+      typeCnt[ty] = (typeCnt[ty] || 0) + 1; ((stuType[x.student_no] ??= {})[ty] = (stuType[x.student_no][ty] || 0) + 1); }));
+    const tmx = Math.max(1, ...Object.values(typeCnt));
+    table($('typeTable'), [['유형'], ['횟수'], ['학생 수', 'num']], [1, 2, 3, 4, 5].map(ty => {
+      const who = Object.keys(stuType).filter(n => stuType[n][ty]).length, n = typeCnt[ty] || 0;
+      return `<tr><td>${TYPES[ty]}</td><td class="barcell"><i style="width:${n / tmx * 100}%"></i><span>${n}번</span></td><td class="num">${who}명</td></tr>`; }));
+
+    // 도움이 필요한 학생
+    const help = studs.filter(s => { const c = s.runs.reduce((a, x) => a + x.correct, 0), w = s.runs.reduce((a, x) => a + x.wrong, 0);
+      s.acc = c + w ? c / (c + w) : null; s.judged = c + w; return (s.train_due || []).length || (s.judged >= 4 && s.acc < 0.7); })
+      .sort((a, b) => (b.train_due || []).length - (a.train_due || []).length || (a.acc ?? 1) - (b.acc ?? 1));
+    table($('helpTable'), [['학번'], ['이름'], ['정확도', 'num'], ['자주 틀리는 유형'], ['훈련 대기'], ['훈련 (통과/시도)', 'num'], ['받은 배지'], ['']],
+      help.map(s => { const st = stuType[s.student_no] || {}, top = Object.keys(st).sort((a, b) => st[b] - st[a]).slice(0, 2);
+        const mine = T.filter(x => x.student_no === s.student_no), due = s.train_due || [];
+        return `<tr><td>${esc(s.student_no)}</td><td>${esc(s.name)}</td><td class="num">${s.acc == null ? '-' : Math.round(s.acc * 100) + '%'}</td>
+          <td>${top.map(t => TYPES[t].slice(0, 1)).join(' ') || '-'} <span class="muted" style="font-size:.8rem">${top.map(t => TYPES[t].slice(2)).join(', ')}</span></td>
+          <td>${due.length ? due.map(t => `<span class="tag" style="background:#c62828">${TYPES[t].slice(0, 1)}</span>`).join(' ') : '-'}</td>
+          <td class="num">${mine.filter(x => x.passed).length} / ${mine.length}</td>
+          <td>${(s.train_badges || []).map(t => BADGE[t]).join(', ') || '-'}</td>
+          <td>${due.length ? `<button class="mini" data-clear="${esc(s.student_no)}" data-rec="${s.record_id}" data-name="${esc(s.name)}">훈련 면제</button>` : ''}</td></tr>`; }));
+
+    // 반별
+    const cls = {};
+    played.forEach(s => { const c = s.student_no.slice(0, 2); (cls[c] ??= []).push(s); });
+    table($('classTable'), [['반'], ['참여', 'num'], ['판 수', 'num'], ['평균 최고점', 'num'], ['완주', 'num']],
+      Object.keys(cls).sort().map(c => { const g = cls[c];
+        return `<tr><td>${c[0]}학년 ${c[1]}반</td><td class="num">${g.length}명</td><td class="num">${g.reduce((a, s) => a + s.runs.length, 0)}</td>
+          <td class="num">${Math.round(g.reduce((a, s) => a + s.best.score, 0) / g.length).toLocaleString()}</td><td class="num">${g.filter(s => s.runs.some(x => x.cleared)).length}명</td></tr>`; }));
+
+    // 헷갈린 수
+    const cnt = {};
+    R.forEach(x => new Set(x.wrong_items).forEach(w => { (cnt[w] ??= { n: 0, who: new Set() }); cnt[w].n++; cnt[w].who.add(x.student_no); }));
+    const top = Object.entries(cnt).sort((a, b) => b[1].n - a[1].n).slice(0, 10), mx = top.length ? top[0][1].n : 1;
+    table($('wrongTable'), [['수 / 문제'], ['횟수'], ['학생 수', 'num']],
+      top.map(([w, v]) => `<tr><td>${w.startsWith('관문:') ? '🚪 ' + esc(w.slice(3)) : esc(w)}</td>
+        <td class="barcell"><i style="width:${v.n / mx * 100}%"></i><span>${v.n}번</span></td><td class="num">${v.who.size}명</td></tr>`));
+
+    // 탐험가 성취
+    studs.forEach(s => { s.cls = classify(s, T.filter(x => x.student_no === s.student_no)); s.types = stuType[s.student_no] || {}; s.trains = T.filter(x => x.student_no === s.student_no); });
+    lastStuds = studs;
+    const cntLv = k => studs.filter(s => s.cls.lv === k).length;
+    $('lvCount').innerHTML = LV_ORDER.map(k => `<div class="lv-${k}"><b>${cntLv(k)}</b>${LV[k].icon} ${LV[k].name}</div>`).join('');
+    const byCls = {}; studs.forEach(s => (byCls[s.student_no.slice(0, 2)] ??= []).push(s));
+    table($('lvClassTable'), [['반'], ...LV_ORDER.map(k => [LV[k].icon + ' ' + LV[k].name.replace(' 탐험가', ''), 'num'])],
+      Object.keys(byCls).sort().map(c => `<tr><td>${c[0]}학년 ${c[1]}반</td>${LV_ORDER.map(k => `<td class="num">${byCls[c].filter(s => s.cls.lv === k).length}명</td>`).join('')}</tr>`));
+    $('lvChips').innerHTML = [['all', '전체'], ...LV_ORDER.map(k => [k, `${LV[k].icon} ${LV[k].name} (${cntLv(k)})`])]
+      .map(([k, t]) => `<button data-lvf="${k}" class="${lvFilter === k ? 'on' : ''}">${t}</button>`).join('');
+
+    // 학생 종합표
+    $('stuTitle').textContent = '학생 종합표' + (pick ? ` · ${pick[0]}학년 ${pick[1]}반` : '');
+    const trend = s => { if (s.cls.runsAsc.length < 2) return pct(s.cls.acc);
+      const d = (s.cls.recent ?? 0) - (s.cls.first ?? 0); return `${pct(s.cls.first)} → ${pct(s.cls.recent)} <span class="${d >= 0.05 ? 'up' : d <= -0.05 ? 'down' : 'muted'}">${d >= 0.05 ? '▲' : d <= -0.05 ? '▼' : '–'}</span>`; };
+    table($('stuTable'), [['학번'], ['이름'], ['성취'], ['근거'], ['판 수', 'num'], ['최고점', 'num'], ['정확도 처음→최근', 'num'], ['훈련 통과/시도', 'num'], ['배지'], ['훈련 대기'], ['마지막 접속'], ['']],
+      studs.filter(s => lvFilter === 'all' || s.cls.lv === lvFilter).sort((a, b) => a.student_no.localeCompare(b.student_no)).map(s => {
+        const due = s.train_due || [];
+        return `<tr><td>${esc(s.student_no)}</td><td><a class="nm" data-detail="${esc(s.student_no)}">${esc(s.name)}</a></td>
+          <td>${lvTag(s.cls.lv, s.cls.plusPa)}</td><td class="why">${esc(s.cls.why)}</td>
+          <td class="num">${s.runs.length}</td>
+          <td class="num">${s.best ? s.best.score.toLocaleString() : '-'} ${s.cls.clears ? '<span class="tag">완주</span>' : ''}</td>
+          <td class="num">${trend(s)}</td>
+          <td class="num">${s.cls.passes} / ${s.cls.tries}</td>
+          <td>${(s.train_badges || []).map(t => BADGE[t]).join(', ') || '-'}</td>
+          <td>${due.length ? due.map(t => `<span class="tag" style="background:#c62828">${TYPES[t].slice(0, 1)}</span>`).join(' ') : '-'}</td>
+          <td>${s.last_login_at ? fmtT(s.last_login_at) : '-'}</td>
+          <td><button class="mini" data-reset="${esc(s.student_no)}" data-sid="${s.student_id}" data-name="${esc(s.name)}">비번 초기화</button></td></tr>`; }));
+
+    // 최근
+    table($('recentTable'), [['시각'], ['학번'], ['이름'], ['점수', 'num'], ['거리', 'num'], ['무리수/유리수', 'num'], ['관문', 'num'], ['걸린 시간', 'num'], ['']],
+      R.slice(0, 30).map(x => `<tr><td>${fmtT(x.created_at)}</td><td>${esc(x.student_no)}</td><td>${esc((by[x.student_no] || {}).name || '')}</td>
+        <td class="num">${x.score.toLocaleString()}</td><td class="num">${x.distance} m ${x.cleared ? '<span class="tag">완주</span>' : ''}</td>
+        <td class="num">${x.correct} / ${x.wrong}</td><td class="num">${x.gates}/2</td><td class="num">${Math.round(x.duration_ms / 1000)}초</td>
+        <td><button class="danger" data-del="${x.id}">삭제</button></td></tr>`));
+  }
+
+  document.addEventListener('click', async e => {
+    const r = e.target.dataset.reset, d = e.target.dataset.del, cl = e.target.dataset.clear, lf = e.target.dataset.lvf, dt = e.target.dataset.detail;
+    if (lf) { lvFilter = lf; render(); return; }
+    if (dt) { openDetail(dt); return; }
+    if (e.target.id === 'detail' || e.target.dataset.close) { $('detail').classList.add('hidden'); return; }
+    if (cl) {
+      if (!confirm(`${cl} ${e.target.dataset.name} 학생의 밀린 훈련을 면제할까요?\n바로 다시 달릴 수 있게 돼요.`)) return;
+      try { await rpc('land_t_jr_clear_training', { p_record_id: Number(e.target.dataset.rec) }); load(); }
+      catch (err) { alert('면제하지 못했어요: ' + err.message); }
+    }
+    if (r) {
+      if (!confirm(`${r} ${e.target.dataset.name} 학생의 비밀번호를 초기화할까요?\n학생이 다음에 로그인할 때 새 비밀번호를 정하게 돼요.`)) return;
+      try { await rpc('land_t_reset_pin', { p_student_id: Number(e.target.dataset.sid) }); alert('초기화했어요. 수학나라의 모든 활동에 같이 적용돼요.'); }
+      catch (err) { alert('초기화하지 못했어요: ' + err.message); }
+    }
+    if (d) {
+      if (!confirm('이 기록을 삭제할까요? 되돌릴 수 없어요.')) return;
+      try { await rpc('land_t_jr_delete_game', { p_game_id: Number(d) }); load(); }
+      catch (err) { alert('삭제하지 못했어요: ' + err.message); }
+    }
+  });
+
+  // 작은 꺾은선 그래프 (SVG)
+  function lineChart(vals, { max, fmt, ref, refLabel, marks = [], color }) {
+    const W = 640, H = 170, L = 44, Rr = 14, T = 16, B = 26, n = vals.length;
+    if (!n) return '<p class="muted">기록이 없어요.</p>';
+    const X = i => L + (n === 1 ? (W - L - Rr) / 2 : i * (W - L - Rr) / (n - 1)), Y = v => T + (1 - v / max) * (H - T - B);
+    const grid = [0, 0.5, 1].map(f => `<line x1="${L}" x2="${W - Rr}" y1="${Y(max * f)}" y2="${Y(max * f)}" stroke="#e6dfc8"/><text x="${L - 6}" y="${Y(max * f) + 4}" text-anchor="end" font-size="11" fill="#8a8f80">${fmt(max * f)}</text>`).join('');
+    const refL = ref != null ? `<line x1="${L}" x2="${W - Rr}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="#c62828" stroke-dasharray="5 4" opacity=".6"/><text x="${W - Rr}" y="${Y(ref) - 4}" text-anchor="end" font-size="11" fill="#c62828">${refLabel}</text>` : '';
+    const mk = marks.map(m => { const x = m <= 0 ? L - 4 : m >= n ? W - Rr + 4 : (X(m - 1) + X(m)) / 2;
+      return `<line x1="${x}" x2="${x}" y1="${T}" y2="${H - B}" stroke="#d99a13" stroke-dasharray="3 3"/><text x="${x}" y="${T - 3}" text-anchor="middle" font-size="12">🎖️</text>`; }).join('');
+    const pts = vals.map((v, i) => v == null ? null : [X(i), Y(v)]).filter(Boolean);
+    const path = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    const dots = vals.map((v, i) => v == null ? '' : `<circle cx="${X(i)}" cy="${Y(v)}" r="4" fill="${color}"><title>${i + 1}판: ${fmt(v)}</title></circle>`).join('');
+    const xl = vals.map((_, i) => (n <= 12 || i % Math.ceil(n / 12) === 0) ? `<text x="${X(i)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="#8a8f80">${i + 1}</text>` : '').join('');
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}">${grid}${refL}${mk}<path d="${path}" fill="none" stroke="${color}" stroke-width="2.5"/>${dots}${xl}</svg>`;
+  }
+  function openDetail(no) {
+    const s = lastStuds.find(x => x.student_no === no); if (!s) return;
+    const k = s.cls, ra = k.runsAsc;
+    const passTimes = s.trains.filter(x => x.passed).map(x => new Date(x.created_at));
+    const marks = passTimes.map(t => ra.filter(x => new Date(x.created_at) < t).length);
+    const types = Object.keys(s.types).sort((a, b) => s.types[b] - s.types[a]);
+    const wcnt = {}; ra.forEach(x => x.wrong_items.forEach(w => wcnt[w] = (wcnt[w] || 0) + 1));
+    const wl = Object.entries(wcnt).sort((a, b) => b[1] - a[1]);
+    const tr = s.trains.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    $('detailCard').innerHTML = `
+      <div class="dhead"><div><h1 style="font-size:26px">${esc(s.student_no)} ${esc(s.name)}</h1><p class="sub">${lvTag(k.lv, k.plusPa)} &nbsp;${esc(k.why)}</p></div>
+        <button class="ghost" data-close="1">닫기 ✕</button></div>
+      <div class="mini-kpis">
+        <div><b>${ra.length}</b>판 수</div><div><b>${s.best ? s.best.score.toLocaleString() : '-'}</b>최고점</div>
+        <div><b>${k.clears}</b>완주</div><div><b>${pct(k.acc)}</b>정확도</div><div><b>${k.passes}/${k.tries}</b>훈련 통과/시도</div></div>
+      <div class="chart-t">판별 점수 <span class="muted" style="font-weight:400;font-size:.8rem">(🎖️ = 훈련소 통과 시점)</span></div>
+      ${lineChart(ra.map(x => x.score), { max: Math.max(500, Math.ceil(Math.max(0, ...ra.map(x => x.score)) / 500) * 500), fmt: v => Math.round(v).toLocaleString(), marks, color: '#2f86d6' })}
+      <div class="chart-t">판별 정확도 (무리수를 먹은 수 ÷ 먹은 수 전체)</div>
+      ${lineChart(ra.map(x => x.correct + x.wrong ? x.correct / (x.correct + x.wrong) : null), { max: 1, fmt: v => Math.round(v * 100) + '%', ref: 0.7, refLabel: '훈련 기준 70%', marks, color: '#3fa45b' })}
+      <div class="grid2" style="margin-top:14px">
+        <div><div class="chart-t">자주 틀리는 유형</div>
+          ${types.length ? `<table>${types.map(t => `<tr><td>${TYPES[t]}</td><td class="num">${s.types[t]}번</td></tr>`).join('')}</table>` : '<p class="muted">틀린 유형이 없어요.</p>'}
+          <div class="chart-t">헷갈린 수</div>
+          ${wl.length ? `<table>${wl.slice(0, 10).map(([w, n]) => `<tr><td>${w.startsWith('관문:') ? '🚪 ' + esc(w.slice(3)) : esc(w)}</td><td class="num">${n}번</td></tr>`).join('')}</table>` : '<p class="muted">없어요.</p>'}</div>
+        <div><div class="chart-t">훈련 기록</div>
+          ${tr.length ? `<table><tr><th>시각</th><th>유형</th><th class="num">정답</th><th>결과</th></tr>${tr.map(x => `<tr><td>${fmtT(x.created_at)}</td><td>${TYPES[x.type].slice(0, 1)}${x.required ? ' <span class="muted" style="font-size:.75rem">필수</span>' : ''}</td><td class="num">${x.correct}/5</td><td>${x.passed ? '<span class="tag">통과</span>' : '<span class="muted">재도전</span>'}</td></tr>`).join('')}</table>` : '<p class="muted">아직 훈련 기록이 없어요.</p>'}
+          <div class="chart-t">받은 배지</div><p>${(s.train_badges || []).map(t => '🎖️ ' + BADGE[t] + ' 탐험가').join('<br>') || '<span class="muted">없어요</span>'}</p></div>
+      </div>`;
+    $('detail').classList.remove('hidden'); $('detail').scrollTop = 0;
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('detail').classList.add('hidden'); });
+  $('csvBtn').addEventListener('click', () => {
+    const rows = [['학번', '이름', '성취', '근거', '판 수', '최고점', '완주 횟수', '정확도', '처음 정확도', '최근 정확도', '훈련 통과', '훈련 시도', '배지', '훈련 대기', '자주 틀리는 유형']];
+    lastStuds.filter(s => lvFilter === 'all' || s.cls.lv === lvFilter).sort((a, b) => a.student_no.localeCompare(b.student_no)).forEach(s => {
+      const k = s.cls, ty = Object.keys(s.types).sort((a, b) => s.types[b] - s.types[a]).slice(0, 2).map(t => TYPES[t]).join(' / ');
+      rows.push([s.student_no, s.name, LV[k.lv].name + (k.plusPa ? ' (+열정)' : ''), k.why, s.runs.length, s.best ? s.best.score : '', k.clears, pct(k.acc), pct(k.first), pct(k.recent),
+        k.passes, k.tries, (s.train_badges || []).map(t => BADGE[t]).join(' '), (s.train_due || []).map(t => TYPES[t]).join(' / '), ty]); });
+    const csv = '\ufeff' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `무리수사냥_탐험가성취_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  $('refresh').addEventListener('click', loadRuns);
+  $('yearSel').addEventListener('change', fillRuns);
+  $('runSel').addEventListener('change', load);
+  $('classSel').addEventListener('change', render);
+  $('logout').addEventListener('click', () => Land.teacherLogout());
+  Land.teacherGate($('loginView'), user => {
+    $('loginView').classList.add('hidden'); $('boardView').classList.remove('hidden');
+    $('who').textContent = (user.email || '') + ' 로그인 중';
+    loadRuns();
+  });
+</script>
+</body>
+</html>

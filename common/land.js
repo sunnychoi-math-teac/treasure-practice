@@ -123,7 +123,7 @@
     moved: '전출 처리된 학번이에요. 선생님께 말씀드려 주세요.'
   };
 
-  function loginForm(title) {
+  function loginForm(title, cancelText) {
     return new Promise(resolve => {
       const ov = overlay(`
         <span class="land-badge">Math Land Explorers</span>
@@ -138,9 +138,12 @@
           <label for="land-pin">비밀번호 (숫자 4자리)</label>
           <input id="land-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" required>
           <button class="land-btn" type="submit">들어가기</button>
+          ${cancelText ? `<button class="land-btn line" type="button" data-cancel>${esc(cancelText)}</button>` : ''}
           <div class="land-msg" aria-live="polite"></div>
         </form>${footerHtml(title)}`);
-      const f = ov.querySelector('form'), msg = ov.querySelector('.land-msg'), btn = ov.querySelector('button');
+      const f = ov.querySelector('form'), msg = ov.querySelector('.land-msg'), btn = ov.querySelector('button[type=submit]');
+      const cancel = ov.querySelector('[data-cancel]');
+      if (cancel) cancel.addEventListener('click', () => { ov.remove(); resolve(null); });
       const no = ov.querySelector('#land-no'), nm = ov.querySelector('#land-name'), pin = ov.querySelector('#land-pin');
       const s = getSession(); if (s && s.student) { no.value = s.student.no; nm.value = s.student.name; }
       setTimeout(() => (no.value ? pin : no).focus(), 50);
@@ -188,16 +191,19 @@
   }
 
   // 활동 시작: 로그인 → 운영 확인 → {student, run, record, readOnly}
+  //  opt.cancelText 를 주면 로그인 창·안내 창에 그 버튼이 생기고, 누르면 null 을 돌려줌(예: '연습만 하기')
   async function start(opt) {
-    const slug = opt.slug, title = opt.title || '';
+    const slug = opt.slug, title = opt.title || '', cancelText = opt.cancelText || '';
     for (;;) {
       let s = session();
-      if (!s || !s.token) { await loginForm(title); s = session(); }
+      if (!s || !s.token) { if (!(await loginForm(title, cancelText))) return null; s = session(); }
       let r;
       try { r = await rpc('land_enter', { p_token: s.token, p_slug: slug }); }
       catch (err) {
         console.error(err);
-        await notice('서버와 연결되지 않았어요', '인터넷 연결을 확인하고 다시 시도해 주세요.', ['다시 시도']);
+        const p = await notice('서버와 연결되지 않았어요', '인터넷 연결을 확인하고 다시 시도해 주세요.',
+          cancelText ? ['다시 시도', cancelText] : ['다시 시도']);
+        if (p === 1) return null;
         continue;
       }
       if (r.code === 'no_session') { setSession(null); continue; }
@@ -211,7 +217,9 @@
       body += `<br><small>로그인: ${who}</small>`;
       const canView = r.record && opt.allowReadOnly !== false && (r.code === 'closed' || r.code === 'ended');
       const btns = canView ? ['내 기록 보기', '다른 학번으로 들어가기'] : ['다시 확인하기', '다른 학번으로 들어가기'];
+      if (cancelText) btns.push(cancelText);
       const pick = await notice(h, body, btns);
+      if (pick === 2) return null;
       if (pick === 1) { setSession(null); continue; }
       if (canView) return { student: r.student, run: r.run, record: r.record, readOnly: true, code: r.code, token: s.token };
     }

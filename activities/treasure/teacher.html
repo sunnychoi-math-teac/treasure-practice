@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>보물을 찾아라 현황판 — Math Land Explorers</title>
+<!--
+  보물을 찾아라 · 교사 현황판 (activities/treasure/teacher.html)
+  수행평가: teacher.html            연습: teacher.html?slug=treasure-practice (activities/treasure-practice/teacher.html 이 여기로 보냄)
+  © 2026 경남고등학교 수학과 최선지 선생님 · 도형의 방정식 탐험 「보물을 찾아라」
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Gowun+Dodum&family=Jua&display=swap">
+<link rel="stylesheet" href="../../common/teacher.css">
+<style>
+main{max-width:1400px}
+.top-in{max-width:1400px}
+.classbar,.tabs,.mbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.cchip,.tab,.mchip{border:1.5px solid var(--line2);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:14px}
+.cchip small,.mchip small{font-weight:400;color:var(--ink3);margin-left:2px}
+.cchip.closed{border-color:var(--coral)}
+.cchip.on,.tab.on,.mchip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.cchip.on small,.mchip.on small{color:#D5D9F0}
+.tabs{margin-top:8px}
+.lock{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;margin:0 0 12px}
+.lock span{color:var(--ink2);font-size:13px;flex:1;min-width:220px}
+.lock.on{background:#FCE4E0;border-color:#F2B8AE}.lock.on b{color:#A0362A}
+.msg{padding:9px 14px;border-radius:12px;margin:0 0 12px;font-size:14px}
+.msg.ok{background:#DFF7EC;color:#1D6B45}.msg.no{background:#FCE4E0;color:#A0362A}
+.note{color:var(--ink3);font-size:13px;line-height:1.6;margin:0 0 10px}
+.sumwrap{margin:0 0 16px}
+tr.pick{cursor:pointer}tr.pick:hover td{background:#F7F8FC}tr.pick.sel td{background:#EEF0FA}
+#tbl td,#tbl th{text-align:center;white-space:nowrap;padding:7px 8px}
+#tbl td.l,#tbl th.l{text-align:left}
+.ok{color:var(--green);font-weight:700}.no{color:var(--red)}.dim{color:#B5B9CF}
+.lv{display:inline-block;min-width:38px;border-radius:12px;padding:1px 8px;font-weight:700}
+.lv.상,.lv.상-{background:#DFF7EC;color:#1D6B45}.lv.중,.lv.중-{background:#E4EAFF;color:#2A3A99}
+.lv.하,.lv.하-{background:#FFF3D1;color:#7A5A00}.lv.미흡,.lv.미흡-{background:#FCE4E0;color:#A0362A}
+.detail{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 20px;margin-top:14px}
+.detail h2{margin:0 0 6px;font-size:19px}
+.detail dl{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:6px 14px;margin:8px 0 14px}
+.detail dt{font-weight:700}.detail dd{margin:0;word-break:break-all}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-align:left}
+.gcard .ph{aspect-ratio:1;border-radius:10px;background:var(--sheet);display:grid;place-items:center;color:var(--ink3);overflow:hidden;font-size:13px;text-align:center;padding:4px}
+.gcard .ph.wide{aspect-ratio:auto;min-height:160px}
+.gcard img{width:100%;height:100%;object-fit:cover;display:block}
+.gcard .ph.wide img{height:auto;object-fit:contain}
+.gcard.none{cursor:default;opacity:.75}
+.gcard .nm{font-weight:700}.gcard .ty{font-size:13px;color:var(--ink2)}
+.gcard .ds{font-size:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ov{position:fixed;inset:0;background:rgba(26,31,77,.85);display:grid;place-items:center;z-index:50;padding:16px;cursor:zoom-out}
+.ov img{max-width:100%;max-height:80vh;border-radius:12px;background:#fff;display:block;margin:0 auto}
+.ov .cap{color:#fff;font-weight:700;font-size:18px;text-align:center;margin-top:10px}
+.ov .capd{color:#E8EAF6;font-size:15px;line-height:1.6;margin-top:6px;white-space:pre-wrap}
+.evtop{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px}
+.evbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.evbox b{display:block;margin-bottom:6px}
+.evrow{display:grid;grid-template-columns:26px 130px 1fr 44px;align-items:center;gap:6px;font-size:13px;margin:3px 0}
+.evf{font-size:18px}.evbar{background:var(--sheet);border-radius:6px;height:12px;overflow:hidden}.evbar i{display:block;height:100%;background:var(--mint);border-radius:6px}.evn{text-align:right;color:var(--ink2)}
+.evtools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 12px}
+.evtools label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.evgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.evcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.evcard.empty{opacity:.65}
+.evhd{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--ink2)}.evhd b{font-size:16px;color:var(--ink);margin-right:auto}
+.evtx{white-space:pre-wrap;line-height:1.65;font-size:15px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand display" href="../../" translate="no">Math Land Explorers</a>
+  <nav class="nav" aria-label="선생님 메뉴">
+    <a href="../../teacher/">활동 모음</a>
+    <a href="../../teacher/students.html">학생 관리</a>
+    <a id="otherBoard" href="#"></a>
+  </nav>
+  <span class="grow"></span>
+  <span class="who" id="who"></span>
+  <button class="btn sm hidden" id="logout" type="button">로그아웃</button>
+</div></header>
+
+<main>
+  <div id="gate"></div>
+  <div id="board" class="hidden">
+    <h1 id="title">보물을 찾아라 현황판</h1>
+    <p class="sub" id="meta"></p>
+    <div class="bar">
+      <label>학년도 <select id="yearSel"></select></label>
+      <label>운영 <select id="runSel"></select></label>
+      <span class="grow"></span>
+      <button class="btn" id="refresh" type="button">새로 고침</button>
+      <button class="btn dark hidden" id="allpdf" type="button">PDF 만들기</button>
+    </div>
+    <div class="classbar" id="classbar" role="group" aria-label="반 고르기"></div>
+    <div id="lockbar"></div>
+    <div class="stats" id="stats"></div>
+    <div id="clsum"></div>
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-t="list" type="button">진행 현황</button>
+      <button class="tab" data-t="shots" type="button">미션 완성 화면</button>
+      <button class="tab" data-t="gallery" type="button">테셀레이션 작품 보기</button>
+      <button class="tab" data-t="eval" type="button">소감 모아 보기</button>
+    </div>
+    <div id="msg" aria-live="polite"></div>
+    <div id="view"></div>
+  </div>
+</main>
+
+<footer>
+  <p><b>© 2026 경남고등학교 수학과 최선지 선생님 · 도형의 방정식 탐험 「보물을 찾아라」</b></p>
+  <p>원 저작자(경남고 수학과 최선지 선생님)를 표시하면 비영리 교육 목적으로 이용할 수 있어요(CC BY-NC 4.0).</p>
+  <p>저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</p>
+  <p>자료 이용을 원하시면 연락 주세요.</p>
+  <p>수식 입력: MathLive (MIT License) · PDF: jsPDF (MIT License)</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../../common/land.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const { esc, rpc, MODE, sb } = Land;
+  const params = new URLSearchParams(location.search);
+  const SLUG = params.get('slug') === 'treasure-practice' ? 'treasure-practice' : 'treasure';
+  const PRACTICE = SLUG === 'treasure-practice';
+  const BUCKET = 'land-files';
+
+  const MISSIONS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'];
+  const MNAME = { m1: '미션1 무게중심', m2: '미션2 내분점', m3: '미션3 평행이동', m4: '미션4 악어의 늪', m5: '미션5 수직인 직선', m6: '미션6 원의 방정식', m7: '미션7 자물쇠' };
+  const SCREEN = { intro: '안내', door: '비밀의 문', map: '보물지도', m1: '미션1', m2: '미션2', m3: '미션3', m4: '미션4', m5: '미션5', m6: '미션6', m7: '미션7', tess: '테셀레이션', treasure: '보물상자', final: '마무리(자기평가)' };
+  const TESS_KO = { reflect: 'y축 대칭이동', diag: '직선 y=x 대칭이동', rot90: '회전이동(90도)', rot60: '회전이동(60도)', translate: '평행이동' };
+  const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
+  const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
+  const FACE = ['😭', '😟', '🙂', '😊', '😄'];
+  // 채점기준표(2026-11-02): 해결 미션 수 7~0 → 상 50 / 상- 49 / 중 42 / 중- 41 / 하 34 / 하- 33 / 미흡 26 / 미흡- 25
+  const LEVELS = [['미흡-', 25], ['미흡', 26], ['하-', 33], ['하', 34], ['중-', 41], ['중', 42], ['상-', 49], ['상', 50]];
+
+  let act = null, YEAR = Land.schoolYear(), RUNS = [], ROWS = [], DATA = [], PIN = {};
+  const DET = {};                 // record_id → { saved, P }
+  const MADE = {};                // 이번에 다시 만든 PDF(record_id → path)
+  let tab = 'list', sel = null, timer = null, shotM = 'm1', evalOnly = true;
+  let cls = 'all'; try { cls = localStorage.getItem('tr_cls') || 'all'; } catch (e) { }
+
+  const kst = (t, full) => { if (!t) return ''; try { return new Date(t).toLocaleString('ko-KR', Object.assign({ timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }, full ? { year: 'numeric' } : {})); } catch (e) { return ''; } };
+  const classLabel = k => k === 'all' ? '전체' : Land.classLabel(k);
+  const VIEW = () => (cls === 'all' ? DATA : DATA.filter(d => d.cls === cls)).slice().sort((a, b) => a.sid.localeCompare(b.sid) || a.rid - b.rid);
+  function note(m, k) { $('msg').innerHTML = m ? `<div class="msg ${k || 'ok'}">${esc(m)}</div>` : ''; }
+
+  /* ───────── 보관함(land-files) 주소: 선생님 계정으로 10분짜리 주소를 만듦 ───────── */
+  const URLS = {};
+  async function signed(paths) {
+    const now = Date.now(), need = [...new Set(paths.filter(p => p && !(URLS[p] && URLS[p].until > now)))];
+    for (let i = 0; i < need.length; i += 100) {
+      const part = need.slice(i, i + 100);
+      const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(part, 600);
+      if (error) throw error;
+      (data || []).forEach((s, j) => { if (s.signedUrl) URLS[part[j]] = { url: s.signedUrl, until: now + 540000 }; else URLS[part[j]] = { url: null, until: now + 60000 }; });
+    }
+    const out = {}; paths.forEach(p => { out[p] = URLS[p] && URLS[p].url; }); return out;
+  }
+  const dirOf = d => `${SLUG}/${d.year}/run${d.run_id}/${d.sid}`;
+  const shotPath = (d, k) => { const s = d.P[k] && d.P[k].shot; return typeof s === 'string' && s.includes('/') ? s : (s === true ? `${dirOf(d)}/${k}.jpg` : null); };
+  const tessPath = d => { const t = d.P.tess || {}; if (!t.submitted) return null; return typeof t.fileId === 'string' && t.fileId.includes('/') ? t.fileId : `${dirOf(d)}/tess.png`; };
+  const reportPath = d => MADE[d.rid] || (typeof d.P.report === 'string' && d.P.report.includes('/') ? d.P.report : null);
+
+  /* ───────── 불러오기 ───────── */
+  function toStudent(r) {
+    const P = (DET[r.record_id] && DET[r.record_id].P) || {};
+    const m = {}; MISSIONS.forEach(k => { const s = P[k] || {}; m[k] = { solved: !!s.solved, wrong: s.wrong || 0, ans: s.ans || '', at: s.at || '' }; });
+    const solved = MISSIONS.filter(k => m[k].solved).length;
+    const [lv, sc] = LEVELS[solved];
+    return {
+      rid: r.record_id, run_id: r.run_id, run_label: r.run_label, mode: r.mode, version: r.version, year: YEAR,
+      student_id: r.student_id, sid: r.no, name: r.name, cls: `${r.grade}-${r.class_no}`, moved: r.student_status === 'moved',
+      P, m, solved, level: PRACTICE ? '' : lv, score: PRACTICE ? null : sc,
+      tess: P.tess || {}, eval: P.eval || {}, screen: P.screen || '',
+      saved: r.saved_at, submitted: r.finished_at || P.submitted || '', saves: r.save_count
+    };
+  }
+  // 기록마다 자세한 내용(detail)을 불러옴. 저장 시각이 바뀐 기록만 다시 불러와서 빠름
+  async function loadDetails(rows) {
+    const need = rows.filter(r => !DET[r.record_id] || DET[r.record_id].saved !== r.saved_at);
+    let i = 0;
+    const worker = async () => {
+      while (i < need.length) {
+        const r = need[i++];
+        try { const P = await rpc('land_t_record_detail', { p_record_id: r.record_id }); DET[r.record_id] = { saved: r.saved_at, P: P || {} }; }
+        catch (e) { console.warn(e); }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(8, need.length) }, worker));
+  }
+  async function load(quiet) {
+    if (!quiet) note('불러오는 중…');
+    try {
+      const [acts, rows, studs] = await Promise.all([
+        rpc('land_t_activities'), rpc('land_t_records', { p_slug: SLUG, p_year: YEAR }), rpc('land_t_students', { p_year: YEAR }).catch(() => [])]);
+      act = acts.find(a => a.slug === SLUG) || act;
+      RUNS = (act ? act.runs : []).filter(r => r.year === YEAR);
+      PIN = {}; (studs || []).forEach(s => { PIN[s.id] = s.pin_set; });
+      fillRuns();
+      const run = $('runSel').value;
+      ROWS = rows.filter(r => !run || String(r.run_id) === run);
+      await loadDetails(ROWS);
+      DATA = ROWS.map(toStudent);
+      render();
+      if (!quiet) note('');
+    } catch (e) {
+      console.error(e);
+      note('불러오지 못했어요. 인터넷 연결을 확인하고 [새로 고침]을 눌러 주세요.', 'no');
+    }
+  }
+  function fillRuns() {
+    const keep = $('runSel').value;
+    const opts = RUNS.map(r => `<option value="${r.id}">${MODE[r.mode]} · ${esc(r.label || '이름 없음')}${r.status === 'closed' ? ' (마감)' : ''}</option>`);
+    $('runSel').innerHTML = (RUNS.length > 1 ? '<option value="">모든 운영</option>' : '') + opts.join('') || '<option value="">운영 없음</option>';
+    if (keep && RUNS.some(r => String(r.id) === keep)) $('runSel').value = keep;
+    else if (RUNS.length > 1) { const open = RUNS.find(r => r.status === 'open'); $('runSel').value = open ? String(open.id) : ''; }
+  }
+  // 반 마감을 걸 운영: 고른 운영(모든 운영이면 열린 운영이 하나일 때만)
+  function lockRun() {
+    const v = $('runSel').value;
+    if (v) return RUNS.find(r => String(r.id) === v) || null;
+    const open = RUNS.filter(r => r.status === 'open');
+    return open.length === 1 ? open[0] : null;
+  }
+  const isClosed = k => { const r = lockRun(); return !!r && (r.status === 'closed' || (r.closed_classes || []).includes(k)); };
+
+  /* ───────── 그리기 ───────── */
+  function render() {
+    classBar();
+    const V = VIEW();
+    const n = V.length, sub = V.filter(d => d.submitted).length, tess = V.filter(d => d.tess.submitted).length;
+    const avg = n ? (V.reduce((a, d) => a + d.solved, 0) / n).toFixed(1) : 0;
+    $('stats').innerHTML = [[classLabel(cls) + ' 접속 학생', n], ['미션 평균 해결', avg + ' / 7'], ['테셀레이션 제출', tess], [PRACTICE ? '제출' : '보고서(PDF) 제출', sub]]
+      .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${esc(k)}</span></div>`).join('');
+    tab === 'list' ? list() : tab === 'shots' ? shotsView() : tab === 'eval' ? evalView() : gallery();
+  }
+  function classBar() {
+    const keys = [...new Set([...DATA.map(d => d.cls), ...((lockRun() || {}).target_classes || [])])]
+      .sort((a, b) => { const [ga, ca] = a.split('-').map(Number), [gb, cb] = b.split('-').map(Number); return (ga - gb) || (ca - cb); });
+    if (cls !== 'all' && !keys.includes(cls)) cls = 'all';
+    const cnt = k => k === 'all' ? DATA.length : DATA.filter(d => d.cls === k).length;
+    $('classbar').innerHTML = ['all', ...keys].map(k => `<button type="button" class="cchip${k === cls ? ' on' : ''}${k !== 'all' && isClosed(k) ? ' closed' : ''}" data-c="${esc(k)}">${k !== 'all' && isClosed(k) ? '🔒 ' : ''}${esc(classLabel(k))} <small>${cnt(k)}</small></button>`).join('');
+    $('classbar').querySelectorAll('.cchip').forEach(b => b.onclick = () => pickClass(b.dataset.c));
+    lockBar();
+    if (!PRACTICE) $('allpdf').textContent = cls === 'all' ? '전체 PDF 만들기' : classLabel(cls) + ' PDF 만들기';
+    // 반별 요약 (전체 보기일 때)
+    if (cls === 'all' && keys.length > 1) {
+      const rowsS = keys.map(k => {
+        const L = DATA.filter(d => d.cls === k), n = L.length;
+        const avg = n ? (L.reduce((a, d) => a + d.solved, 0) / n).toFixed(1) : '0';
+        return `<tr class="pick" data-c="${esc(k)}"><td><b>${esc(classLabel(k))}</b></td><td class="num">${n}</td><td class="num">${avg} / 7</td><td class="num">${L.filter(d => d.solved >= 7).length}</td><td class="num">${L.filter(d => d.tess.submitted).length}</td><td class="num">${L.filter(d => d.submitted).length}</td><td>${isClosed(k) ? '<span class="chip closed">🔒 마감</span>' : '<span class="chip open">진행 중</span>'}</td></tr>`;
+      }).join('');
+      $('clsum').innerHTML = `<div class="scroll sumwrap" style="max-height:none"><table><thead><tr><th>반</th><th class="num">학생 수</th><th class="num">평균 해결</th><th class="num">7개 모두 해결</th><th class="num">테셀레이션 제출</th><th class="num">${PRACTICE ? '제출' : '보고서 제출'}</th><th>상태</th></tr></thead><tbody>${rowsS}</tbody></table></div>`;
+      $('clsum').querySelectorAll('tr.pick').forEach(r => r.onclick = () => pickClass(r.dataset.c));
+    } else $('clsum').innerHTML = '';
+  }
+  function pickClass(c) { cls = c; try { localStorage.setItem('tr_cls', cls); } catch (e) { } sel = null; render(); }
+
+  function lockBar() {
+    const box = $('lockbar');
+    if (cls === 'all') { box.innerHTML = ''; return; }
+    const run = lockRun();
+    if (!run) { box.innerHTML = `<div class="lock"><b>${esc(classLabel(cls))}</b><span>위에서 운영을 하나 고르면 이 반을 마감하거나 마감을 풀 수 있어요.</span></div>`; return; }
+    if (run.status === 'closed') { box.innerHTML = `<div class="lock on"><b>🔒 운영 전체가 마감됨</b><span>「${esc(run.label || '이름 없음')}」 운영 전체가 마감되어 있어요. 다시 열려면 활동 모음에서 운영을 여세요.</span></div>`; return; }
+    const at = (run.closed_classes || []).includes(cls);
+    box.innerHTML = at
+      ? `<div class="lock on"><b>🔒 ${esc(classLabel(cls))} 마감됨</b><span>학생들은 이 반 기록을 더 이상 고치거나 제출할 수 없어요. (운영: ${esc(run.label || '이름 없음')})</span><button class="btn sm" id="lockbtn" type="button">마감 풀기</button></div>`
+      : `<div class="lock"><b>${esc(classLabel(cls))} 진행 중</b><span>마감하면 이 반 학생들은 로그인·저장·제출을 할 수 없고, 지금 기록이 그대로 남아요. (운영: ${esc(run.label || '이름 없음')})</span><button class="btn sm warn" id="lockbtn" type="button">이 반 마감하기</button></div>`;
+    let armed = false; const b = $('lockbtn');
+    b.onclick = async () => {
+      if (!armed) { armed = true; b.textContent = at ? '정말 마감을 풀까요? 한 번 더 누르세요' : '정말 마감할까요? 한 번 더 누르세요'; return; }
+      b.disabled = true;
+      try {
+        run.closed_classes = await rpc('land_t_close_class', { p_id: run.id, p_class: cls, p_closed: !at }) || [];
+        note(at ? classLabel(cls) + ' 마감을 풀었어요.' : classLabel(cls) + '을 마감했어요.', 'ok'); render();
+      } catch (e) { console.error(e); note('바꾸지 못했어요. 다시 눌러 주세요.', 'no'); b.disabled = false; }
+    };
+  }
+
+  /* ---------- 진행 현황 ---------- */
+  const cell = s => s.solved ? `<span class="ok">✓</span>${s.wrong ? `<span class="dim"> ${s.wrong}</span>` : ''}` : (s.wrong ? `<span class="no">✗${s.wrong}</span>` : '<span class="dim">·</span>');
+  const lvHtml = d => PRACTICE ? `<b>${d.solved}</b>/7` : `<span class="lv ${d.level}">${d.level} (${d.score})</span>`;
+  function list() {
+    const V = VIEW(), multiRun = new Set(V.map(d => d.run_id)).size > 1;
+    const rows = V.map(d => `<tr class="pick${sel === d.rid ? ' sel' : ''}" data-r="${d.rid}" tabindex="0"><td>${esc(d.sid)}</td><td class="l">${esc(d.name)}${d.moved ? ' <span class="chip">전출</span>' : ''}${PIN[d.student_id] === false ? ' <span class="no">(비번 초기화됨)</span>' : ''}${multiRun ? ` <span class="chip">${esc(d.run_label || '')}</span>` : ''}</td>${MISSIONS.map(k => `<td>${cell(d.m[k])}</td>`).join('')}<td><b>${d.solved}</b>/7</td>${PRACTICE ? '' : `<td>${lvHtml(d)}</td>`}<td>${d.tess.submitted ? '<span class="ok">✓</span> ' + esc(TESS_KO[d.tess.type] || d.tess.type || '') : '<span class="dim">·</span>'}</td><td>${esc(kst(d.saved))}</td><td>${PRACTICE ? (d.submitted ? '<span class="ok">✓</span> ' + esc(kst(d.submitted)) : '<span class="dim">·</span>') : (reportPath(d) ? `<button class="btn sm" data-pdf="${d.rid}" type="button">PDF</button>` : '<span class="dim">·</span>')}</td></tr>`).join('');
+    $('view').innerHTML = `<p class="note">✓ 해결 (옆 숫자는 해결 전 오답 횟수) · ✗n 아직 못 풂(오답 n번) · 미션 1~7 모두 점수에 들어가요. ${PRACTICE ? '연습용은 점수 없이 해결 수만 보여 줘요.' : '수준(점수)은 채점기준표의 해결 미션 수 기준 참고값이에요: 7개 상 50 · 6개 상- 49 · 5개 중 42 · 4개 중- 41 · 3개 하 34 · 2개 하- 33 · 1개 미흡 26 · 0개 미흡- 25.'} 학생을 누르면 자세한 기록이 보여요. 30초마다 자동으로 새로 고쳐져요.</p>
+    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>해결</th>${PRACTICE ? '' : '<th>참고 수준(점수)</th>'}<th>테셀레이션</th><th>마지막 저장</th><th>${PRACTICE ? '제출' : '보고서'}</th></tr></thead><tbody>${rows || `<tr><td colspan="14" class="muted">아직 접속한 학생이 없어요.</td></tr>`}</tbody></table></div><div id="det"></div>`;
+    const tb = $('tbl');
+    tb.onclick = e => {
+      const pb = e.target.closest('[data-pdf]'); if (pb) { e.stopPropagation(); openPdf(DATA.find(x => x.rid === +pb.dataset.pdf)); return; }
+      const tr = e.target.closest('tr.pick'); if (tr) { sel = +tr.dataset.r; tb.querySelectorAll('tr.pick').forEach(x => x.classList.toggle('sel', x === tr)); detail(); }
+    };
+    tb.onkeydown = e => { const tr = e.target.closest('tr.pick'); if (tr && e.key === 'Enter') tr.click(); };
+    if (sel) detail();
+  }
+  function detail() {
+    const d = DATA.find(x => x.rid === sel); if (!d) { $('det').innerHTML = ''; return; }
+    const ty = d.P.v ? Object.keys(d.P.v).sort().map(k => k.replace('m', '') + ':' + (d.P.v[k] + 1)).join(' ') : '';
+    $('det').innerHTML = `<div class="detail"><h2>${esc(d.sid)} ${esc(d.name)}</h2>
+    <p class="muted" style="margin:0">${esc(MODE[d.mode] || '')} · ${esc(d.run_label || '')} · 버전 v${esc(d.version)} · 저장 ${d.saves}번${ty ? ' · 문제 유형(미션:유형) ' + esc(ty) : ''}</p>
+    <dl>${MISSIONS.map(k => `<dt>${MNAME[k]}</dt><dd>${d.m[k].solved ? '<span class="ok">해결</span>' : '<span class="no">미완료</span>'} · 오답 ${d.m[k].wrong}회 ${d.m[k].at ? '· ' + esc(kst(d.m[k].at)) : ''}<br>${esc(d.m[k].ans) || '<span class="dim">입력 없음</span>'}</dd>`).join('')}
+    <dt>테셀레이션</dt><dd>${d.tess.submitted ? `<span class="ok">제출</span> · ${esc(d.tess.title || '(제목 없음)')} · ${esc(TESS_KO[d.tess.type] || '')}` : '<span class="dim">미제출</span>'}</dd>
+    <dt>자기평가</dt><dd>${d.eval.u ? esc(U[d.eval.u - 1]) + ' / ' + esc(F[(d.eval.f || 3) - 1]) : '<span class="dim">없음</span>'}</dd>
+    <dt>질문·느낀 점</dt><dd>${esc(d.eval.c) || '<span class="dim">없음</span>'}</dd>
+    <dt>현재 화면</dt><dd>${esc(SCREEN[d.screen] || d.screen || '')}</dd>
+    <dt>${PRACTICE ? '제출' : '보고서 제출'}</dt><dd>${d.submitted ? esc(kst(d.submitted)) : '<span class="dim">아직</span>'}</dd></dl>
+    <div class="btns">${PRACTICE ? '' : `<button class="btn" id="opdf" type="button" ${reportPath(d) ? '' : 'disabled'}>PDF 열기</button><button class="btn dark" id="mkpdf" type="button">PDF ${reportPath(d) ? '다시 ' : ''}만들기</button>`}<button class="btn warn" id="rst" type="button">비밀번호 초기화</button></div><div id="dm" style="margin-top:10px"></div></div>`;
+    if (!PRACTICE) {
+      $('opdf').onclick = () => openPdf(d);
+      $('mkpdf').onclick = async () => {
+        $('mkpdf').disabled = true; $('dm').innerHTML = '<p class="note">PDF를 만드는 중이에요. 10~20초 걸릴 수 있어요…</p>';
+        try { await remakePdf(d); list(); $('dm').innerHTML = '<div class="msg ok">완료! [PDF 열기]로 확인하세요.</div>'; }
+        catch (e) { console.error(e); $('dm').innerHTML = `<div class="msg no">PDF를 만들지 못했어요. 다시 눌러 주세요. (${esc(e.message || e)})</div>`; $('mkpdf').disabled = false; }
+      };
+    }
+    let armed = false;
+    $('rst').onclick = async () => {
+      if (!armed) { armed = true; $('rst').textContent = '정말 초기화할까요? 한 번 더 누르세요'; return; }
+      $('rst').disabled = true;
+      try { await rpc('land_t_reset_pin', { p_student_id: d.student_id }); PIN[d.student_id] = false; $('dm').innerHTML = '<div class="msg ok">초기화했어요. 학생이 같은 학번·이름으로 들어와 새 비밀번호를 만들면 기록은 그대로 이어져요.</div>'; }
+      catch (e) { console.error(e); $('dm').innerHTML = '<div class="msg no">초기화하지 못했어요. 다시 눌러 주세요.</div>'; $('rst').disabled = false; }
+    };
+  }
+
+  /* ---------- 그림 크게 보기 ---------- */
+  function zoom(src, cap, desc) {
+    const o = document.createElement('div'); o.className = 'ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', cap);
+    o.innerHTML = `<div style="max-width:min(94vw,1000px)"><img alt="${esc(cap)}" src="${esc(src)}"><div class="cap">${esc(cap)}</div>${desc ? `<div class="capd">${esc(desc)}</div>` : ''}</div>`;
+    const close = () => { o.remove(); document.removeEventListener('keydown', key); };
+    const key = e => { if (e.key === 'Escape') close(); };
+    o.onclick = close; document.addEventListener('keydown', key); document.body.appendChild(o);
+  }
+  async function fillImages(items, alive) {
+    try {
+      const urls = await signed(items.map(x => x.path));
+      if (!alive()) return;
+      items.forEach(x => { const ph = document.getElementById(x.ph); if (!ph) return; const u = urls[x.path];
+        ph.innerHTML = u ? `<img alt="${esc(x.alt)}" src="${esc(u)}" loading="lazy">` : '그림 없음';
+        const img = ph.querySelector('img'); if (img) img.onerror = () => { ph.textContent = '그림 없음'; };
+        ph.closest('.gcard').dataset.src = u || ''; });
+    } catch (e) { console.error(e); items.forEach(x => { const ph = document.getElementById(x.ph); if (ph) ph.textContent = '불러오지 못했어요'; }); }
+  }
+
+  /* ---------- 미션 완성 화면 ---------- */
+  function shotsView() {
+    const V = VIEW(), k = shotM;
+    const cnt = m => V.filter(d => shotPath(d, m)).length;
+    const items = [];
+    const cards = V.map(d => {
+      const p = shotPath(d, k), s = d.m[k];
+      if (p) { const id = 'ph' + d.rid; items.push({ path: p, ph: id, alt: `${d.name}의 ${MNAME[k]} 완성 화면` });
+        return `<button type="button" class="gcard" data-n="${esc(d.sid + ' ' + d.name)}"><div class="ph wide" id="${id}">불러오는 중…</div><div class="nm">${esc(d.sid)} ${esc(d.name)}</div><div class="ty"><span class="ok">해결</span> · 오답 ${s.wrong}회</div></button>`; }
+      return `<div class="gcard none"><div class="ph wide">${s.solved ? '해결했지만 화면이 아직 없어요' : '아직 해결 전'}</div><div class="nm">${esc(d.sid)} ${esc(d.name)}</div><div class="ty">${s.wrong ? '오답 ' + s.wrong + '회' : ''}</div></div>`;
+    }).join('');
+    $('view').innerHTML = `<div class="mbar">${MISSIONS.map(m => `<button type="button" class="mchip${m === k ? ' on' : ''}" data-m="${m}">${esc(MNAME[m])} <small>${cnt(m)}/${V.length}</small></button>`).join('')}</div>
+      <p class="note">학생이 미션을 성공한 순간의 화면이에요. 그림을 누르면 크게 보여요. 미션을 이미 푼 학생은 그 미션 화면을 다시 열면 자동으로 저장돼요.</p>
+      ${V.length ? `<div class="gallery wide">${cards}</div>` : '<p>아직 접속한 학생이 없어요.</p>'}`;
+    $('view').querySelectorAll('.mchip').forEach(b => b.onclick = () => { shotM = b.dataset.m; shotsView(); });
+    $('view').querySelectorAll('button.gcard').forEach(c => c.onclick = () => { if (c.dataset.src) zoom(c.dataset.src, `${MNAME[k]} · ${c.dataset.n}`); });
+    fillImages(items, () => tab === 'shots' && shotM === k);
+  }
+
+  /* ---------- 테셀레이션 작품 ---------- */
+  function gallery() {
+    const L = VIEW().filter(d => tessPath(d)), items = [];
+    $('view').innerHTML = L.length ? `<div class="gallery">${L.map(d => { const id = 'tp' + d.rid; items.push({ path: tessPath(d), ph: id, alt: `${d.name}의 테셀레이션` });
+      return `<button type="button" class="gcard" data-n="${esc(d.sid + ' ' + d.name)}" data-t="${esc(TESS_KO[d.tess.type] || '')}" data-ti="${esc(d.tess.title || '')}" data-ds="${esc(d.tess.desc || '')}"><div class="ph" id="${id}">불러오는 중…</div><div class="nm">${esc(d.tess.title || '(제목 없음)')}</div><div class="ty">${esc(d.sid)} ${esc(d.name)} · ${esc(TESS_KO[d.tess.type] || '')}</div>${d.tess.desc ? `<div class="ds">${esc(d.tess.desc)}</div>` : ''}</button>`; }).join('')}</div>`
+      : '<p>아직 제출된 테셀레이션 작품이 없어요.</p>';
+    $('view').querySelectorAll('button.gcard').forEach(c => c.onclick = () => { if (c.dataset.src) zoom(c.dataset.src, `${c.dataset.ti || '(제목 없음)'} · ${c.dataset.n} · ${c.dataset.t}`, c.dataset.ds); });
+    fillImages(items, () => tab === 'gallery');
+  }
+
+  /* ---------- 소감 모아 보기 ---------- */
+  function evalView() {
+    const V = VIEW();
+    const wrote = V.filter(d => String(d.eval.c || '').trim());
+    const hist = key => { const h = [0, 0, 0, 0, 0]; V.forEach(d => { const v = d.eval[key]; if (v >= 1 && v <= 5) h[v - 1]++; }); return h; };
+    const bars = (title, key, labels) => { const h = hist(key), mx = Math.max(1, ...h);
+      return `<div class="evbox"><b>${esc(title)}</b>${h.map((n, i) => `<div class="evrow"><span class="evf">${FACE[i]}</span><span>${esc(labels[i])}</span><span class="evbar"><i style="width:${Math.round(n / mx * 100)}%"></i></span><span class="evn">${n}명</span></div>`).join('')}</div>`; };
+    const L = evalOnly ? wrote : V;
+    const cards = L.map(d => { const e = d.eval, c = String(e.c || '').trim();
+      return `<div class="evcard${c ? '' : ' empty'}"><div class="evhd"><b>${esc(d.sid)} ${esc(d.name)}</b><span title="이해도">${e.u ? FACE[e.u - 1] + ' ' + esc(U[e.u - 1]) : ''}</span><span title="수업 만족">${e.f ? FACE[e.f - 1] + ' ' + esc(F[e.f - 1]) : ''}</span></div><div class="evtx">${c ? esc(c) : '<span class="dim">소감을 쓰지 않았어요</span>'}</div></div>`; }).join('');
+    $('view').innerHTML = `<div class="evtop">${bars('도형의 방정식 이해도', 'u', U)}${bars('오늘 수업은 어땠나요?', 'f', F)}</div>
+      <div class="evtools"><span>${esc(classLabel(cls))} · 소감을 쓴 학생 <b>${wrote.length}</b> / ${V.length}명</span>
+      <label><input type="checkbox" id="evonly" ${evalOnly ? 'checked' : ''}> 소감 쓴 학생만 보기</label>
+      <button class="btn sm" id="evcopy" type="button">소감 모두 복사</button></div>
+      ${L.length ? `<div class="evgrid">${cards}</div>` : '<p>아직 소감을 쓴 학생이 없어요.</p>'}
+      <p class="note">이해도와 수업 만족은 학생이 슬라이더를 움직이지 않으면 가운데(3) 값으로 저장돼요.</p>`;
+    $('evonly').onchange = e => { evalOnly = e.target.checked; evalView(); };
+    $('evcopy').onclick = async () => {
+      const txt = wrote.map(d => `${d.sid} ${d.name}\t${U[(d.eval.u || 3) - 1]}\t${F[(d.eval.f || 3) - 1]}\t${String(d.eval.c).trim().replace(/\s+/g, ' ')}`).join('\n');
+      if (!txt) return note('복사할 소감이 없어요.', 'no');
+      let ok = false;
+      try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) { }
+      if (!ok) { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) { } ta.remove(); }
+      note(ok ? `소감 ${wrote.length}개를 복사했어요. 한글이나 엑셀에 붙여넣으면 학번·이름·이해도·수업 만족·소감 순으로 들어가요.` : '복사하지 못했어요. 소감을 직접 선택해서 복사해 주세요.', ok ? 'ok' : 'no');
+    };
+  }
+
+  /* ───────── PDF 열기·다시 만들기 (수행평가용) ───────── */
+  async function openPdf(d) {
+    const p = d && reportPath(d); if (!p) return;
+    const w = window.open('', '_blank');           // 팝업 막힘을 피하려고 먼저 창을 엶
+    try {
+      URLS[p] = null;
+      const u = (await signed([p]))[p];
+      if (!u) throw new Error('없음');
+      if (w) w.location = u; else location.href = u;
+    } catch (e) { if (w) w.close(); note('PDF를 열지 못했어요. 아직 만들어지지 않았을 수 있어요. [PDF 만들기]를 눌러 보세요.', 'no'); }
+  }
+  async function remakePdf(d) {
+    const pdf = await makeReportPdf(d);
+    const path = `${dirOf(d)}/report.pdf`;
+    const { error } = await sb.storage.from(BUCKET).upload(path, pdf, { contentType: 'application/pdf', upsert: true, cacheControl: '60' });
+    if (error) throw error;
+    MADE[d.rid] = path; URLS[path] = null;
+    return path;
+  }
+  $('allpdf').onclick = async () => {
+    const b = $('allpdf'), L = VIEW(); if (!L.length) return;
+    b.disabled = true; let done = 0, fail = 0;
+    for (const d of L) {
+      note(`${classLabel(cls)} PDF 만드는 중… (${done + fail + 1}/${L.length}) ${d.sid} ${d.name}`, 'ok');
+      try { await remakePdf(d); done++; } catch (e) { console.error(e); fail++; }
+    }
+    note(`${classLabel(cls)} PDF ${done}개를 만들었어요.${fail ? ` ${fail}개는 실패했어요. 다시 눌러 주세요.` : ''}`, fail ? 'no' : 'ok');
+    b.disabled = false; render();
+  };
+
+  // 학생 화면(activities/treasure/index.html)의 보고서와 같은 모양으로 그림
+  function prettyAns(a) {
+    let s = String(a || '');
+    for (let i = 0; i < 4; i++) s = s.replace(/\(\(([^()]*)\)\/\(([^()]*)\)\)/g, '$1/$2').replace(/\(\(-?[0-9.]+\)\)/g, m => m.slice(1, -1));
+    return s.replace(/\^\(2\)/g, '²').replace(/\^\(3\)/g, '³').replace(/\(([0-9.]+)\)/g, (m, n, off, str) => /[a-z0-9)]/i.test(str[off - 1] || '') ? m : n);
+  }
+  function loadScript(src) { return new Promise((res, rej) => { if (window.jspdf) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('PDF 도구를 불러오지 못했어요')); document.head.appendChild(s); }); }
+  function loadImg(url) { return new Promise(res => { if (!url) return res(null); const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; }); }
+  async function makeReportPdf(d) {
+    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    try { await Promise.all([document.fonts.load("26px 'Gowun Dodum'", '가'), document.fonts.load("34px 'Jua'", '가')]); } catch (e) { }
+    const P = d.P;
+    const want = {}; MISSIONS.forEach(k => { const p = shotPath(d, k); if (p) want[k] = p; }); const tp = tessPath(d); if (tp) want.tess = tp;
+    const urls = Object.keys(want).length ? await signed(Object.values(want)) : {};
+    const imgs = {}; await Promise.all(Object.keys(want).map(async k => { imgs[k] = await loadImg(urls[want[k]]); }));
+    const W = 1240, H = 1754, MX = 90, FONT = "'Gowun Dodum','Malgun Gothic','Apple SD Gothic Neo',sans-serif", HEAD = "'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif";
+    const pages = []; let c, y;
+    const newPage = () => { const cv = document.createElement('canvas'); cv.width = W; cv.height = H; c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, W, H); c.textBaseline = 'top'; pages.push(cv); y = 80; };
+    const need = h => { if (y + h > H - 90) newPage(); };
+    const text = (t, size, o) => {
+      o = o || {}; c.font = `${o.bold ? '700 ' : ''}${size}px ${o.head ? HEAD : FONT}`; c.fillStyle = o.color || '#1d2a2f';
+      const maxW = o.w || (W - MX * 2), x = o.x || MX, lh = Math.round(size * 1.5);
+      const lines = []; String(t).split('\n').forEach(par => { let line = ''; for (const ch of par) { if (c.measureText(line + ch).width > maxW && line) { lines.push(line); line = ch; } else line += ch; } lines.push(line); });
+      if (o.measure) return lines.length * lh;
+      lines.forEach(l => { if (!o.noBreak) need(lh); c.fillText(l, x, y); y += lh; });
+    };
+    const h2 = t => { need(80); y += 22; text(t, 34, { head: true, color: '#0a3640' }); c.fillStyle = '#c48a1c'; c.fillRect(MX, y + 2, W - MX * 2, 3); y += 18; };
+    const REPORT_MISSION = { m1: '미션1 망원경을 찾아라 (무게중심)', m2: '미션2 오솔길의 입구 (내분점)', m3: '미션3 네 개의 함정 (평행이동)', m4: '미션4 악어의 늪 (평행이동)', m5: '미션5 안개 속 다리 (수직인 직선)', m6: '미션6 보물상자 (원의 방정식)', m7: '미션7 자물쇠 (평행·대칭이동)' };
+
+    newPage();
+    text('도형의 방정식 탐험 보고서: 보물을 찾아라', 46, { head: true, color: '#0a3640' }); y += 8;
+    text(`학번 ${d.sid}   이름 ${d.name}   제출 ${P.submitted ? kst(P.submitted, true) : '(미제출)'}`, 26);
+    y += 10;
+    text(`평가 미션(1~7) 해결: ${d.solved} / 7   →   [도형의 방정식 문제 해결 및 공학도구 구현] 참고 수준: ${d.level} (${d.score}점)`, 26, { bold: true });
+    const variants = P.v ? Object.keys(P.v).sort().map(k => k.replace('m', '') + ':' + (P.v[k] + 1)).join(' ') : '';
+    if (variants) text('문제 유형 번호(미션:유형) ' + variants, 20, { color: '#666' });
+
+    h2('미션 기록');
+    const cols = [[MX, 330, '미션'], [MX + 330, 110, '결과'], [MX + 440, 380, '최종 답'], [MX + 820, 110, '오답 횟수'], [MX + 930, 130, '해결 시각']];
+    const rowH = cells => Math.max(52, ...cells.map((t, i) => text(t, 20, { w: cols[i][1] - 16, measure: true }) + 16));
+    const drawRow = (cells, head) => {
+      const h = rowH(cells); need(h);
+      cells.forEach((t, i) => {
+        const [x, w] = cols[i];
+        c.fillStyle = head ? '#f3e7c4' : '#fff'; c.fillRect(x, y, w, h); c.strokeStyle = '#d9c99a'; c.lineWidth = 1.5; c.strokeRect(x, y, w, h);
+        const y0 = y; y += 8;
+        text(t, 20, { x: x + 8, w: w - 16, bold: head || i === 1, noBreak: true, color: !head && i === 1 ? (t === '성공' ? '#2c8a4a' : '#c9472f') : '#1d2a2f' });
+        y = y0;
+      });
+      y += h;
+    };
+    drawRow(cols.map(q => q[2]), true);
+    MISSIONS.forEach(m => { const s = P[m] || {}; drawRow([REPORT_MISSION[m], s.solved ? '성공' : '미완료', prettyAns(s.ans), String(s.wrong || 0), kst(s.at)]); });
+
+    h2('미션별 완성 화면');
+    const shotKeys = MISSIONS.filter(k => imgs[k]);
+    if (!shotKeys.length) text('(저장된 완성 화면이 없어요)', 22);
+    shotKeys.forEach(k => {
+      const im = imgs[k], w = 860, h = Math.round(im.height * w / im.width);
+      need(h + 60); text(REPORT_MISSION[k], 22, { bold: true }); y += 4;
+      c.drawImage(im, (W - w) / 2, y, w, h); c.strokeStyle = '#d9c99a'; c.strokeRect((W - w) / 2, y, w, h); y += h + 24;
+    });
+
+    h2('추가 미션: 테셀레이션 챌린지');
+    const t = P.tess || {};
+    text('작품 제목: ' + (t.title || '(없음)'), 22);
+    text('사용한 이동: ' + (TESS_KO[t.type] || '선택 안 함') + '   제출: ' + (t.submitted ? kst(t.at) : '미제출'), 22);
+    text('사용한 변환 설명: ' + (t.desc || '(없음)'), 22);
+    if (imgs.tess && t.submitted) { const w = 560, h = Math.round(imgs.tess.height * w / imgs.tess.width); need(h + 20); y += 8; c.drawImage(imgs.tess, (W - w) / 2, y, w, h); y += h + 10; }
+
+    h2('자기 평가');
+    const ev = P.eval || {};
+    text('도형의 방정식 이해도: ' + U[(ev.u || 3) - 1] + '   /   오늘 수업: ' + F[(ev.f || 3) - 1], 22);
+    text('질문·느낀 점: ' + (ev.c || '(없음)'), 22);
+    y += 30; text('최선지 선생님', 18, { color: '#666' });
+
+    pages.forEach((cv, i) => { const g = cv.getContext('2d'); g.font = `18px ${FONT}`; g.fillStyle = '#999'; g.textAlign = 'center'; g.fillText(`${d.sid} ${d.name} · ${i + 1} / ${pages.length}`, W / 2, H - 50); });
+    const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+    pages.forEach((cv, i) => { if (i) doc.addPage(); doc.addImage(cv.toDataURL('image/jpeg', 0.86), 'JPEG', 0, 0, 210, 297); });
+    doc.setProperties({ title: `${d.sid}_${d.name}_탐험보고서`, author: '최선지 선생님' });
+    return doc.output('blob');
+  }
+
+  /* ───────── 시작 ───────── */
+  async function init() {
+    const other = PRACTICE ? ['./teacher.html', '보물(수행평가) 현황판'] : ['./teacher.html?slug=treasure-practice', '보물(연습) 현황판'];
+    $('otherBoard').href = other[0]; $('otherBoard').textContent = other[1];
+    if (!PRACTICE) $('allpdf').classList.remove('hidden');
+    const acts = await rpc('land_t_activities');
+    act = acts.find(a => a.slug === SLUG);
+    if (act) {
+      document.title = `${act.title} 현황판 — Math Land Explorers`;
+      $('title').textContent = `${act.title} 현황판`;
+      $('meta').textContent = `${act.grade_label || ''} · ${act.unit || ''} · 지금 버전 v${act.version}`;
+    }
+    let years = await rpc('land_t_years', { p_slug: SLUG });
+    const now = Land.schoolYear();
+    if (!years.includes(now)) years = [now, ...years];
+    $('yearSel').innerHTML = years.map(y => `<option value="${y}">${y}학년도${y === now ? ' (올해)' : ' (보관)'}</option>`).join('');
+    const want = +params.get('year'); if (years.includes(want)) $('yearSel').value = want;
+    YEAR = +$('yearSel').value;
+    await load();
+    clearInterval(timer); timer = setInterval(() => { if (tab === 'list' && !document.hidden) load(true); }, 30000);
+  }
+  $('yearSel').onchange = () => { YEAR = +$('yearSel').value; $('runSel').innerHTML = ''; sel = null; load(); };
+  $('runSel').onchange = () => { sel = null; load(); };
+  $('refresh').onclick = () => load();
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => { tab = t.dataset.t; document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); note(''); render(); });
+
+  $('logout').addEventListener('click', Land.teacherLogout);
+  Land.teacherGate($('gate'), user => {
+    $('gate').innerHTML = ''; $('board').classList.remove('hidden');
+    $('who').textContent = user.email; $('logout').classList.remove('hidden');
+    init().catch(e => { console.error(e); $('meta').innerHTML = '<span class="err">불러오지 못했어요. 새로 고침해 보세요.</span>'; });
+  });
+})();
+</script>
+</body>
+</html>
