@@ -122,7 +122,7 @@
   const $ = id => document.getElementById(id);
   const { esc, fmt, rpc, MODE } = Land;
   const ICON = { treasure: '🗝️', jungle: '🌴', merge: '🔢' };
-  // 활동별 고유 현황판(있으면 버튼을 하나 더 보여 줌)
+  // 활동별 고유 현황판(있으면 [현황판] 버튼이 그리로 감. 없으면 공통 현황판 board.html)
   const OWN_BOARD = { 'jungle-run': '../activities/jungle-run/teacher.html', 'treasure': '../activities/treasure/teacher.html', 'treasure-practice': '../activities/treasure-practice/teacher.html' };
   const YEAR = Land.schoolYear();
   let acts = [];
@@ -176,8 +176,7 @@
         <div class="acts-btns">
           <button class="btn dark" data-act="new" data-slug="${esc(a.slug)}" type="button">＋ 반에 열기</button>
           <button class="btn" data-act="copy" data-slug="${esc(a.slug)}" type="button" ${url ? '' : 'disabled'}>주소 복사</button>
-          <a class="btn" href="board.html?slug=${encodeURIComponent(a.slug)}">현황판</a>
-          ${OWN_BOARD[a.slug] ? `<a class="btn" href="${OWN_BOARD[a.slug]}">${esc(a.title)} 현황판</a>` : ''}
+          <a class="btn" href="${OWN_BOARD[a.slug] || 'board.html?slug=' + encodeURIComponent(a.slug)}">현황판</a>
           <button class="btn" data-act="info" data-slug="${esc(a.slug)}" type="button">카드 정보</button>
         </div>
       </article>`;

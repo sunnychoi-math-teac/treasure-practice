@@ -31,7 +31,7 @@ main{max-width:1400px}
 .msg.ok{background:#DFF7EC;color:#1D6B45}.msg.no{background:#FCE4E0;color:#A0362A}
 .note{color:var(--ink3);font-size:13px;line-height:1.6;margin:0 0 10px}
 .sumwrap{margin:0 0 16px}
-tr.pick{cursor:pointer}tr.pick:hover td{background:#F7F8FC}tr.pick.sel td{background:#EEF0FA}
+tr.pick{cursor:pointer}
 #tbl td,#tbl th{text-align:center;white-space:nowrap;padding:7px 8px}
 #tbl td.l,#tbl th.l{text-align:left}
 .ok{color:var(--green);font-weight:700}.no{color:var(--red)}.dim{color:#B5B9CF}
@@ -69,6 +69,21 @@ tr.pick{cursor:pointer}tr.pick:hover td{background:#F7F8FC}tr.pick.sel td{backgr
 .evcard.empty{opacity:.65}
 .evhd{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--ink2)}.evhd b{font-size:16px;color:var(--ink);margin-right:auto}
 .evtx{white-space:pre-wrap;line-height:1.65;font-size:15px}
+/* 보물 현황판 고유 색: 모래 바탕 + 깊은 바다 머리띠 (예전 보물 현황판 색) */
+:root{--sand:#F4ECD6;--paper:#FFFAF0;--edge:#E2D1A4;--sea:#0E5A68;--sea-deep:#0A3640;--brass:#C48A1C;--line:#E8DDBF;--sheet:#F7F1DF}
+body{background:var(--sand)}
+.top{background:var(--sea-deep);border-bottom:0;box-shadow:0 3px 0 var(--brass)}
+.top .brand,.top .who{color:#F4EAD0}
+.top .nav a{color:#D5ECEE}
+.top .btn{background:transparent;color:#F4EAD0;border-color:#5C8C94}
+.card,.stat,.scroll,.detail,.gcard,.evbox,.evcard,.lock{background:var(--paper);border-color:var(--edge)}
+th{background:#F3E7C4;color:var(--sea-deep)}
+.cchip,.tab,.mchip{background:var(--paper);border-color:var(--edge)}
+.cchip.on,.tab.on,.mchip.on{background:var(--sea);border-color:var(--sea)}
+.btn.dark{background:var(--sea);border-color:var(--sea)}
+tr.pick:hover td{background:#FBF4E0}tr.pick.sel td{background:#F3E7C4}
+.home{display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:8px 16px;border-radius:999px;background:var(--paper);border:1.5px solid var(--edge);color:var(--sea-deep);font-weight:700;text-decoration:none}
+.home:hover{border-color:var(--sea)}
 </style>
 </head>
 <body>
@@ -87,12 +102,14 @@ tr.pick{cursor:pointer}tr.pick:hover td{background:#F7F8FC}tr.pick.sel td{backgr
 <main>
   <div id="gate"></div>
   <div id="board" class="hidden">
+    <a class="home" href="../../teacher/">← 활동 모음(교사 홈)으로 돌아가기</a>
     <h1 id="title">보물을 찾아라 현황판</h1>
     <p class="sub" id="meta"></p>
     <div class="bar">
       <label>학년도 <select id="yearSel"></select></label>
       <label>운영 <select id="runSel"></select></label>
       <span class="grow"></span>
+      <button class="btn" id="csv" type="button">CSV 내려받기</button>
       <button class="btn" id="refresh" type="button">새로 고침</button>
       <button class="btn dark hidden" id="allpdf" type="button">PDF 만들기</button>
     </div>
@@ -250,6 +267,7 @@ tr.pick{cursor:pointer}tr.pick:hover td{background:#F7F8FC}tr.pick.sel td{backgr
     $('classbar').innerHTML = ['all', ...keys].map(k => `<button type="button" class="cchip${k === cls ? ' on' : ''}${k !== 'all' && isClosed(k) ? ' closed' : ''}" data-c="${esc(k)}">${k !== 'all' && isClosed(k) ? '🔒 ' : ''}${esc(classLabel(k))} <small>${cnt(k)}</small></button>`).join('');
     $('classbar').querySelectorAll('.cchip').forEach(b => b.onclick = () => pickClass(b.dataset.c));
     lockBar();
+    $('csv').textContent = (cls === 'all' ? '전체' : classLabel(cls)) + ' CSV 내려받기';
     if (!PRACTICE) $('allpdf').textContent = cls === 'all' ? '전체 PDF 만들기' : classLabel(cls) + ' PDF 만들기';
     // 반별 요약 (전체 보기일 때)
     if (cls === 'all' && keys.length > 1) {
@@ -542,6 +560,22 @@ tr.pick{cursor:pointer}tr.pick:hover td{background:#F7F8FC}tr.pick.sel td{backgr
   $('yearSel').onchange = () => { YEAR = +$('yearSel').value; $('runSel').innerHTML = ''; sel = null; load(); };
   $('runSel').onchange = () => { sel = null; load(); };
   $('refresh').onclick = () => load();
+  // CSV: 지금 고른 반(전체면 모든 반) 학생을 엑셀에서 열 수 있게
+  $('csv').onclick = () => {
+    const L = VIEW(); if (!L.length) return note('내려받을 기록이 없어요.', 'no');
+    const head = ['학번', '이름', '반', '운영', ...MISSIONS.map((k, i) => '미션' + (i + 1)), '해결 수', ...(PRACTICE ? [] : ['참고 수준', '점수']),
+      '테셀레이션 제출', '작품 제목', '사용한 이동', '이해도', '수업 만족', '소감', '마지막 저장', '제출'];
+    const body = L.map(d => [d.sid, d.name, classLabel(d.cls), d.run_label || '',
+      ...MISSIONS.map(k => d.m[k].solved ? `해결(오답 ${d.m[k].wrong})` : (d.m[k].wrong ? `미완료(오답 ${d.m[k].wrong})` : '')),
+      d.solved, ...(PRACTICE ? [] : [d.level, d.score]),
+      d.tess.submitted ? 'O' : '', d.tess.title || '', TESS_KO[d.tess.type] || '',
+      d.eval.u ? U[d.eval.u - 1] : '', d.eval.f ? F[d.eval.f - 1] : '', String(d.eval.c || '').trim().replace(/\s+/g, ' '),
+      kst(d.saved), d.submitted ? kst(d.submitted) : '']);
+    const csv = '﻿' + [head, ...body].map(x => x.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `${act ? act.title : '보물을 찾아라'}_${YEAR}학년도_${cls === 'all' ? '전체' : classLabel(cls)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => { tab = t.dataset.t; document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); note(''); render(); });
 
   $('logout').addEventListener('click', Land.teacherLogout);
