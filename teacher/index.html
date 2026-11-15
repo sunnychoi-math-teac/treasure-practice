@@ -121,9 +121,9 @@
 (function () {
   const $ = id => document.getElementById(id);
   const { esc, fmt, rpc, MODE } = Land;
-  const ICON = { treasure: '🗝️', jungle: '🌴', merge: '🔢' };
+  const ICON = { treasure: '🗝️', jungle: '🌴', merge: '🔢', escape: '🔐' };
   // 활동별 고유 현황판(있으면 [현황판] 버튼이 그리로 감. 없으면 공통 현황판 board.html)
-  const OWN_BOARD = { 'jungle-run': '../activities/jungle-run/teacher.html', 'treasure': '../activities/treasure/teacher.html', 'treasure-practice': '../activities/treasure-practice/teacher.html' };
+  const OWN_BOARD = { 'jungle-run': '../activities/jungle-run/teacher.html', 'treasure': '../activities/treasure/teacher.html', 'treasure-practice': '../activities/treasure-practice/teacher.html', 'factor-escape': '../activities/factor-escape/teacher.html' };
   const YEAR = Land.schoolYear();
   let acts = [];
 

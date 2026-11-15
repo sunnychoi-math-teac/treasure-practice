@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FACTOR ESCAPE — 소피 제르맹의 비밀 · Math Land Explorers</title>
+<!--
+  FACTOR ESCAPE — 소피 제르맹의 비밀 (activities/factor-escape/index.html)
+  공통수학1 · 다항식의 인수분해 방탈출. 수학나라 공통 로그인·저장(common/land.js)을 씁니다.
+  © 2026 경남고등학교 수학과 최선지 선생님 · FACTOR ESCAPE — 소피 제르맹의 비밀
+  수식 표시: KaTeX (MIT) · 수식 입력: MathLive (MIT) · 글꼴: Pretendard (OFL)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.108.2/mathlive.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../../common/land.js"></script>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Pretendard',-apple-system,sans-serif;margin:0;min-height:100vh;transition:background-color .6s,color .6s;word-break:keep-all}
+body[data-phase="warmup"]{background:#faf6ee;color:#2b2620}
+body[data-phase="escape"]{background:#0e1220;color:#eef0f8}
+.stage{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px 60px}
+.card-surface{width:100%;max-width:860px;border-radius:20px;position:relative;overflow:hidden}
+body[data-phase="warmup"] .card-surface{background:#fffdf9;box-shadow:0 20px 60px rgba(60,40,20,.10);border:1px solid #eee2cd}
+body[data-phase="escape"] .card-surface{background:linear-gradient(160deg,#161d38,#0f1426);box-shadow:0 30px 80px rgba(0,0,0,.55);border:1px solid #2a3560}
+.screen{display:none;padding:32px 40px 32px;animation:fadeUp .5s ease}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (max-width:640px){.screen{padding:24px 18px}}
+
+/* 상태 띠 (학생 이름·저장 상태) */
+.status{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 40px;font-size:.8rem;font-variant-numeric:tabular-nums}
+body[data-phase="warmup"] .status{color:#8b7d68;border-bottom:1px solid #f0e6d3}
+body[data-phase="escape"] .status{color:#8b93bd;border-bottom:1px solid #222b52}
+.status .saved{white-space:nowrap}
+.status.hide{display:none}
+@media (max-width:640px){.status{padding:8px 18px}}
+
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+body[data-phase="warmup"] .eyebrow{color:#b98a2a}
+body[data-phase="escape"] .eyebrow{color:#c9a227}
+.display-title{font-weight:800;letter-spacing:-.01em}
+body[data-phase="warmup"] .display-title{color:#1f2947}
+body[data-phase="escape"] .display-title{color:#f5f2e6}
+body[data-phase="warmup"] .subtle{color:#6b5f4f}
+body[data-phase="escape"] .subtle{color:#a9b0d0}
+.lead{line-height:1.75}
+
+.btn{font-weight:700;border-radius:999px;padding:13px 26px;cursor:pointer;border:none;transition:all .15s;font-size:.95rem;font-family:inherit;min-height:46px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-gold{background:linear-gradient(135deg,#e0bf5c,#c9a227);color:#241a05;box-shadow:0 8px 20px rgba(201,162,39,.35)}
+.btn-gold:hover:not(:disabled){transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1.5px solid currentColor}
+body[data-phase="warmup"] .btn-outline{color:#6b5f4f}
+body[data-phase="escape"] .btn-outline{color:#a9b0d0;border-color:#3a437a}
+.btn-sm{padding:8px 16px;font-size:.85rem;min-height:38px}
+.link{background:none;border:0;padding:0;font:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer;color:inherit;opacity:.8}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.right{text-align:right}.center{text-align:center}
+
+.field{width:100%;padding:14px 16px;border-radius:12px;font-size:1rem;font-family:inherit}
+body[data-phase="warmup"] .field{background:#fff;border:1px solid #e6d9c0;color:#2b2620}
+body[data-phase="escape"] .field{background:#0b0e1c;border:1px solid #38407a;color:#e7ecff}
+.field:focus{outline:none;box-shadow:0 0 0 3px rgba(201,162,39,.35)}
+
+/* 방 상단바 */
+.topbar{display:none;align-items:center;justify-content:space-between;padding:14px 40px;border-bottom:1px solid #263063}
+.topbar.show{display:flex}
+.topbar .brandmark{font-weight:800;letter-spacing:.06em;font-size:.82rem;color:#c9a227}
+.roomtag{font-size:.78rem;font-weight:700;letter-spacing:.1em;color:#a9b0d0;text-align:center}
+.dots{display:flex;gap:7px;margin-top:4px;justify-content:center}
+.dot{width:9px;height:9px;border-radius:50%;background:#38407a;transition:all .3s}
+.dot.done{background:#c9a227;box-shadow:0 0 8px rgba(201,162,39,.7)}
+.dot.current{background:#4fd2c7;box-shadow:0 0 8px rgba(79,210,199,.7);transform:scale(1.3)}
+@media (max-width:640px){.topbar{padding:12px 18px}}
+
+.botnav{display:none;align-items:center;justify-content:space-between;padding:6px 40px 26px}
+.botnav.show{display:flex}
+@media (max-width:640px){.botnav{padding:6px 18px 22px}}
+
+/* 잠금장치 */
+.lock-panel{background:#0b0e1c;border:1px solid #2a3560;border-radius:16px;padding:20px;margin:18px 0}
+.lock-input{background:#141a30;border:2px solid #38407a;color:#f0d98a;font-weight:700;letter-spacing:.12em;text-align:center;border-radius:10px;padding:13px;font-size:1.2rem;width:100%;font-family:inherit}
+.lock-input.ok{border-color:#4fd2c7;color:#bdf3ec;box-shadow:0 0 16px rgba(79,210,199,.4)}
+.bad{animation:shake .35s ease}
+.lock-input.bad{border-color:#e0857c}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.hint-msg{font-size:.92rem;margin-top:10px;min-height:1.3em;font-weight:600;line-height:1.55}
+.hint-msg.ok{color:#7fe0d1}.hint-msg.bad{color:#f0b2a6}
+.submit-btn{width:100%;margin-top:12px}
+
+/* 선수학습: 선 잇기 */
+.match-head{display:flex;justify-content:space-between;gap:10px;font-weight:700;margin:6px 0 12px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.match-head .over{color:#b5532f}
+.match-board{position:relative;display:grid;grid-template-columns:1fr minmax(60px,1fr) 1fr;align-items:stretch;user-select:none;-webkit-user-select:none}
+.mcol{display:flex;flex-direction:column;gap:12px;position:relative;z-index:2}
+.mcol h4{margin:0 0 2px;font-size:.82rem;color:#8b7d68;text-align:center;font-weight:700}
+.mc{border-radius:14px;padding:14px 10px;min-height:58px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:1.12rem;cursor:pointer;
+  background:#fff;border:2px solid #e6d9c0;color:#1f2947;touch-action:none;transition:transform .15s,border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.mcol.L .mc{background:#fbf3e0}
+.mcol.R .mc{background:#eef4fb}
+.mc:hover{transform:translateY(-1px)}
+.mc.sel{border-color:#1f2947;box-shadow:0 0 0 3px rgba(31,41,71,.18)}
+.mc.done{border-color:#4aa57a;background:#e3f5ea;cursor:default;color:#245c3f}
+.mc.bad{border-color:#d9705f}
+.match-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.match-note{margin:12px 0 0;font-size:.88rem}
+.match-over{display:none;margin-top:14px;background:#fff3dc;border:1px solid #f0d49a;border-radius:12px;padding:12px 14px;font-weight:600;color:#7a5513}
+.match-over.on{display:block}
+.match-done{display:none;text-align:center;padding:18px 0 4px}
+.match-done.on{display:block}
+
+/* 영상 */
+.video-frame{margin:0 auto;border-radius:14px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.3);background:#000}
+.video-frame.vertical{max-width:340px;aspect-ratio:9/16}
+.video-frame.horizontal{max-width:760px;aspect-ratio:16/9}
+.video-frame iframe{width:100%;height:100%;border:0;display:block}
+.video-fallback{display:block;text-align:center;font-size:.8rem;margin-top:8px}
+body[data-phase="warmup"] .video-fallback{color:#9b8a6a}
+
+.mission-card{border-radius:16px;padding:18px 20px;background:#fbf3e0;border:1px solid #eddcb5}
+
+/* 그림 */
+.fig{display:block;margin:0 auto;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:zoom-in;max-width:100%;height:auto}
+.figs2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.figs2 figure{margin:0;text-align:center}
+.figs2 figcaption{font-size:.8rem;color:#a9b0d0;margin-top:6px}
+.figs2 img{width:100%;max-height:280px;object-fit:contain}
+.figs-big{display:flex;flex-direction:column;gap:16px;margin-bottom:12px}
+.figs-big img{width:100%}
+.zoom-tip{font-size:.78rem;color:#8b93bd;text-align:center;margin:6px 0 0}
+.zoom-ov{position:fixed;inset:0;background:rgba(5,8,20,.92);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;cursor:zoom-out}
+.zoom-ov img{max-width:100%;max-height:92vh;border-radius:10px;background:#fff}
+.zoom-ov .x{position:fixed;top:12px;right:14px;background:#fff;color:#1f2947;border:0;border-radius:999px;width:44px;height:44px;font-size:1.3rem;font-weight:800;cursor:pointer}
+@media (max-width:640px){.figs2{grid-template-columns:1fr}}
+
+/* 보기 (객관식) */
+.opt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0 6px}
+.opt{display:flex;align-items:center;gap:12px;background:#141a30;border:2px solid #38407a;color:#eef0f8;border-radius:14px;padding:14px 16px;font:inherit;font-size:1.15rem;font-weight:700;cursor:pointer;min-height:58px;text-align:left}
+.opt:hover:not(:disabled){border-color:#c9a227}
+.opt .no{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#2a3560;font-size:.9rem;flex:none}
+.opt.tried{opacity:.45;text-decoration:line-through;cursor:not-allowed}
+.opt.ok{border-color:#4fd2c7;background:#123a3a;color:#bdf3ec}
+.opt-cols{display:grid;gap:12px;font-size:.95rem;margin:4px 0 6px}
+.opt-cols.c2{grid-template-columns:1fr 1fr}
+.opt-cols.c3{grid-template-columns:1fr 1fr 1fr}
+.opt-cols .grp{background:#121833;border:1px solid #2a3560;border-radius:12px;padding:10px 12px}
+.opt-cols .grp b{display:block;margin-bottom:6px;color:#f0d98a}
+.opt-cols .grp div{margin:4px 0}
+.opt-chip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:6px;background:#2a3560;color:#e7ecff;font-weight:700;font-size:.78rem;margin-right:6px}
+.story{background:#121833;border-left:4px solid #c9a227;border-radius:10px;padding:14px 16px;line-height:1.85;margin:0 0 12px}
+.story b{color:#f0d98a}
+@media (max-width:640px){.opt-cols.c3{grid-template-columns:1fr}.opt-grid{grid-template-columns:1fr}}
+
+/* 수식 입력 */
+.qbox{background:#121833;border:1px solid #2a3560;border-radius:14px;padding:14px 16px;margin:10px 0}
+.qline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qline .q{font-size:1.25rem;min-width:300px}
+@media (max-width:640px){.qline .q{min-width:0}}
+.qline .eq{font-size:1.3rem;font-weight:700}
+math-field,.mf-fallback{flex:1;min-width:200px;font-size:1.35rem;border:2px solid #38407a;border-radius:10px;background:#fff;color:#1f2947;padding:6px 10px;--caret-color:#1f2947;--selection-background-color:#ffe7a0}
+.mf-fallback{font-family:inherit}
+math-field:focus-within,.mf-fallback:focus{outline:3px solid rgba(201,162,39,.45);border-color:#c9a227}
+math-field::part(menu-toggle){display:none}
+math-field.ok,.mf-fallback.ok{border-color:#4fd2c7;box-shadow:0 0 14px rgba(79,210,199,.4)}
+math-field.no,.mf-fallback.no{border-color:#e0857c}
+.input-tip{font-size:.8rem;color:#8b93bd;margin:6px 0 0}
+.fb{font-size:.9rem;font-weight:600;margin-top:8px;min-height:1.2em}
+.fb.ok{color:#7fe0d1}.fb.no{color:#f0b2a6}
+
+/* 풀이 사진 */
+.photo{margin-top:14px;background:#10162e;border:1.5px dashed #4a5596;border-radius:14px;padding:14px 16px}
+.photo h4{margin:0 0 4px;font-size:.98rem;color:#f0d98a}
+.photo p{margin:0 0 10px;font-size:.85rem;color:#a9b0d0}
+.photo .pv{margin-top:10px;display:none;align-items:center;gap:12px;flex-wrap:wrap}
+.photo .pv.on{display:flex}
+.photo .pv img:not([src]){display:none}
+.photo .pv img{max-height:150px;max-width:220px;border-radius:8px;background:#fff;cursor:zoom-in}
+.photo .st{font-size:.88rem;font-weight:600}
+
+/* 힌트 */
+.hint-card{background:rgba(79,210,199,.08);border:1px dashed #4fd2c7;border-radius:12px;padding:12px 16px;color:#cdeee9;font-size:.95rem;margin-top:10px}
+.hint-btn{background:#fff7da;color:#4a3608;border:2px solid #e0bf5c}
+.hint-btn:hover:not(:disabled){background:#ffefb5}
+/* 방6 힌트: 더 크고 잘 보이게 */
+.hint6-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.hint6{background:#fffbea;color:#2b2208;border-radius:14px;padding:16px 18px 16px 18px;border-left:8px solid #e0a31c;box-shadow:0 8px 22px rgba(0,0,0,.35);font-size:1.12rem;line-height:1.7}
+.hint6 .tag{display:inline-block;background:#e0a31c;color:#fff;font-weight:800;font-size:.8rem;border-radius:999px;padding:3px 12px;margin-bottom:6px;letter-spacing:.04em}
+.hint6 .katex{font-size:1.18em;color:#1a1f4d}
+.hint6 .katex-display{margin:.5em 0 .2em !important}
+
+.clue{display:inline-block;background:linear-gradient(135deg,#e0bf5c,#c9a227);color:#241a05;font-weight:800;font-size:1.3rem;padding:8px 22px;border-radius:10px;letter-spacing:.05em;box-shadow:0 8px 22px rgba(201,162,39,.4)}
+
+.confetti-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.confetti-piece{position:absolute;top:-20px;width:8px;height:13px;opacity:.9;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{to{transform:translateY(120vh) rotate(540deg);opacity:.2}}
+.transition-lock{width:84px;height:84px;margin:0 auto 18px;display:block}
+
+/* 소감 */
+.eval-q{margin-bottom:20px}
+.eval-q label{font-weight:700;display:block}
+.eval-val{display:inline-block;margin-top:6px;font-weight:700;color:#f0d98a}
+input[type=range]{accent-color:#c9a227;width:100%;margin-top:8px}
+.scale{display:flex;justify-content:space-between;font-size:.75rem;color:#8b93bd}
+.summary-box{background:#121833;border:1px solid #2a3560;border-radius:14px;padding:14px 18px;margin:16px auto;max-width:460px;text-align:left;line-height:1.9}
+.ro-banner{display:none;background:#3a2a10;color:#ffe2a6;border-radius:12px;padding:10px 14px;margin:0 0 14px;font-weight:600;font-size:.9rem}
+body.ro .ro-banner{display:block}
+
+.foot{text-align:center;font-size:.74rem;line-height:1.7;margin-top:26px;opacity:.85}
+.foot p{margin:0}
+body[data-phase="warmup"] .foot{color:#8b7d68}
+body[data-phase="escape"] .foot{color:#8b93bd}
+.loading{padding:80px 20px;text-align:center;color:#8b7d68}
+
+::selection{background:rgba(201,162,39,.4)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;transition:none !important}}
+</style>
+</head>
+<body data-phase="warmup">
+
+<div class="stage">
+  <div class="card-surface" id="cardSurface">
+
+    <div class="status hide" id="status"><span id="who"></span><span class="saved" id="saved"></span></div>
+
+    <div class="topbar" id="topbar">
+      <div class="brandmark">FACTOR ESCAPE</div>
+      <div><div class="roomtag" id="roomtag">ROOM 01 / 06</div><div class="dots" id="dots"></div></div>
+      <div style="width:110px"></div>
+    </div>
+
+    <div class="confetti-layer" id="confettiLayer"></div>
+
+    <div id="screens">
+      <div class="loading" id="loading">불러오는 중…</div>
+
+      <!-- START -->
+      <section class="screen" data-screen="start" data-phase="warmup">
+        <div class="center" style="padding:20px 0 6px">
+          <div class="eyebrow" style="margin-bottom:14px">공통수학1 · 다항식의 인수분해</div>
+          <h1 class="display-title" style="font-size:clamp(2rem,6vw,3rem);margin:0">FACTOR ESCAPE</h1>
+          <p class="display-title" style="font-size:1.1rem;margin:6px 0 18px;font-weight:700">소피 제르맹의 비밀</p>
+          <p class="subtle lead" style="margin-bottom:24px">다항식의 인수분해로<br>잠긴 여섯 개의 문을 열어라.</p>
+          <p class="subtle" id="startWho" style="margin:0 0 6px;font-weight:700"></p>
+          <p class="subtle" id="startWhere" style="margin:0 0 18px;font-size:.9rem"></p>
+          <button class="btn btn-gold" id="btnStart">수업 시작하기 →</button>
+          <div style="margin-top:14px"><button class="link subtle" id="btnLogout" type="button">다른 학번으로 들어가기(로그아웃)</button></div>
+        </div>
+        <div class="foot" id="footStart"></div>
+      </section>
+
+      <!-- PART01: 선수학습 안내 -->
+      <section class="screen" data-screen="warmup-intro" data-phase="warmup">
+        <div class="eyebrow">PART 01 · WARM UP</div>
+        <h2 class="display-title" style="font-size:1.6rem;margin:8px 0 4px">먼저 기억을 깨워볼까요?</h2>
+        <p class="subtle" style="margin-bottom:20px">본격적인 미션을 시작하기 전에 소인수분해 실력을 확인합니다.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px">
+          <div class="mission-card center"><div style="font-size:1.6rem">⏱</div><div style="font-weight:700;margin-top:4px">목표 30초</div></div>
+          <div class="mission-card center"><div style="font-size:1.6rem">🔗</div><div style="font-weight:700;margin-top:4px">왼쪽 수 ↔ 오른쪽 소인수분해<br>선으로 잇기</div></div>
+          <div class="mission-card center"><div style="font-size:1.6rem">🙂</div><div style="font-weight:700;margin-top:4px">30초가 지나도<br>계속할 수 있어요</div></div>
+        </div>
+        <div class="right"><button class="btn btn-gold" id="btnRulesStart">게임 시작</button></div>
+      </section>
+
+      <!-- PART01: 선 잇기 -->
+      <section class="screen" data-screen="matching" data-phase="warmup">
+        <div class="eyebrow">PART 01 · WARM UP</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 4px">소인수분해 짝을 찾아 선으로 이어라</h2>
+        <p class="subtle" style="margin:0 0 6px;font-size:.92rem">왼쪽의 수를 누른 뒤 알맞은 소인수분해를 누르세요. 끌어서 이어도 돼요.</p>
+        <div class="match-head">
+          <span id="matchTimer">⏱ 00:30</span>
+          <span id="matchScore">이은 짝 0 / 5</span>
+          <span id="matchWrong">틀린 선 0</span>
+        </div>
+        <div class="match-board" id="matchBoard">
+          <div class="mcol L" id="colL"><h4>수</h4></div>
+          <div></div>
+          <div class="mcol R" id="colR"><h4>소인수분해</h4></div>
+          <svg class="match-svg" id="matchSvg" aria-hidden="true"></svg>
+        </div>
+        <div class="match-over" id="matchOver">⏰ 30초가 지났어요! 계속 이어서 풀어도 되고, 아래 [다음으로]를 눌러 넘어가도 돼요.</div>
+        <div class="match-done" id="matchDone">
+          <h3 class="display-title" style="font-size:1.3rem;color:#2f6b46;margin:0 0 4px">선수학습 CLEAR ✓</h3>
+          <p class="subtle" id="matchDoneMsg" style="margin:0"></p>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:18px">
+          <button class="btn btn-outline btn-sm" id="btnMatchRetry" type="button">처음부터 다시</button>
+          <button class="btn btn-gold" id="btnMatchNext" type="button" hidden>다음으로 →</button>
+        </div>
+      </section>
+
+      <!-- PART01: 흥미유발 영상 -->
+      <section class="screen" data-screen="video" data-phase="warmup">
+        <div class="eyebrow">PART 01 · WARM UP</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:8px 0 6px">🤔 어떻게 이렇게 빨리 계산하지?</h2>
+        <p class="subtle center" style="margin-bottom:14px">복잡해 보이는 계산도<br>수의 구조를 발견하면 달라질 수 있습니다.</p>
+        <div class="video-frame vertical">
+          <iframe src="https://www.youtube.com/embed/bB-T3SA19ac" title="서울대 의대생의 소인수분해 암산 속도" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <a class="video-fallback" href="https://youtube.com/shorts/bB-T3SA19ac" target="_blank" rel="noopener">영상이 재생되지 않으면 YouTube에서 보기 →</a>
+        <p class="subtle center" style="margin:16px 0 4px;font-weight:700">어떻게 이렇게 빠르게 계산할 수 있었을까요?</p>
+        <p class="subtle center" style="margin-bottom:14px">직접 계산하지 않고<br><b>식의 구조를 이용할 방법</b>이 있을까요?</p>
+        <div class="row" style="justify-content:space-between"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="challenge" type="button">도전 문제 확인하기 →</button></div>
+      </section>
+
+      <!-- PART01: 도전 문제 -->
+      <section class="screen" data-screen="challenge" data-phase="warmup">
+        <div class="eyebrow">PART 01 · WARM UP</div>
+        <div class="center" style="padding:20px 0">
+          <div style="font-size:clamp(1.8rem,6vw,2.6rem);font-weight:800;color:#1f2947">$11^4+4^{11}$</div>
+          <h2 class="display-title" style="font-size:1.3rem;margin:14px 0 6px">여러분도 할 수 있을까요?</h2>
+          <p class="subtle lead">지금 이 수를 직접 계산하려고 하지 마세요.<br>오늘 수업이 끝날 때 여러분은<br><b>인수분해를 이용하여 이 식의 숨겨진 구조</b>를 발견하게 됩니다.</p>
+        </div>
+        <div class="row" style="justify-content:space-between"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="mission" type="button">오늘의 미션 확인하기 →</button></div>
+      </section>
+
+      <!-- PART01: 학습목표 -->
+      <section class="screen" data-screen="mission" data-phase="warmup">
+        <div class="eyebrow">TODAY'S MISSION</div>
+        <div style="display:grid;gap:12px;margin:14px 0 24px">
+          <div class="mission-card"><div class="eyebrow">MISSION 01</div><p style="margin:6px 0 0;font-weight:600">다항식의 인수분해를 이용하여 수를 인수분해할 수 있다.</p></div>
+          <div class="mission-card"><div class="eyebrow">MISSION 02</div><p style="margin:6px 0 0;font-weight:600">인수분해 공식을 활용하여 큰 수의 소인수분해 문제를 해결할 수 있다.</p></div>
+        </div>
+        <div class="row" style="justify-content:space-between"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="germain-intro" type="button" style="font-size:1.05rem">🔓 미션을 시작한다</button></div>
+      </section>
+
+      <!-- 소피 제르맹 소개 영상 -->
+      <section class="screen" data-screen="germain-intro" data-phase="warmup">
+        <div class="eyebrow">MISSION FILE · SOPHIE GERMAIN</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 10px">이 수학자를 알고 있나요?</h2>
+        <p class="subtle center" style="margin-bottom:16px">이제부터 여러분이 따라갈 한 수학자의 이야기입니다.<br>그녀가 남긴 수학적 아이디어가<br>마지막 방을 여는 열쇠가 됩니다.</p>
+        <div class="video-frame horizontal">
+          <iframe src="https://www.youtube.com/embed/3OEe46UBAwo" title="소피 제르맹 소개 영상" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <a class="video-fallback" href="https://youtu.be/3OEe46UBAwo" target="_blank" rel="noopener">영상이 재생되지 않으면 YouTube에서 보기 →</a>
+        <p class="subtle center" style="margin:16px 0 4px">그녀의 삶과 수학 속에는<br>우리가 찾아야 할 단서가 숨어 있습니다.</p>
+        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="transition-escape" type="button">🔐 그녀의 비밀을 추적한다 →</button></div>
+      </section>
+
+      <!-- 전환: ESCAPE -->
+      <section class="screen" data-screen="transition-escape" data-phase="escape">
+        <div class="center" style="padding:40px 0">
+          <svg class="transition-lock" viewBox="0 0 24 24" fill="none"><rect x="4" y="11" width="16" height="10" rx="2" stroke="#c9a227" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#c9a227" stroke-width="1.5"/><circle cx="12" cy="16" r="1.6" fill="#c9a227"/></svg>
+          <div class="eyebrow">PART 02</div>
+          <h1 class="display-title" style="font-size:2rem;margin:6px 0 2px">ESCAPE MISSION</h1>
+          <p class="display-title" style="font-size:1.1rem;margin-bottom:18px">소피 제르맹의 비밀</p>
+          <p class="subtle" style="line-height:1.9;max-width:420px;margin:0 auto 26px">그녀가 남긴 흔적을 따라<br>여섯 개의 잠긴 방을 통과하세요.<br><br>마지막 문을 열기 위해서는<br><b style="color:#f5f2e6">수학의 힘</b>이 필요합니다.</p>
+          <button class="btn btn-gold" data-go="room1" type="button">첫 번째 문 열기</button>
+          <div style="margin-top:16px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button></div>
+        </div>
+      </section>
+
+      <!-- ROOM 01 -->
+      <section class="screen" data-screen="room1" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="eyebrow">ROOM 01</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 12px">그녀의 탄생</h2>
+        <div class="center" style="margin-bottom:12px"><img class="fig" src="img/germain_eiffel.webp" alt="소피 제르맹 그림" style="max-width:300px;width:100%" data-zoom></div>
+        <p class="subtle" style="margin-bottom:6px">단서를 조사해 문제를 해결하세요.</p>
+        <p style="font-weight:700;margin:0 0 4px;font-size:1.1rem">소피 제르맹이 태어난 해는 언제일까요?</p>
+        <div class="opt-grid" id="r1opts"></div>
+        <div class="hint-msg" id="r1msg"></div>
+      </section>
+
+      <!-- ROOM 02 -->
+      <section class="screen" data-screen="room2" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="eyebrow">ROOM 02</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 12px">감춰진 이름</h2>
+        <div class="figs2" style="margin-bottom:14px">
+          <figure><img class="fig" src="img/gauss.webp" alt="수학자 초상" data-zoom><figcaption>이 수학자는 누구일까요?</figcaption></figure>
+          <figure><img class="fig" src="img/disquisitiones.webp" alt="Disquisitiones Arithmeticae 표지" data-zoom><figcaption>Disquisitiones Arithmeticae (정수론 연구, 1801)</figcaption></figure>
+        </div>
+        <div class="story"><b>(가)</b>의 가명을 써서 공과대학에 입학한 제르맹은, 그 당시 대수학자 <b>(나)</b>의 정수론 연구에 푹 빠졌고, 서신을 주고받으며 학문을 연구했다.</div>
+        <p class="subtle" style="margin:0 0 10px">(가)와 (나)에 알맞은 번호를 차례로 이어 비밀번호를 완성하세요.</p>
+        <div class="opt-cols c2">
+          <div class="grp"><b>(가) 그녀의 가명은?</b>
+            <div><span class="opt-chip">1</span>르꼬끄</div><div><span class="opt-chip">2</span>르완다</div><div><span class="opt-chip">3</span>르메르</div><div><span class="opt-chip">4</span>르블랑</div></div>
+          <div class="grp"><b>(나) 이 수학자는?</b>
+            <div><span class="opt-chip">5</span>라그랑주</div><div><span class="opt-chip">6</span>가우스</div><div><span class="opt-chip">7</span>페르마</div><div><span class="opt-chip">8</span>아르키메데스</div></div>
+        </div>
+        <div class="lock-panel" data-lock="2"></div>
+      </section>
+
+      <!-- ROOM 03 -->
+      <section class="screen" data-screen="room3" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="eyebrow">ROOM 03</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 12px">파리에 남겨진 흔적</h2>
+        <div class="figs-big">
+          <figure style="margin:0"><img class="fig" src="img/chladni.webp" alt="(가) 도형이 만든 진동 무늬 교과서 자료" data-zoom></figure>
+          <figure style="margin:0"><img class="fig" src="img/eiffel_names.webp" alt="(나) 건축물과 동판에 새겨진 과학자 이름" data-zoom></figure>
+        </div>
+        <p class="zoom-tip">🔍 그림을 누르면 화면 가득 크게 볼 수 있어요.</p>
+        <p class="subtle lead" style="margin:12px 0 10px">첫 번째 그림은 <b>(가)</b> 도형이 만든 진동 무늬입니다. 두 번째는 <b>(나)</b>라는 건축물로, 그 동판에는 과학적 기반을 마련한 <b>(다)</b>명의 과학자 이름이 새겨져 있지만, 탄성이론의 기초를 세운 소피 제르맹의 이름은 빠져 있습니다. (가), (나), (다)를 이어 비밀번호를 완성하세요.</p>
+        <div class="opt-cols c3">
+          <div class="grp"><b>(가) 도형</b><div><span class="opt-chip">1</span>퀴리</div><div><span class="opt-chip">2</span>베르나르</div><div><span class="opt-chip">3</span>팝아트</div><div><span class="opt-chip">4</span>클라드니</div></div>
+          <div class="grp"><b>(나) 건축물</b><div><span class="opt-chip">5</span>개선문</div><div><span class="opt-chip">6</span>빅벤</div><div><span class="opt-chip">7</span>에펠탑</div><div><span class="opt-chip">8</span>경복궁</div></div>
+          <div class="grp"><b>(다) 수</b><div><span class="opt-chip">9</span>36</div><div><span class="opt-chip">10</span>72</div><div><span class="opt-chip">11</span>96</div><div><span class="opt-chip">12</span>104</div></div>
+        </div>
+        <div class="lock-panel" data-lock="3"></div>
+      </section>
+
+      <!-- ROOM 04 -->
+      <section class="screen" data-screen="room4" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="eyebrow">ROOM 04</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 8px">수의 비밀</h2>
+        <p class="subtle" style="margin:0 0 6px">인수분해를 이용해 두 식의 값을 구하고 수식으로 입력하세요. 두 값이 모두 맞으면 문이 열립니다.</p>
+        <div class="qbox"><div class="qline"><span class="q">① $\dfrac{90000\times300-1}{90301}$</span><span class="eq">=</span><span class="mf-slot" data-mf="r4a"></span></div><div class="fb" id="fb-r4a"></div></div>
+        <div class="qbox"><div class="qline"><span class="q">② $\sqrt{99\times100\times101\times102+1}$</span><span class="eq">=</span><span class="mf-slot" data-mf="r4b"></span></div><div class="fb" id="fb-r4b"></div></div>
+        <p class="input-tip">계산한 값을 그대로 써도 되고, 식으로 써도 돼요. (예: 300-1)</p>
+        <button class="btn btn-gold submit-btn" id="r4submit" type="button">제출</button>
+        <div class="hint-msg" id="r4msg"></div>
+        <div class="photo" data-photo="4"></div>
+      </section>
+
+      <!-- ROOM 05 -->
+      <section class="screen" data-screen="room5" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="eyebrow">ROOM 05</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 8px">인수분해의 힘</h2>
+        <p class="subtle" style="margin:0 0 6px">인수분해를 이용해 다음 수를 <b>소인수분해</b>하여 수식으로 입력하세요.</p>
+        <div class="qbox"><div class="qline"><span class="q" style="min-width:120px;font-size:1.5rem">$5^4-3^4$</span><span class="eq">=</span><span class="mf-slot" data-mf="r5"></span></div><div class="fb" id="fb-r5"></div></div>
+        <p class="input-tip">거듭제곱은 ^ (예: 3^2), 곱하기는 × 또는 * 로 입력해요. (예: $3^2\times7$)</p>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn hint-btn btn-sm" id="hint5Btn">💡 힌트 보기</button></div>
+        <div id="hint5Box"></div>
+        <button class="btn btn-gold submit-btn" id="r5submit" type="button">제출</button>
+        <div class="hint-msg" id="r5msg"></div>
+        <div class="photo" data-photo="5"></div>
+      </section>
+
+      <!-- ROOM 06 FINAL -->
+      <section class="screen" data-screen="room6" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="eyebrow" style="color:#e08a7c">FINAL ROOM</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 14px">소피 제르맹의 마지막 암호</h2>
+        <div class="center" style="font-size:1.7rem;margin-bottom:14px">$11^4+4^{11}$</div>
+        <p class="subtle lead" style="margin-bottom:10px">이 수는 두 개의 네 자리 자연수의 곱으로 표현됩니다. 직접 계산만으로는 탈출할 수 없습니다 — <b style="color:#f5f2e6">소피 제르맹 항등식</b>을 이용하세요.</p>
+        <div class="row"><button type="button" class="btn hint-btn" id="hint6Btn">💡 힌트 보기 (1 / 3)</button></div>
+        <div class="hint6-list" id="hint6Box"></div>
+        <p class="subtle center" style="margin:16px 0 4px;font-size:1.05rem">1▢▢▢ × 2▢▢▢ — 빈칸 6자리를 이어 입력하세요.</p>
+        <div class="lock-panel" data-lock="6"></div>
+      </section>
+
+      <!-- SUCCESS -->
+      <section class="screen" data-screen="success" data-phase="escape">
+        <div class="center" style="padding:26px 0">
+          <h1 class="display-title" style="font-size:1.8rem;color:#f0d98a">ESCAPE COMPLETE</h1>
+          <p style="font-size:1.3rem;margin:6px 0 18px">🎉 방탈출 성공!</p>
+          <p class="subtle" id="successNameMsg" style="margin-bottom:20px"></p>
+          <div style="font-weight:800;letter-spacing:.05em;color:#4fd2c7;margin-bottom:22px">6 / 6 ROOMS CLEARED</div>
+          <button class="btn btn-gold" data-go="recap" type="button">오늘의 비밀 확인하기 →</button>
+        </div>
+      </section>
+
+      <!-- RECAP -->
+      <section class="screen" data-screen="recap" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="row" style="justify-content:space-between"><div class="eyebrow">RECAP</div><button class="link subtle" data-back type="button">← 이전</button></div>
+        <h2 class="display-title" style="font-size:1.3rem;margin:8px 0 14px">처음 만났던 문제를 기억하나요?</h2>
+        <div class="center" style="font-size:clamp(1.6rem,5vw,2.2rem);font-weight:800;color:#f5f2e6;margin-bottom:16px">$11^4+4^{11}$</div>
+        <p class="subtle center" style="margin-bottom:10px">처음엔 손댈 수조차 없어 보였던 이 수를, 이제 배운 인수분해로 <b>소인수분해</b>해 보세요.</p>
+        <div class="qbox"><div class="qline"><span class="q" style="min-width:110px">$11^4+4^{11}$</span><span class="eq">=</span><span class="mf-slot" data-mf="recap"></span></div><div class="fb" id="fb-recap"></div></div>
+        <div class="row" style="justify-content:center;margin-top:10px">
+          <button class="btn btn-gold btn-sm" id="recapCheck" type="button">확인</button>
+          <button class="btn btn-outline btn-sm" id="recapShow" type="button">풀이 보기</button>
+        </div>
+        <div id="recapResult" class="center" style="margin-top:14px;line-height:1.8"></div>
+        <div class="center" style="margin-top:18px"><button class="btn btn-gold" id="toReflect" type="button" hidden>소감 쓰러 가기 →</button></div>
+      </section>
+
+      <!-- REFLECTION -->
+      <section class="screen" data-screen="reflection" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="row" style="justify-content:space-between"><div class="eyebrow">REFLECTION</div><button class="link subtle" data-back type="button">← 이전</button></div>
+        <h2 class="display-title" style="font-size:1.3rem;margin:8px 0 18px">오늘의 미션 COMPLETE ✓</h2>
+        <div class="eval-q"><label for="sliderU">오늘 수학 시간에 얼마나 잘 이해했나요?</label>
+          <input type="range" min="1" max="5" value="3" id="sliderU"><div class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><span class="eval-val" id="valU"></span></div>
+        <div class="eval-q"><label for="sliderF">오늘 수업은 어땠나요?</label>
+          <input type="range" min="1" max="5" value="3" id="sliderF"><div class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><span class="eval-val" id="valF"></span></div>
+        <div class="eval-q"><label for="feedbackText">오늘 새롭게 알게 된 점은?</label>
+          <textarea class="field" id="feedbackText" style="margin-top:8px;min-height:110px" maxlength="1000" placeholder="자유롭게 적어주세요"></textarea></div>
+        <div class="center"><button class="btn btn-gold" id="btnFinish" type="button">제출하기</button></div>
+        <div class="hint-msg center" id="finishMsg"></div>
+      </section>
+
+      <!-- DONE -->
+      <section class="screen" data-screen="done" data-phase="escape">
+        <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
+        <div class="center" style="padding:16px 0">
+          <div style="font-size:2.4rem">🗝️</div>
+          <h2 class="display-title" style="font-size:1.5rem;margin:6px 0 4px">제출했어요!</h2>
+          <p class="subtle" style="margin:0">선생님께 오늘의 기록이 전달되었어요.</p>
+          <div class="summary-box" id="doneSummary"></div>
+          <div class="row" style="justify-content:center">
+            <button class="btn btn-outline btn-sm" id="btnEditReflect" type="button">소감 고치기</button>
+            <button class="btn btn-outline btn-sm" data-go="room1" type="button">방 다시 둘러보기</button>
+          </div>
+          <div style="margin-top:14px"><button class="link subtle" id="btnLogout2" type="button">로그아웃</button></div>
+        </div>
+        <div class="foot" id="footDone"></div>
+      </section>
+    </div>
+
+    <div class="botnav" id="botnav">
+      <button class="btn btn-outline btn-sm" id="btnBack" type="button">← 이전</button>
+      <button class="btn btn-gold" id="btnNext" type="button" disabled>다음 방 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  /* =========================================================
+     ★ 선생님 설정 ★  정답·힌트·짝 맞추기 문제는 여기서 고쳐요.
+     (고친 뒤에는 활동 버전을 올려 주세요: CLAUDE.md)
+     ========================================================= */
+  const ACT = { slug: 'factor-escape', title: 'FACTOR ESCAPE · 소피 제르맹의 비밀' };
+  const CONFIG = {
+    matchingPairs: [
+      { a: '2499', b: '3×7²×17' },
+      { a: '9191', b: '7×13×101' },
+      { a: '583', b: '11×53' },
+      { a: '420', b: '2²×3×5×7' },
+      { a: '441', b: '3²×7²' }
+    ],
+    matchSeconds: 30,
+    room1: { options: ['1756년', '1776년', '1789년', '1831년'], answer: 1 },   // answer: 보기 번호(0부터)
+    locks: { 2: ['46'], 3: ['4710'], 6: ['465873'] },
+    room4: { a: 299, b: 10099 },
+    room5: { value: 544 },            // 5^4-3^4 = 2^5 × 17
+    recap: { value: 4208945 },        // 11^4+4^11 = 13^2 × 5 × 17 × 293
+    hints: {
+      5: ['두 제곱의 차를 떠올려 보세요.', '$a^2-b^2=(a-b)(a+b)$'],
+      6: ['$4^{11}$을 다른 형태로 바라보세요.', '$a^4+4b^4$ 꼴을 찾아보세요.', '소피 제르맹 항등식 $$a^4+4b^4=(a^2-2ab+2b^2)(a^2+2ab+2b^2)$$']
+    }
+  };
+  const UPLOAD_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co/functions/v1/land-upload';
+  const UPLOAD_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+  // 풀이 사진은 보관함 이름 규칙(m1~m7)에 맞춰 방4 → m4.jpg, 방5 → m5.jpg 로 저장해요.
+  const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
+  const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
+
+  const FLOW = ['start', 'warmup-intro', 'matching', 'video', 'challenge', 'mission', 'germain-intro', 'transition-escape',
+    'room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'success', 'recap', 'reflection', 'done'];
+  const ROOMS = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6'];
+  const LABEL = { start: '첫 화면', 'warmup-intro': '선수학습 안내', matching: '선수학습(선 잇기)', video: '흥미 영상', challenge: '도전 문제', mission: '학습목표',
+    'germain-intro': '소피 제르맹 영상', 'transition-escape': 'ESCAPE 시작', room1: '1번 방', room2: '2번 방', room3: '3번 방', room4: '4번 방', room5: '5번 방',
+    room6: '6번 방(최종)', success: '탈출 성공', recap: '정리', reflection: '소감', done: '제출 완료' };
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const nowIso = () => new Date().toISOString();
+
+  /* ---------- 진행 상태 (land_records.detail 에 그대로 저장) ---------- */
+  function newP() {
+    const rooms = {}; for (let i = 1; i <= 6; i++) rooms[i] = { solved: false, wrong: 0, wrongs: [] };
+    rooms[5].hint = 0; rooms[6].hint = 0;
+    return { ver: 1, screen: 'start', far: 'start', match: { done: false, skipped: false, wrong: 0, time: 0, over: false, tries: 0 },
+      rooms, recap: { tries: 0, ok: false, shown: false, ans: '' }, eval: { u: 3, f: 3, c: '' }, submitted: '', t: 0 };
+  }
+  function mergeP(base, src) {
+    if (!src || typeof src !== 'object') return base;
+    const p = Object.assign(base, src);
+    p.match = Object.assign(newP().match, src.match || {});
+    p.rooms = newP().rooms;
+    for (let i = 1; i <= 6; i++) p.rooms[i] = Object.assign(p.rooms[i], (src.rooms || {})[i] || {});
+    p.recap = Object.assign(newP().recap, src.recap || {});
+    p.eval = Object.assign(newP().eval, src.eval || {});
+    return p;
+  }
+  let P = newP(), enter = null, saver = null, RO = false, current = 'start';
+  const solvedCount = () => [1, 2, 3, 4, 5, 6].filter(i => P.rooms[i].solved).length;
+  const cacheKey = () => `fe.cache.${enter.student.no}.${enter.run.id}`;
+
+  function extra() {
+    const n = solvedCount();
+    return { score: n, level: P.rooms[6].solved ? '탈출 성공' : `방 ${n}/6`, summary: (P.eval.c || '').trim() || null };
+  }
+  function persist() {
+    if (RO || !enter) return;
+    P.t = Date.now();
+    try { localStorage.setItem(cacheKey(), JSON.stringify(P)); } catch (e) { }
+    if (saver && !saver.stopped) { saver.save(P, extra()); setSaved('저장 중…'); }
+  }
+  function setSaved(t) { $('#saved').textContent = t; }
+  function pushWrong(i, v) { const r = P.rooms[i]; r.wrong++; r.wrongs = (r.wrongs || []).concat([String(v).slice(0, 60)]).slice(-20); }
+
+  /* ---------- 수식 보여 주기 (KaTeX) ---------- */
+  function renderMath(el) {
+    if (window.renderMathInElement) {
+      window.renderMathInElement(el || document.body, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false });
+    }
+  }
+
+  /* ---------- 화면 이동 ---------- */
+  function updateChrome(name) {
+    const sec = document.querySelector(`.screen[data-screen="${name}"]`);
+    const phase = sec.dataset.phase;
+    document.body.dataset.phase = phase;
+    const ri = ROOMS.indexOf(name);
+    $('#topbar').classList.toggle('show', ri >= 0);
+    $('#botnav').classList.toggle('show', ri >= 0);
+    $('#status').classList.toggle('hide', name === 'start' || !enter);
+    if (ri >= 0) {
+      $('#roomtag').textContent = `ROOM ${String(ri + 1).padStart(2, '0')} / 06`;
+      $('#dots').innerHTML = [1, 2, 3, 4, 5, 6].map(i => `<div class="dot${P.rooms[i].solved ? ' done' : ''}${i === ri + 1 ? ' current' : ''}"></div>`).join('');
+      const nb = $('#btnNext');
+      nb.disabled = !P.rooms[ri + 1].solved;
+      nb.textContent = ri === 5 ? '탈출하기 →' : '다음 방 →';
+    }
+  }
+  function goTo(name, opt) {
+    opt = opt || {};
+    if (!document.querySelector(`.screen[data-screen="${name}"]`)) return;
+    $$('.screen').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.screen[data-screen="${name}"]`).classList.add('active');
+    current = name;
+    if (name !== 'start') {
+      P.screen = name;
+      if (FLOW.indexOf(name) > FLOW.indexOf(P.far || 'start')) P.far = name;
+    }
+    updateChrome(name);
+    if (!opt.noScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (name === 'matching') startMatch();
+    else stopMatchTimer();
+    if (name === 'success') { launchConfetti(); $('#successNameMsg').innerHTML = `<b>${esc(enter ? enter.student.name : '학생')}</b> 학생, 소피 제르맹이 남긴 모든 암호를 해결했습니다.`; }
+    if (name === 'room4' || name === 'room5') loadPhotoPreview(name === 'room4' ? 4 : 5);
+    if (name === 'done') renderDone();
+    if (!opt.noSave) persist();
+  }
+  function goBack() {
+    const i = FLOW.indexOf(current);
+    let prev = FLOW[i - 1];
+    if (current === 'room1') prev = 'transition-escape';
+    if (current === 'recap') prev = 'success';
+    if (prev && prev !== 'start') goTo(prev);
+  }
+  document.addEventListener('click', e => {
+    const g = e.target.closest('[data-go]'); if (g) { goTo(g.dataset.go); return; }
+    const b = e.target.closest('[data-back]'); if (b) { goBack(); return; }
+    const z = e.target.closest('[data-zoom]'); if (z) zoom(z.src, z.alt);
+  });
+  $('#btnBack').onclick = goBack;
+  $('#btnNext').onclick = () => {
+    const ri = ROOMS.indexOf(current); if (ri < 0 || !P.rooms[ri + 1].solved) return;
+    goTo(ri === 5 ? 'success' : ROOMS[ri + 1]);
+  };
+
+  function launchConfetti() {
+    const layer = $('#confettiLayer'), colors = ['#c9a227', '#e0bf5c', '#4fd2c7', '#9b8ce0', '#e7ecff'];
+    for (let i = 0; i < 70; i++) {
+      const p = document.createElement('div'); p.className = 'confetti-piece';
+      p.style.left = Math.random() * 100 + '%'; p.style.background = colors[i % colors.length];
+      p.style.animationDuration = (2.4 + Math.random() * 2) + 's'; p.style.animationDelay = (Math.random() * .6) + 's';
+      layer.appendChild(p); setTimeout(() => p.remove(), 5200);
+    }
+  }
+  function zoom(src, alt) {
+    const o = document.createElement('div'); o.className = 'zoom-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', alt || '그림 크게 보기');
+    o.innerHTML = `<img src="${esc(src)}" alt="${esc(alt || '')}"><button class="x" type="button" aria-label="닫기">✕</button>`;
+    const close = () => { o.remove(); document.removeEventListener('keydown', key); };
+    const key = e => { if (e.key === 'Escape') close(); };
+    o.onclick = close; document.addEventListener('keydown', key); document.body.appendChild(o);
+  }
+
+  /* ---------- 선수학습: 선 잇기 ---------- */
+  let M = { got: [], sel: null, timer: null, t0: 0, drag: null };
+  function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function buildMatch() {
+    const pairs = CONFIG.matchingPairs;
+    const L = shuffle(pairs.map((p, i) => ({ i, t: p.a }))), R = shuffle(pairs.map((p, i) => ({ i, t: p.b })));
+    $('#colL').innerHTML = '<h4>수</h4>' + L.map(c => `<div class="mc" data-side="L" data-i="${c.i}" role="button" tabindex="0">${esc(c.t)}</div>`).join('');
+    $('#colR').innerHTML = '<h4>소인수분해</h4>' + R.map(c => `<div class="mc" data-side="R" data-i="${c.i}" role="button" tabindex="0">${esc(c.t)}</div>`).join('');
+    M.got = []; M.sel = null; drawLines();
+  }
+  function anchor(card) {
+    const b = $('#matchBoard').getBoundingClientRect(), r = card.getBoundingClientRect();
+    const x = card.dataset.side === 'L' ? r.right - b.left : r.left - b.left;
+    return [x, r.top - b.top + r.height / 2];
+  }
+  function line(a, b, color, w, dash) { return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${color}" stroke-width="${w || 4}" stroke-linecap="round"${dash ? ' stroke-dasharray="6 6"' : ''}/>`; }
+  function cardOf(side, i) { return document.querySelector(`.mc[data-side="${side}"][data-i="${i}"]`); }
+  function drawLines(temp) {
+    let s = M.got.map(i => { const l = cardOf('L', i), r = cardOf('R', i); return l && r ? line(anchor(l), anchor(r), '#3f9a6c', 4) : ''; }).join('');
+    if (temp) s += temp;
+    $('#matchSvg').innerHTML = s;
+  }
+  function stopMatchTimer() { clearInterval(M.timer); M.timer = null; }
+  function fmtSec(n) { n = Math.max(0, n); return String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0'); }
+  function startMatch() {
+    stopMatchTimer();
+    if (!$('#colL .mc')) buildMatch();
+    if (P.match.done) { showMatchDone(); return; }
+    buildMatch();
+    P.match.tries = (P.match.tries || 0) + 1;
+    $('#matchDone').classList.remove('on'); $('#matchOver').classList.remove('on');
+    $('#btnMatchNext').hidden = !P.match.over;
+    M.t0 = Date.now();
+    updMatchHead();
+    M.timer = setInterval(updMatchHead, 500);
+  }
+  function elapsed() { return Math.floor((Date.now() - M.t0) / 1000); }
+  function updMatchHead() {
+    const e = elapsed(), left = CONFIG.matchSeconds - e;
+    const tl = $('#matchTimer');
+    if (left >= 0) { tl.textContent = '⏱ ' + fmtSec(left); tl.classList.remove('over'); }
+    else { tl.textContent = '⏱ +' + fmtSec(-left) + ' (시간 지남)'; tl.classList.add('over'); }
+    if (left < 0 && !P.match.done) {
+      if (!$('#matchOver').classList.contains('on')) { $('#matchOver').classList.add('on'); $('#btnMatchNext').hidden = false; if (!P.match.over) { P.match.over = true; persist(); } }
+    }
+    $('#matchScore').textContent = `이은 짝 ${M.got.length} / ${CONFIG.matchingPairs.length}`;
+    $('#matchWrong').textContent = `틀린 선 ${P.match.wrong}`;
+  }
+  function showMatchDone() {
+    stopMatchTimer();
+    $$('#matchBoard .mc').forEach(c => c.classList.add('done'));
+    M.got = CONFIG.matchingPairs.map((p, i) => i); requestAnimationFrame(() => drawLines());
+    $('#matchDone').classList.add('on'); $('#matchOver').classList.remove('on');
+    $('#matchDoneMsg').textContent = `소인수분해 준비 완료! (걸린 시간 ${P.match.time}초 · 틀린 선 ${P.match.wrong}개)`;
+    $('#matchTimer').textContent = '⏱ ' + P.match.time + '초'; $('#matchScore').textContent = `이은 짝 ${CONFIG.matchingPairs.length} / ${CONFIG.matchingPairs.length}`; $('#matchWrong').textContent = `틀린 선 ${P.match.wrong}`;
+    $('#btnMatchNext').hidden = false;
+  }
+  function tryPair(a, b) {
+    const l = a.dataset.side === 'L' ? a : b, r = a.dataset.side === 'L' ? b : a;
+    a.classList.remove('sel'); b.classList.remove('sel'); M.sel = null;
+    if (l.dataset.i === r.dataset.i) {
+      M.got.push(+l.dataset.i); l.classList.add('done'); r.classList.add('done'); drawLines();
+      if (M.got.length === CONFIG.matchingPairs.length) {
+        P.match.done = true; P.match.skipped = false; P.match.time = elapsed(); P.match.at = nowIso();
+        persist(); setTimeout(showMatchDone, 250);
+      }
+    } else {
+      P.match.wrong++; persist();
+      [l, r].forEach(c => { c.classList.add('bad'); setTimeout(() => c.classList.remove('bad'), 450); });
+      drawLines(line(anchor(l), anchor(r), '#d9705f', 4, true));
+      setTimeout(() => drawLines(), 600);
+    }
+    updMatchHead();
+  }
+  const board = $('#matchBoard');
+  board.addEventListener('pointerdown', e => {
+    const c = e.target.closest('.mc'); if (!c || c.classList.contains('done') || RO) return;
+    e.preventDefault();
+    M.drag = { from: c, x: e.clientX, y: e.clientY, moved: false };
+  });
+  window.addEventListener('pointermove', e => {
+    if (!M.drag) return;
+    if (Math.hypot(e.clientX - M.drag.x, e.clientY - M.drag.y) > 10) M.drag.moved = true;
+    if (M.drag.moved) { const b = board.getBoundingClientRect(); drawLines(line(anchor(M.drag.from), [e.clientX - b.left, e.clientY - b.top], '#1f2947', 3, true)); }
+  });
+  window.addEventListener('pointerup', e => {
+    if (!M.drag) return;
+    const d = M.drag; M.drag = null;
+    if (d.moved) {
+      const el = document.elementFromPoint(e.clientX, e.clientY), t = el && el.closest('.mc');
+      if (t && !t.classList.contains('done') && t.dataset.side !== d.from.dataset.side) tryPair(d.from, t); else drawLines();
+      return;
+    }
+    // 눌러서 잇기
+    const c = d.from;
+    if (M.sel && M.sel !== c && M.sel.dataset.side !== c.dataset.side) { tryPair(M.sel, c); return; }
+    if (M.sel) M.sel.classList.remove('sel');
+    M.sel = M.sel === c ? null : c;
+    if (M.sel) c.classList.add('sel');
+  });
+  board.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('mc')) { e.preventDefault(); const c = e.target; if (c.classList.contains('done')) return; if (M.sel && M.sel !== c && M.sel.dataset.side !== c.dataset.side) tryPair(M.sel, c); else { if (M.sel) M.sel.classList.remove('sel'); M.sel = c; c.classList.add('sel'); } } });
+  window.addEventListener('resize', () => { if (current === 'matching') drawLines(); });
+  $('#btnRulesStart').onclick = () => goTo('matching');
+  $('#btnMatchRetry').onclick = () => { if (RO) return; P.match.done = false; P.match.over = false; $$('#matchBoard .mc').forEach(c => c.classList.remove('done')); startMatch(); persist(); };
+  $('#btnMatchNext').onclick = () => { if (!P.match.done) { P.match.skipped = true; P.match.time = elapsed(); } persist(); goTo('video'); };
+
+  /* ---------- ROOM 1: 4지선다 ---------- */
+  function renderRoom1() {
+    const r = P.rooms[1], picks = r.wrongs || [];
+    $('#r1opts').innerHTML = CONFIG.room1.options.map((t, i) => {
+      const ok = r.solved && i === CONFIG.room1.answer, tried = picks.includes(t);
+      return `<button type="button" class="opt${ok ? ' ok' : ''}${tried ? ' tried' : ''}" data-o="${i}" ${(r.solved || tried || RO) ? 'disabled' : ''}><span class="no">${i + 1}</span>${esc(t)}</button>`;
+    }).join('');
+    const m = $('#r1msg');
+    if (r.solved) { m.className = 'hint-msg ok'; m.textContent = '🔓 ACCESS GRANTED — 다음 방으로 이동할 수 있습니다.'; }
+  }
+  $('#r1opts').addEventListener('click', e => {
+    const b = e.target.closest('.opt'); if (!b || b.disabled || RO) return;
+    const i = +b.dataset.o, r = P.rooms[1];
+    if (i === CONFIG.room1.answer) { r.solved = true; r.at = nowIso(); renderRoom1(); updateChrome(current); persist(); }
+    else {
+      pushWrong(1, CONFIG.room1.options[i]); b.classList.add('bad');
+      const m = $('#r1msg'); m.className = 'hint-msg bad'; m.textContent = '아직 문이 열리지 않습니다. 영상 속 단서를 다시 떠올려 보세요.';
+      setTimeout(renderRoom1, 380); persist();
+    }
+  });
+
+  /* ---------- ROOM 2·3·6: 비밀번호 잠금 ---------- */
+  const norm = s => String(s).replace(/\s+/g, '').toLowerCase();
+  function buildLock(panel) {
+    const n = +panel.dataset.lock;
+    panel.innerHTML = `<input class="lock-input" placeholder="ANSWER" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="${n}번 방 비밀번호"><button class="btn btn-gold submit-btn" type="button">제출</button><div class="hint-msg"></div>`;
+    const input = panel.querySelector('input'), btn = panel.querySelector('button'), msg = panel.querySelector('.hint-msg');
+    let last = 0;
+    function submit() {
+      if (RO || P.rooms[n].solved) return;
+      const v = norm(input.value);
+      if (!v) { msg.className = 'hint-msg bad'; msg.textContent = '비밀번호를 입력하세요.'; return; }
+      if (Date.now() - last < 600) return;           // 두 번 눌림 막기
+      last = Date.now();
+      if (CONFIG.locks[n].map(norm).includes(v)) { P.rooms[n].solved = true; P.rooms[n].at = nowIso(); P.rooms[n].ans = v; lockSolved(panel, n); updateChrome(current); persist(); }
+      else {
+        pushWrong(n, v); persist();
+        input.classList.remove('bad'); void input.offsetWidth; input.classList.add('bad');
+        msg.className = 'hint-msg bad'; msg.textContent = '아직 문이 열리지 않습니다. 다시 생각해 보세요.';
+      }
+    }
+    btn.onclick = submit;
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+    input.addEventListener('input', () => input.classList.remove('bad'));
+    if (P.rooms[n].solved) lockSolved(panel, n);
+    if (RO) { input.disabled = true; btn.disabled = true; }
+  }
+  function lockSolved(panel, n) {
+    const input = panel.querySelector('input'), btn = panel.querySelector('button'), msg = panel.querySelector('.hint-msg');
+    input.value = CONFIG.locks[n][0]; input.disabled = true; input.classList.add('ok'); btn.disabled = true;
+    msg.className = 'hint-msg ok'; msg.textContent = n === 6 ? '🔓 마지막 문이 열렸습니다! 11⁴+4¹¹ = 1465 × 2873' : '🔓 ACCESS GRANTED — 다음 방으로 이동할 수 있습니다.';
+  }
+
+  /* ---------- 수식 읽기·계산 (방4·방5·정리) ---------- */
+  function toExpr(src) {
+    let s = String(src || '');
+    s = s.replace(/\\left|\\right|\\displaystyle/g, '').replace(/\\times|\\cdot|\\ast|×|·|∙|\*/g, '*').replace(/\\div|÷/g, '/')
+      .replace(/[−–]/g, '-').replace(/\\[,;:! ]|\\quad|\\qquad|~|\s/g, '').replace(/,/g, '').replace(/\\placeholder\{\}/g, '')
+      .replace(/(\d)[xX](?=\d|\\|\()/g, '$1*').replace(/\)[xX](?=\d|\\|\()/g, ')*');
+    s = s.replace(/²/g, '^2').replace(/³/g, '^3').replace(/⁴/g, '^4').replace(/⁵/g, '^5').replace(/√/g, '\\sqrt');
+    for (let k = 0; k < 20; k++) {
+      const t = s.replace(/\^\{([^{}]*)\}/g, '^($1)').replace(/\\sqrt\{([^{}]*)\}/g, 'S($1)')
+        .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '(($1)/($2))').replace(/\\[dt]?frac(\d)(\d)/g, '($1/$2)').replace(/\{([^{}]*)\}/g, '($1)');
+      if (t === s) break; s = t;
+    }
+    s = s.replace(/\\sqrt(\d)/g, 'S($1)').replace(/\)(?=[(\dS])/g, ')*');
+    if (/[^0-9.+\-*/^()S]/.test(s)) return null;
+    return s;
+  }
+  function evalExpr(s) {
+    if (s == null || s === '') return NaN;
+    let i = 0;
+    const peek = () => s[i];
+    function num() { const m = /^\d+(\.\d+)?/.exec(s.slice(i)); if (!m) throw 0; i += m[0].length; return parseFloat(m[0]); }
+    function primary() {
+      const c = peek();
+      if (c === '(') { i++; const v = expr(); if (s[i] !== ')') throw 0; i++; return v; }
+      if (c === 'S') { i++; const v = primary(); if (v < 0) throw 0; return Math.sqrt(v); }
+      return num();
+    }
+    function power() { const b = primary(); if (peek() === '^') { i++; return Math.pow(b, unary()); } return b; }
+    function unary() { if (peek() === '-') { i++; return -unary(); } if (peek() === '+') { i++; return unary(); } return power(); }
+    function term() {
+      let v = unary();
+      for (;;) {
+        const c = peek();
+        if (c === '*') { i++; v *= unary(); } else if (c === '/') { i++; v /= unary(); }
+        else if (c === '(' || c === 'S' || /\d/.test(c || '')) v *= unary();
+        else return v;
+      }
+    }
+    function expr() { let v = term(); for (;;) { const c = peek(); if (c === '+') { i++; v += term(); } else if (c === '-') { i++; v -= term(); } else return v; } }
+    try { const v = expr(); return i === s.length ? v : NaN; } catch (e) { return NaN; }
+  }
+  const isPrime = n => { if (!Number.isInteger(n) || n < 2) return false; for (let d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; };
+  // 소인수분해 꼴인지: (소수) 또는 (소수)^(자연수) 들의 곱
+  function primeForm(s) {
+    if (!s) return { ok: false, why: 'read' };
+    let t = s; while (/^\(.*\)$/.test(t) && balanced(t.slice(1, -1))) t = t.slice(1, -1);
+    const parts = splitTop(t, '*');
+    if (!parts) return { ok: false, why: 'form' };
+    for (const p of parts) {
+      const m = /^\(?(\d+)\)?(?:\^\(?(\d+)\)?)?$/.exec(p);
+      if (!m) return { ok: false, why: 'form' };
+      if (!isPrime(+m[1])) return { ok: false, why: parts.length === 1 && !m[2] ? 'form' : 'notprime', bad: m[1] };
+    }
+    return { ok: true };
+  }
+  function balanced(t) { let d = 0; for (const c of t) { if (c === '(') d++; if (c === ')') { d--; if (d < 0) return false; } } return d === 0; }
+  function splitTop(t, op) {
+    const out = []; let d = 0, cur = '';
+    for (const c of t) { if (c === '(') d++; if (c === ')') d--; if (d === 0 && c === op) { out.push(cur); cur = ''; } else cur += c; }
+    out.push(cur);
+    return out.some(x => x === '') ? null : out;
+  }
+  const near = (a, b) => Number.isFinite(a) && Math.abs(a - b) < 1e-6;
+
+  /* ---------- 수식 입력칸 (MathLive, 안 되면 일반 입력칸) ---------- */
+  const MF = {};
+  let mathliveOk = false;
+  function makeFields() {
+    $$('.mf-slot').forEach(slot => {
+      const id = slot.dataset.mf;
+      let el;
+      if (mathliveOk) { el = document.createElement('math-field'); el.setAttribute('math-virtual-keyboard-policy', 'auto'); el.setAttribute('aria-label', '수식 입력'); }
+      else { el = document.createElement('input'); el.className = 'mf-fallback'; el.placeholder = '예: 2^5*17'; el.autocomplete = 'off'; el.setAttribute('aria-label', '수식 입력'); }
+      el.id = 'mf-' + id; slot.replaceWith(el); MF[id] = el;
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ({ r4a: submitR4, r4b: submitR4, r5: submitR5, recap: checkRecap })[id](); } });
+      el.addEventListener('input', () => el.classList.remove('no'));
+    });
+  }
+  const mfVal = id => { const el = MF[id]; return el ? String(el.value || '') : ''; };
+  function setMf(id, v) { const el = MF[id]; if (!el || v == null) return; try { el.value = v; } catch (e) { } }
+  function lockMf(id, ok) { const el = MF[id]; if (!el) return; el.classList.toggle('ok', !!ok); if (ok || RO) { if (el.tagName === 'MATH-FIELD') el.readOnly = true; else el.disabled = true; } }
+  function fb(id, text, ok) { const f = $('#fb-' + id); f.className = 'fb ' + (ok ? 'ok' : 'no'); f.textContent = text || ''; }
+  let lastSub = {};
+  const tooFast = k => { if (Date.now() - (lastSub[k] || 0) < 600) return true; lastSub[k] = Date.now(); return false; };
+
+  /* ---------- ROOM 4 ---------- */
+  function submitR4() {
+    const r = P.rooms[4]; if (RO || r.solved || tooFast('r4')) return;
+    const a = mfVal('r4a'), b = mfVal('r4b');
+    if (!toExpr(a) && !toExpr(b)) { $('#r4msg').className = 'hint-msg bad'; $('#r4msg').textContent = '두 칸에 값을 입력하세요.'; return; }
+    const va = evalExpr(toExpr(a)), vb = evalExpr(toExpr(b));
+    const okA = near(va, CONFIG.room4.a), okB = near(vb, CONFIG.room4.b);
+    r.inputs = { a, b };
+    fb('r4a', !a ? '' : okA ? '맞았어요 ✓' : (Number.isNaN(va) ? '식을 읽지 못했어요. 숫자와 + − × ÷ ^ 만 써 주세요.' : '값이 달라요.'), okA); MF.r4a.classList.toggle('no', !!a && !okA); MF.r4a.classList.toggle('ok', okA);
+    fb('r4b', !b ? '' : okB ? '맞았어요 ✓' : (Number.isNaN(vb) ? '식을 읽지 못했어요. 숫자와 + − × ÷ ^ 만 써 주세요.' : '값이 달라요.'), okB); MF.r4b.classList.toggle('no', !!b && !okB); MF.r4b.classList.toggle('ok', okB);
+    if (okA && okB) { r.solved = true; r.at = nowIso(); r.ans = `① ${a} ② ${b}`; room4Solved(); updateChrome(current); }
+    else { pushWrong(4, `① ${a || '(빈칸)'} ② ${b || '(빈칸)'}`); $('#r4msg').className = 'hint-msg bad'; $('#r4msg').textContent = '아직 문이 열리지 않습니다. 틀린 칸을 다시 계산해 보세요.'; }
+    persist();
+  }
+  function room4Solved() {
+    lockMf('r4a', true); lockMf('r4b', true); $('#r4submit').disabled = true;
+    $('#r4msg').className = 'hint-msg ok'; $('#r4msg').textContent = `🔓 ACCESS GRANTED — 비밀번호 ${CONFIG.room4.a} + ${CONFIG.room4.b} = ${CONFIG.room4.a + CONFIG.room4.b}. 풀이 사진을 올리고 다음 방으로 이동하세요.`;
+  }
+  $('#r4submit').onclick = submitR4;
+
+  /* ---------- ROOM 5 ---------- */
+  function submitR5() {
+    const r = P.rooms[5]; if (RO || r.solved || tooFast('r5')) return;
+    const raw = mfVal('r5'), s = toExpr(raw), v = evalExpr(s);
+    if (!raw.trim()) { fb('r5', '소인수분해한 식을 입력하세요.', false); return; }
+    r.input = raw;
+    let msg = '', ok = false;
+    if (Number.isNaN(v)) msg = '식을 읽지 못했어요. 숫자와 ×, ^ 로 입력해 보세요.';
+    else if (!near(v, CONFIG.room5.value)) msg = '값이 5⁴−3⁴과 달라요. 다시 계산해 보세요.';
+    else {
+      const f = primeForm(s);
+      if (f.ok) ok = true;
+      else if (f.why === 'notprime') msg = `값은 맞아요! 그런데 ${f.bad}은(는) 소수가 아니에요. 더 쪼개 보세요.`;
+      else msg = '값은 맞아요! 이제 소인수들의 곱(예: 3²×7) 꼴로 나타내 보세요.';
+    }
+    if (ok) { r.solved = true; r.at = nowIso(); r.ans = raw; room5Solved(); updateChrome(current); }
+    else { pushWrong(5, raw); fb('r5', msg, false); MF.r5.classList.add('no'); $('#r5msg').className = 'hint-msg bad'; $('#r5msg').textContent = '아직 문이 열리지 않습니다.'; }
+    persist();
+  }
+  function room5Solved() {
+    lockMf('r5', true); $('#r5submit').disabled = true; fb('r5', '정답! 5⁴ − 3⁴ = 2⁵ × 17', true);
+    $('#r5msg').className = 'hint-msg ok'; $('#r5msg').textContent = '🔓 ACCESS GRANTED — 풀이 사진을 올리고 다음 방으로 이동하세요.';
+  }
+  $('#r5submit').onclick = submitR5;
+
+  /* ---------- 힌트 ---------- */
+  function renderHints(n) {
+    const r = P.rooms[n], hs = CONFIG.hints[n], box = $(n === 6 ? '#hint6Box' : '#hint5Box'), btn = $(n === 6 ? '#hint6Btn' : '#hint5Btn');
+    const k = Math.min(r.hint || 0, hs.length);
+    box.innerHTML = hs.slice(0, k).map((h, i) => n === 6
+      ? `<div class="hint6"><span class="tag">힌트 ${i + 1} / ${hs.length}</span><div>${h}</div></div>`
+      : `<div class="hint-card">💡 힌트 ${i + 1}. ${h}</div>`).join('');
+    renderMath(box);
+    if (k >= hs.length) { btn.textContent = '힌트를 모두 확인했어요'; btn.disabled = true; }
+    else btn.textContent = n === 6 ? `💡 힌트 보기 (${k + 1} / ${hs.length})` : (k ? '💡 다음 힌트 보기' : '💡 힌트 보기');
+    if (RO) btn.disabled = true;
+  }
+  [5, 6].forEach(n => { $(n === 6 ? '#hint6Btn' : '#hint5Btn').onclick = () => { if (RO) return; const r = P.rooms[n]; if ((r.hint || 0) >= CONFIG.hints[n].length) return; r.hint = (r.hint || 0) + 1; renderHints(n); persist(); }; });
+
+  /* ---------- 풀이 사진 올리기 (방4·방5) ---------- */
+  function buildPhoto(box) {
+    const n = +box.dataset.photo;
+    box.innerHTML = `<h4>📷 학습지 풀이 사진 올리기</h4><p>학습지에 푼 과정을 사진으로 찍어 올려 주세요. 선생님이 확인해요. (다시 올리면 바뀌어요)</p>
+      <input type="file" accept="image/*" hidden><button type="button" class="btn btn-outline btn-sm">사진 찍기 · 고르기</button>
+      <div class="pv"><img alt="${n}번 방 풀이 사진"><span class="st"></span></div>`;
+    const input = box.querySelector('input'), btn = box.querySelector('button');
+    btn.onclick = () => { if (!RO) input.click(); };
+    input.onchange = async () => {
+      const file = input.files && input.files[0]; input.value = ''; if (!file) return;
+      const st = box.querySelector('.st'), pv = box.querySelector('.pv'), img = pv.querySelector('img');
+      btn.disabled = true; pv.classList.add('on'); st.style.color = '#f0d98a'; st.textContent = '올리는 중…';
+      try {
+        const url = await shrink(file);
+        img.src = url;
+        const r = await upload('m' + n, url);
+        P.rooms[n].photo = r.path; P.rooms[n].photoAt = nowIso(); persist();
+        st.style.color = '#7fe0d1'; st.textContent = '✓ 올렸어요!';
+      } catch (e) {
+        console.warn(e);
+        st.style.color = '#f0b2a6'; st.textContent = /closed|ended/.test(e.message) ? '마감되어 올릴 수 없어요.' : '올리지 못했어요. 다시 눌러 주세요.';
+      }
+      btn.disabled = RO; btn.textContent = '다시 올리기';
+    };
+    if (P.rooms[n].photo) btn.textContent = '다시 올리기';
+    if (RO) btn.disabled = true;
+    box.querySelector('img').addEventListener('click', e => zoom(e.target.src, e.target.alt));
+  }
+  function shrink(file) {
+    return new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        const im = new Image();
+        im.onload = () => {
+          const max = 1600, k = Math.min(1, max / Math.max(im.width, im.height));
+          const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+          const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+          res(c.toDataURL('image/jpeg', .82));
+        };
+        im.onerror = () => rej(new Error('그림을 읽지 못했어요'));
+        im.src = fr.result;
+      };
+      fr.onerror = () => rej(new Error('파일을 읽지 못했어요'));
+      fr.readAsDataURL(file);
+    });
+  }
+  async function post(body) {
+    const res = await fetch(UPLOAD_URL, { method: 'POST', headers: { 'content-type': 'application/json', apikey: UPLOAD_KEY }, body: JSON.stringify(Object.assign({ token: enter.token, run_id: enter.run.id }, body)) });
+    let r = null; try { r = await res.json(); } catch (e) { }
+    if (!r) throw new Error('서버 응답 없음');
+    if (!r.ok) throw new Error(r.code || '올리기 실패');
+    return r;
+  }
+  async function upload(key, dataUrl) {
+    let err;
+    for (let k = 0; k < 3; k++) {
+      try { return await post({ key, data: dataUrl }); }
+      catch (e) { err = e; if (/closed|ended|not_target|bad_|too_big|no_session/.test(e.message)) throw e; await new Promise(r => setTimeout(r, 1500 * (k + 1))); }
+    }
+    throw err;
+  }
+  let myUrls = null;
+  async function loadPhotoPreview(n) {
+    if (!P.rooms[n].photo || !enter) return;
+    const box = document.querySelector(`.photo[data-photo="${n}"]`), pv = box.querySelector('.pv'), img = pv.querySelector('img'), st = box.querySelector('.st');
+    if (img.getAttribute('src')) return;
+    pv.classList.add('on'); st.style.color = '#7fe0d1'; st.textContent = '✓ 올린 사진이 있어요';
+    try { if (!myUrls) myUrls = (await post({ action: 'list' })).urls || {}; if (myUrls['m' + n]) img.src = myUrls['m' + n]; } catch (e) { }
+  }
+
+  /* ---------- 정리(RECAP) ---------- */
+  function checkRecap() {
+    const R = P.recap; if (RO || tooFast('recap')) return;
+    const raw = mfVal('recap'), s = toExpr(raw), v = evalExpr(s);
+    if (!raw.trim()) { fb('recap', '소인수분해한 식을 입력하세요.', false); return; }
+    R.tries++; R.ans = raw;
+    if (Number.isNaN(v)) fb('recap', '식을 읽지 못했어요. 숫자와 ×, ^ 로 입력해 보세요.', false);
+    else if (!near(v, CONFIG.recap.value)) fb('recap', '값이 11⁴+4¹¹과 달라요. 6번 방의 두 수를 떠올려 보세요.', false);
+    else {
+      const f = primeForm(s);
+      if (f.ok) { R.ok = true; fb('recap', '정답! 완벽하게 소인수분해했어요 🎉', true); lockMf('recap', true); showRecapSolution(); }
+      else if (f.why === 'notprime') fb('recap', `값은 맞아요! 그런데 ${f.bad}은(는) 소수가 아니에요. 더 쪼개 보세요.`, false);
+      else fb('recap', '값은 맞아요! 소인수들의 곱 꼴로 나타내 보세요.', false);
+    }
+    if (!R.ok && R.tries >= 1) $('#recapShow').hidden = false;
+    persist();
+  }
+  function showRecapSolution() {
+    $('#recapResult').innerHTML = `오늘 배운 소피 제르맹 항등식으로 풀면<br>
+      $11^4+4^{11}=11^4+4\\times(2^5)^4$ &nbsp;($a=11,\\ b=32$)<br>
+      $=(121-704+2048)(121+704+2048)=1465\\times2873$<br>
+      <b>$=5\\times293\\times13^2\\times17$</b><br><span class="subtle">처음엔 풀 수 없었던 문제를, 이제 여러분은 인수분해로 해결할 수 있습니다.</span>`;
+    renderMath($('#recapResult'));
+    $('#toReflect').hidden = false;
+  }
+  $('#recapCheck').onclick = checkRecap;
+  $('#recapShow').onclick = () => { if (!P.recap.ok) { P.recap.shown = true; persist(); } showRecapSolution(); };
+  $('#toReflect').onclick = () => goTo('reflection');
+
+  /* ---------- 소감 → 제출 ---------- */
+  function syncEval() {
+    $('#valU').textContent = `${P.eval.u} · ${U[P.eval.u - 1]}`; $('#valF').textContent = `${P.eval.f} · ${F[P.eval.f - 1]}`;
+  }
+  $('#sliderU').oninput = e => { P.eval.u = +e.target.value; syncEval(); persist(); };
+  $('#sliderF').oninput = e => { P.eval.f = +e.target.value; syncEval(); persist(); };
+  let typingTimer;
+  $('#feedbackText').oninput = e => { P.eval.c = e.target.value; clearTimeout(typingTimer); typingTimer = setTimeout(persist, 800); };
+  $('#btnFinish').onclick = async () => {
+    if (RO) return;
+    const b = $('#btnFinish'), m = $('#finishMsg');
+    P.eval.c = $('#feedbackText').value;
+    if (!P.eval.c.trim()) { m.className = 'hint-msg bad center'; m.textContent = '새롭게 알게 된 점을 한 줄이라도 적어 주세요.'; return; }
+    b.disabled = true; m.className = 'hint-msg center'; m.textContent = '제출하는 중…';
+    if (!P.submitted) P.submitted = nowIso();
+    P.screen = 'done'; P.far = 'done'; P.t = Date.now();
+    try { localStorage.setItem(cacheKey(), JSON.stringify(P)); } catch (e) { }
+    const r = await saver.finish(P, extra());
+    b.disabled = false;
+    if (r && r.ok) { m.textContent = ''; goTo('done'); }
+    else { P.screen = 'reflection'; m.className = 'hint-msg bad center'; m.textContent = r && r.code === 'stopped' ? '마감되어 제출할 수 없어요.' : '제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'; }
+  };
+  function renderDone() {
+    const kst = t => t ? new Date(t).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+    const wr = [1, 2, 3, 4, 5, 6].reduce((a, i) => a + (P.rooms[i].wrong || 0), 0);
+    $('#doneSummary').innerHTML = `<div>🔐 통과한 방: <b>${solvedCount()} / 6</b>${P.rooms[6].solved ? ' (탈출 성공!)' : ''}</div>
+      <div>🧩 선수학습: ${P.match.done ? `완료 (${P.match.time}초)` : '넘어감'}</div>
+      <div>✏️ 틀린 횟수(방 전체): ${wr}번 · 💡 힌트: ${(P.rooms[5].hint || 0) + (P.rooms[6].hint || 0)}개</div>
+      <div>📷 풀이 사진: 4번 방 ${P.rooms[4].photo ? '✓' : '—'} · 5번 방 ${P.rooms[5].photo ? '✓' : '—'}</div>
+      ${P.submitted ? `<div>🕒 제출: ${esc(kst(P.submitted))}</div>` : ''}`;
+  }
+  $('#btnEditReflect').onclick = () => goTo('reflection');
+
+  /* ---------- 마감·저장 안내 ---------- */
+  function setReadOnly() {
+    RO = true; document.body.classList.add('ro');
+    $$('.lock-panel input, .lock-panel button, #r4submit, #r5submit, #recapCheck, #btnFinish, #btnMatchRetry, #sliderU, #sliderF, #feedbackText, .photo button, #hint5Btn, #hint6Btn').forEach(el => el.disabled = true);
+    Object.keys(MF).forEach(k => lockMf(k, MF[k].classList.contains('ok')));
+    renderRoom1();
+  }
+
+  /* ---------- 시작 ---------- */
+  function applyState() {
+    renderRoom1();
+    $$('.lock-panel').forEach(buildLock);
+    $$('.photo').forEach(buildPhoto);
+    renderHints(5); renderHints(6);
+    const r4 = P.rooms[4]; if (r4.inputs) { setMf('r4a', r4.inputs.a); setMf('r4b', r4.inputs.b); }
+    if (r4.solved) room4Solved();
+    if (P.rooms[5].input) setMf('r5', P.rooms[5].input);
+    if (P.rooms[5].solved) room5Solved();
+    if (P.recap.ans) setMf('recap', P.recap.ans);
+    if (P.recap.ok) { fb('recap', '정답! 완벽하게 소인수분해했어요 🎉', true); lockMf('recap', true); showRecapSolution(); }
+    else if (P.recap.shown) showRecapSolution();
+    $('#recapShow').hidden = !(P.recap.tries || P.recap.shown);
+    $('#sliderU').value = P.eval.u; $('#sliderF').value = P.eval.f; $('#feedbackText').value = P.eval.c || ''; syncEval();
+    if (P.submitted) $('#btnFinish').textContent = '다시 제출하기';
+  }
+  function whoText() { const s = enter.student; return `${s.no} ${s.name}${enter.run && enter.run.label ? ' · ' + enter.run.label : ''}`; }
+
+  async function boot() {
+    const foot = Land.footerHtml(ACT.title).replace('</div>', '<p>수식 표시: KaTeX (MIT) · 수식 입력: MathLive (MIT) · 글꼴: Pretendard (OFL) · 2번 방 그림: Wikimedia Commons (퍼블릭 도메인)</p></div>');
+    $('#footStart').innerHTML = foot; $('#footDone').innerHTML = foot;
+
+    // MathLive 준비(7초 안에 안 되면 일반 입력칸)
+    mathliveOk = await Promise.race([
+      (window.customElements ? customElements.whenDefined('math-field').then(() => true) : Promise.resolve(false)),
+      new Promise(r => setTimeout(() => r(false), 7000))]);
+    if (mathliveOk && window.MathfieldElement) { try { MathfieldElement.soundsDirectory = null; } catch (e) { } }
+    makeFields();
+
+    enter = await Land.start({ slug: ACT.slug, title: ACT.title });
+    saver = Land.saver(enter, {
+      title: ACT.title,
+      onSaved: () => setSaved('저장됨 ✓'),
+      onClosed: code => { setReadOnly(); Land.notice(code === 'closed' ? '마감되었어요' : '기간이 끝났어요', '선생님이 활동을 마감했어요.<br>지금까지의 기록은 그대로 남아 있어요.', ['확인']); }
+    });
+    // 서버 기록과 이 기기 기록 중 더 최근 것으로 이어서 하기
+    let server = enter.record && enter.record.detail && enter.record.detail.ver ? enter.record.detail : null, local = null;
+    try { local = JSON.parse(localStorage.getItem(cacheKey()) || 'null'); } catch (e) { }
+    const pick = local && (!server || (local.t || 0) > (server.t || 0)) ? local : server;
+    P = mergeP(newP(), pick);
+    if (enter.readOnly) setReadOnly();
+
+    $('#who').textContent = whoText();
+    $('#loading').remove();
+    applyState();
+    renderMath();
+    $('#startWho').textContent = `${enter.student.no} ${enter.student.name} 학생`;
+    const resume = P.screen && P.screen !== 'start';
+    const target = P.submitted ? 'done' : P.screen;
+    if (resume) {
+      $('#startWhere').textContent = P.submitted ? `이미 제출했어요. · 통과한 방 ${solvedCount()} / 6` : `지난번에 「${LABEL[P.screen] || P.screen}」까지 했어요. · 통과한 방 ${solvedCount()} / 6`;
+      $('#btnStart').textContent = P.submitted ? '내 기록 보기 →' : '이어서 하기 →';
+    }
+    $('#btnStart').onclick = () => goTo(resume ? target : 'warmup-intro');
+    // 새로 고침했을 때는 첫 화면을 거치지 않고 하던 곳으로 바로
+    let reloaded = false; try { reloaded = performance.getEntriesByType('navigation')[0].type === 'reload'; } catch (e) { }
+    if (enter.readOnly) goTo(P.submitted ? 'done' : (resume ? P.screen : 'start'), { noSave: true });
+    else if (resume && reloaded) goTo(P.screen, { noSave: true });
+    else goTo('start', { noSave: true });
+    if (enter.record && !enter.readOnly) setSaved('저장됨 ✓');
+  }
+  $('#btnLogout').onclick = () => Land.logout();
+  $('#btnLogout2').onclick = async () => { if (saver) await saver.flush(); Land.logout(); };
+
+  window.addEventListener('load', () => {
+    boot().catch(e => { console.error(e); const l = $('#loading'); if (l) l.textContent = '불러오지 못했어요. 새로 고침해 주세요.'; });
+  });
+})();
+</script>
+</body>
+</html>
