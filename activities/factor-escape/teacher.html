@@ -151,17 +151,18 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   const { esc, rpc, MODE, sb } = Land;
   const SLUG = 'factor-escape';
   const BUCKET = 'land-files';
-  const ROOMS = [1, 2, 3, 4, 5, 6];
-  const RNAME = { 1: '방1 탄생 연도', 2: '방2 감춰진 이름', 3: '방3 파리의 흔적', 4: '방4 수의 비밀', 5: '방5 인수분해의 힘', 6: '방6 마지막 암호' };
-  const RANS = { 1: '1776년', 2: '46', 3: '4710', 4: '① 299 ② 10099', 5: '2⁵ × 17', 6: '465873' };
+  const ROOMS = [1, 2, 3, 4, 5, 6, 7];
+  const PHOTO_ROOMS = [4, 5, 6];
+  const RNAME = { 1: '방1 서재 · 탄생 연도', 2: '방2 작업실 · 감춰진 이름', 3: '방3 도서관 · 파리의 흔적', 4: '방4 온실 · 수의 비밀', 5: '방5 실험실 · 인수분해의 힘', 6: '방6 천문대 · 제르맹의 암호', 7: '방7 금고실 · 오늘의 비밀' };
+  const RANS = { 1: '1776년', 2: '46', 3: '4710', 4: '① 299 ② 10099', 5: '2⁵ × 17', 6: '465873', 7: '13² × 5 × 17 × 293' };
   const SCREEN = { start: '첫 화면', 'warmup-intro': '선수학습 안내', matching: '선수학습', video: '흥미 영상', challenge: '도전 문제', mission: '학습목표',
-    'germain-intro': '제르맹 영상', 'transition-escape': '탈출 시작', room1: '방1', room2: '방2', room3: '방3', room4: '방4', room5: '방5', room6: '방6',
-    success: '탈출 성공', recap: '정리', reflection: '소감', done: '제출 완료' };
+    story: '200년 전 이야기', 'germain-intro': '제르맹 영상', letter: '초대장', mansion: '저택 지도', 'transition-escape': '저택 지도',
+    room1: '방1', room2: '방2', room3: '방3', room4: '방4', room5: '방5', room6: '방6', room7: '방7', garden: '정원(탈출)', success: '정원(탈출)', recap: '방7', reflection: '소감', done: '제출 완료' };
   // 「지금 어디에?」 묶음
   const STAGES = [
-    ['warm', '도입', ['start', 'warmup-intro', 'matching', 'video', 'challenge', 'mission', 'germain-intro', 'transition-escape']],
-    ['room1', '방1', ['room1']], ['room2', '방2', ['room2']], ['room3', '방3', ['room3']], ['room4', '방4', ['room4']], ['room5', '방5', ['room5']], ['room6', '방6 (최종)', ['room6']],
-    ['end', '정리·소감', ['success', 'recap', 'reflection']], ['done', '제출 완료', ['done']]];
+    ['warm', '도입·초대장', ['start', 'warmup-intro', 'matching', 'video', 'story', 'challenge', 'mission', 'germain-intro', 'letter', 'mansion', 'transition-escape']],
+    ['room1', '방1 서재', ['room1']], ['room2', '방2 작업실', ['room2']], ['room3', '방3 도서관', ['room3']], ['room4', '방4 온실', ['room4']], ['room5', '방5 실험실', ['room5']], ['room6', '방6 천문대', ['room6']], ['room7', '방7 금고실', ['room7', 'recap']],
+    ['end', '정원·소감', ['garden', 'success', 'reflection']], ['done', '제출 완료', ['done']]];
   const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
   const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
   const FACE = ['😭', '😟', '🙂', '😊', '😄'];
@@ -201,7 +202,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     return {
       rid: r.record_id, run_id: r.run_id, run_label: r.run_label, mode: r.mode, version: r.version, year: YEAR,
       student_id: r.student_id, sid: r.no, name: r.name, cls: `${r.grade}-${r.class_no}`, moved: r.student_status === 'moved',
-      P, rooms, solved: ROOMS.filter(n => rooms[n].solved).length, escaped: rooms[6].solved,
+      P, rooms, solved: ROOMS.filter(n => rooms[n].solved).length, escaped: rooms[7].solved,
       match: P.match || {}, recap: P.recap || {}, eval: P.eval || {}, screen: P.screen || '',
       saved: r.saved_at, submitted: r.finished_at || P.submitted || '', saves: r.save_count
     };
@@ -248,7 +249,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     classBar();
     const V = VIEW(), n = V.length;
     const avg = n ? (V.reduce((a, d) => a + d.solved, 0) / n).toFixed(1) : 0;
-    $('stats').innerHTML = [[classLabel(cls) + ' 접속 학생', n], ['평균 통과한 방', avg + ' / 6'], ['탈출 성공', V.filter(d => d.escaped).length], ['소감 제출', V.filter(d => d.submitted).length]]
+    $('stats').innerHTML = [[classLabel(cls) + ' 접속 학생', n], ['평균 통과한 방', avg + ' / 7'], ['탈출 성공', V.filter(d => d.escaped).length], ['소감 제출', V.filter(d => d.submitted).length]]
       .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${esc(k)}</span></div>`).join('');
     ({ list, where, wrong: wrongView, photo: photoView, eval: evalView })[tab]();
   }
@@ -264,9 +265,9 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     if (cls === 'all' && keys.length > 1) {
       const rowsS = keys.map(k => {
         const L = DATA.filter(d => d.cls === k), n = L.length, avg = n ? (L.reduce((a, d) => a + d.solved, 0) / n).toFixed(1) : '0';
-        return `<tr class="pick" data-c="${esc(k)}"><td><b>${esc(classLabel(k))}</b></td><td class="num">${n}</td><td class="num">${avg} / 6</td><td class="num">${L.filter(d => d.escaped).length}</td><td class="num">${L.filter(d => d.rooms[4].photo).length} / ${L.filter(d => d.rooms[5].photo).length}</td><td class="num">${L.filter(d => d.submitted).length}</td><td>${isClosed(k) ? '<span class="chip closed">🔒 마감</span>' : '<span class="chip open">진행 중</span>'}</td></tr>`;
+        return `<tr class="pick" data-c="${esc(k)}"><td><b>${esc(classLabel(k))}</b></td><td class="num">${n}</td><td class="num">${avg} / 7</td><td class="num">${L.filter(d => d.escaped).length}</td><td class="num">${PHOTO_ROOMS.map(n => L.filter(d => d.rooms[n].photo).length).join(' / ')}</td><td class="num">${L.filter(d => d.submitted).length}</td><td>${isClosed(k) ? '<span class="chip closed">🔒 마감</span>' : '<span class="chip open">진행 중</span>'}</td></tr>`;
       }).join('');
-      $('clsum').innerHTML = `<div class="scroll sumwrap" style="max-height:none"><table><thead><tr><th>반</th><th class="num">학생 수</th><th class="num">평균 통과</th><th class="num">탈출 성공</th><th class="num">풀이 사진(방4/방5)</th><th class="num">소감 제출</th><th>상태</th></tr></thead><tbody>${rowsS}</tbody></table></div>`;
+      $('clsum').innerHTML = `<div class="scroll sumwrap" style="max-height:none"><table><thead><tr><th>반</th><th class="num">학생 수</th><th class="num">평균 통과</th><th class="num">탈출 성공</th><th class="num">풀이 사진(방4/5/6)</th><th class="num">소감 제출</th><th>상태</th></tr></thead><tbody>${rowsS}</tbody></table></div>`;
       $('clsum').querySelectorAll('tr.pick').forEach(r => r.onclick = () => pickClass(r.dataset.c));
     } else $('clsum').innerHTML = '';
   }
@@ -293,15 +294,15 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   /* ---------- 진행 현황 ---------- */
   const cell = s => s.solved ? `<span class="ok">✓</span>${s.wrong ? `<span class="dim"> ${s.wrong}</span>` : ''}` : (s.wrong ? `<span class="no">✗${s.wrong}</span>` : '<span class="dim">·</span>');
   const matchCell = m => m.done ? `<span class="ok">✓</span> <span class="dim">${m.time}초${m.wrong ? ' · 틀림' + m.wrong : ''}</span>` : m.skipped ? `<span class="no">넘어감</span>${m.wrong ? ` <span class="dim">틀림${m.wrong}</span>` : ''}` : '<span class="dim">·</span>';
-  const camera = d => [4, 5].map(n => d.rooms[n].photo ? `<span class="ok">${n}</span>` : `<span class="dim">${n}</span>`).join(' ');
+  const camera = d => PHOTO_ROOMS.map(n => d.rooms[n].photo ? `<span class="ok">${n}</span>` : `<span class="dim">${n}</span>`).join(' ');
   function list() {
     const V = VIEW(), multiRun = new Set(V.map(d => d.run_id)).size > 1;
     const rows = V.map(d => `<tr class="pick${sel === d.rid ? ' sel' : ''}" data-r="${d.rid}" tabindex="0"><td>${esc(d.sid)}</td><td class="l">${esc(d.name)}${d.moved ? ' <span class="chip">전출</span>' : ''}${PIN[d.student_id] === false ? ' <span class="no">(비번 초기화됨)</span>' : ''}${multiRun ? ` <span class="chip">${esc(d.run_label || '')}</span>` : ''}</td>
-      <td>${matchCell(d.match)}</td>${ROOMS.map(n => `<td>${cell(d.rooms[n])}</td>`).join('')}<td><b>${d.solved}</b>/6</td>
-      <td>${d.rooms[5].hint || 0} · ${d.rooms[6].hint || 0}</td><td>${camera(d)}</td><td>${esc(SCREEN[d.screen] || d.screen || '')}</td><td>${esc(ago(d.saved))}</td>
+      <td>${matchCell(d.match)}</td>${ROOMS.map(n => `<td>${cell(d.rooms[n])}</td>`).join('')}<td><b>${d.solved}</b>/7</td>
+      <td>${d.rooms[5].hint || 0} · ${d.rooms[6].hint || 0} · ${d.rooms[7].hint || 0}</td><td>${camera(d)}</td><td>${esc(SCREEN[d.screen] || d.screen || '')}</td><td>${esc(ago(d.saved))}</td>
       <td>${d.submitted ? '<span class="ok">✓</span> ' + esc(kst(d.submitted)) : '<span class="dim">·</span>'}</td></tr>`).join('');
-    $('view').innerHTML = `<p class="note">✓ 통과 (옆 숫자는 통과 전 틀린 횟수) · ✗n 아직 못 풂(틀림 n번) · 힌트는 「방5 · 방6」에서 본 개수 · 사진은 풀이 사진을 올린 방(초록) · 학생을 누르면 자세한 기록이 보여요. 30초마다 자동으로 새로 고쳐져요.</p>
-    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>선수학습</th><th>방1</th><th>방2</th><th>방3</th><th>방4</th><th>방5</th><th>방6</th><th>통과</th><th>힌트(5·6)</th><th>사진</th><th>지금 화면</th><th>마지막 저장</th><th>소감 제출</th></tr></thead><tbody>${rows || `<tr><td colspan="15" class="muted">아직 접속한 학생이 없어요.</td></tr>`}</tbody></table></div><div id="det"></div>`;
+    $('view').innerHTML = `<p class="note">✓ 통과 (옆 숫자는 통과 전 틀린 횟수) · ✗n 아직 못 풂(틀림 n번) · 힌트는 「방5 · 방6 · 방7」에서 본 개수 · 사진은 풀이 사진을 올린 방(초록) · 학생을 누르면 자세한 기록이 보여요. 30초마다 자동으로 새로 고쳐져요.</p>
+    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>선수학습</th><th>방1</th><th>방2</th><th>방3</th><th>방4</th><th>방5</th><th>방6</th><th>방7</th><th>통과</th><th>힌트(5·6·7)</th><th>사진</th><th>지금 화면</th><th>마지막 저장</th><th>소감 제출</th></tr></thead><tbody>${rows || `<tr><td colspan="16" class="muted">아직 접속한 학생이 없어요.</td></tr>`}</tbody></table></div><div id="det"></div>`;
     const tb = $('tbl');
     tb.onclick = e => { const tr = e.target.closest('tr.pick'); if (tr) { sel = +tr.dataset.r; tb.querySelectorAll('tr.pick').forEach(x => x.classList.toggle('sel', x === tr)); detail(); } };
     tb.onkeydown = e => { const tr = e.target.closest('tr.pick'); if (tr && e.key === 'Enter') tr.click(); };
@@ -313,8 +314,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     $('det').innerHTML = `<div class="detail"><h2>${esc(d.sid)} ${esc(d.name)}</h2>
     <p class="muted" style="margin:0">${esc(MODE[d.mode] || '')} · ${esc(d.run_label || '')} · 버전 v${esc(d.version)} · 저장 ${d.saves}번 · 지금 화면: ${esc(SCREEN[d.screen] || d.screen || '')}</p>
     <dl><dt>선수학습(선 잇기)</dt><dd>${m.done ? `<span class="ok">완료</span> · ${m.time}초` : m.skipped ? '<span class="no">다 잇지 않고 넘어감</span>' : '<span class="dim">아직</span>'} · 틀린 선 ${m.wrong || 0}개${m.over ? ' · 30초 넘김' : ''}${m.tries > 1 ? ` · ${m.tries}번 시작` : ''}</dd>
-    ${ROOMS.map(n => { const s = d.rooms[n]; return `<dt>${RNAME[n]}</dt><dd>${s.solved ? '<span class="ok">통과</span>' : '<span class="no">미통과</span>'} · 틀림 ${s.wrong}번${s.at ? ' · ' + esc(kst(s.at)) : ''}${n >= 5 ? ` · 힌트 ${s.hint}개` : ''}${s.wrongs.length ? `<br><span class="muted">틀린 답: ${s.wrongs.map(w => esc(pretty(w))).join(' / ')}</span>` : ''}${n === 4 || n === 5 ? `<br>${s.solved ? '입력: ' + esc(pretty(s.ans)) + ' · ' : ''}${s.photo ? `<button class="btn sm" data-ph="${n}" type="button">📷 풀이 사진 보기</button>` : '<span class="dim">풀이 사진 없음</span>'}` : ''}</dd>`; }).join('')}
-    <dt>정리(11⁴+4¹¹)</dt><dd>${d.recap.ok ? '<span class="ok">스스로 소인수분해 완성</span>' : d.recap.shown ? '풀이 보기로 확인' : '<span class="dim">아직</span>'}${d.recap.tries ? ` · 시도 ${d.recap.tries}번` : ''}${d.recap.ans ? ' · 마지막 입력: ' + esc(pretty(d.recap.ans)) : ''}</dd>
+    ${ROOMS.map(n => { const s = d.rooms[n]; return `<dt>${RNAME[n]}</dt><dd>${s.solved ? '<span class="ok">통과</span>' : '<span class="no">미통과</span>'} · 틀림 ${s.wrong}번${s.at ? ' · ' + esc(kst(s.at)) : ''}${n >= 5 ? ` · 힌트 ${s.hint}개` : ''}${s.wrongs.length ? `<br><span class="muted">틀린 답: ${s.wrongs.map(w => esc(pretty(w))).join(' / ')}</span>` : ''}${PHOTO_ROOMS.includes(n) ? `<br>${s.solved ? '입력: ' + esc(pretty(s.ans)) + ' · ' : ''}${s.photo ? `<button class="btn sm" data-ph="${n}" type="button">📷 풀이 사진 보기</button>` : '<span class="dim">풀이 사진 없음</span>'}` : ''}</dd>`; }).join('')}
     <dt>이해도 / 수업</dt><dd>${d.eval.u ? esc(U[d.eval.u - 1]) + ' / ' + esc(F[(d.eval.f || 3) - 1]) : '<span class="dim">없음</span>'}</dd>
     <dt>새롭게 알게 된 점</dt><dd>${esc(d.eval.c) || '<span class="dim">없음</span>'}</dd>
     <dt>소감 제출</dt><dd>${d.submitted ? esc(kst(d.submitted)) : '<span class="dim">아직</span>'}</dd></dl>
@@ -371,7 +371,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
         return `<button type="button" class="gcard" data-n="${esc(d.sid + ' ' + d.name)}"><div class="ph" id="${id}">불러오는 중…</div><div class="nm">${esc(d.sid)} ${esc(d.name)}</div><div class="ty">${s.solved ? '<span class="ok">통과</span>' : '<span class="no">미통과</span>'} · 틀림 ${s.wrong}번 · ${esc(kst(s.photoAt))}</div></button>`; }
       return `<div class="gcard none"><div class="ph">${s.solved ? '통과했지만 사진을 안 올렸어요' : '아직 사진 없음'}</div><div class="nm">${esc(d.sid)} ${esc(d.name)}</div><div class="ty">${s.solved ? '<span class="ok">통과</span>' : ''}</div></div>`;
     }).join('');
-    $('view').innerHTML = `<div class="mbar">${[4, 5].map(k => `<button type="button" class="mchip${k === n ? ' on' : ''}" data-m="${k}">${esc(RNAME[k])} <small>${cnt(k)}/${V.length}</small></button>`).join('')}</div>
+    $('view').innerHTML = `<div class="mbar">${PHOTO_ROOMS.map(k => `<button type="button" class="mchip${k === n ? ' on' : ''}" data-m="${k}">${esc(RNAME[k])} <small>${cnt(k)}/${V.length}</small></button>`).join('')}</div>
       <p class="note">학생이 올린 학습지 풀이 사진이에요. 사진을 누르면 크게 보여요.</p>
       ${V.length ? `<div class="gallery">${cards}</div>` : '<p>아직 접속한 학생이 없어요.</p>'}`;
     $('view').querySelectorAll('.mchip').forEach(b => b.onclick = () => { photoRoom = +b.dataset.m; photoView(); });
@@ -444,12 +444,12 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   $('refresh').onclick = () => load();
   $('csv').onclick = () => {
     const L = VIEW(); if (!L.length) return note('내려받을 기록이 없어요.', 'no');
-    const head = ['학번', '이름', '반', '운영', '선수학습', '선수학습 시간(초)', '선수학습 틀린 선', ...ROOMS.map(n => '방' + n), '통과한 방', '방5 힌트', '방6 힌트', '방4 사진', '방5 사진', '정리', '이해도', '수업', '새롭게 알게 된 점', '지금 화면', '마지막 저장', '소감 제출'];
+    const head = ['학번', '이름', '반', '운영', '선수학습', '선수학습 시간(초)', '선수학습 틀린 선', ...ROOMS.map(n => '방' + n), '통과한 방', '방5 힌트', '방6 힌트', '방7 힌트', '방4 사진', '방5 사진', '방6 사진', '탈출 시각', '이해도', '수업', '새롭게 알게 된 점', '지금 화면', '마지막 저장', '소감 제출'];
     const body = L.map(d => [d.sid, d.name, classLabel(d.cls), d.run_label || '',
       d.match.done ? '완료' : d.match.skipped ? '넘어감' : '', d.match.time || '', d.match.wrong || 0,
       ...ROOMS.map(n => d.rooms[n].solved ? `통과(틀림 ${d.rooms[n].wrong})` : (d.rooms[n].wrong ? `미통과(틀림 ${d.rooms[n].wrong})` : '')),
-      d.solved, d.rooms[5].hint || 0, d.rooms[6].hint || 0, d.rooms[4].photo ? 'O' : '', d.rooms[5].photo ? 'O' : '',
-      d.recap.ok ? '스스로 완성' : d.recap.shown ? '풀이 보기' : '',
+      d.solved, d.rooms[5].hint || 0, d.rooms[6].hint || 0, d.rooms[7].hint || 0, ...PHOTO_ROOMS.map(n => d.rooms[n].photo ? 'O' : ''),
+      d.rooms[7].solved ? kst(d.rooms[7].at) : '',
       d.submitted && d.eval.u ? U[d.eval.u - 1] : '', d.submitted && d.eval.f ? F[d.eval.f - 1] : '', String(d.eval.c || '').trim().replace(/\s+/g, ' '),
       SCREEN[d.screen] || d.screen || '', kst(d.saved), d.submitted ? kst(d.submitted) : '']);
     const csv = '﻿' + [head, ...body].map(x => x.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');

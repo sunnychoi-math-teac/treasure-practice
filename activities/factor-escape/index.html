@@ -200,6 +200,37 @@ math-field.no,.mf-fallback.no{border-color:#e0857c}
 @keyframes confetti-fall{to{transform:translateY(120vh) rotate(540deg);opacity:.2}}
 .transition-lock{width:84px;height:84px;margin:0 auto 18px;display:block}
 
+/* 스토리·초대장·지도·문 */
+.tale{background:#fbf3e0;border:1px solid #eddcb5;border-radius:16px;padding:18px 22px;line-height:1.95;font-size:1.04rem}
+.tale p{margin:0 0 10px}.tale p:last-child{margin:0}
+.letter-img{width:100%;max-width:520px;cursor:zoom-in}
+.ps{max-width:520px;margin:14px auto 0;background:#121833;border-left:4px solid #c9a227;border-radius:10px;padding:12px 16px;line-height:1.8}
+.map{position:relative;border-radius:14px;overflow:hidden;background:#0b1024}
+.map img{display:block;width:100%;height:auto}
+.mk{position:absolute;transform:translate(-50%,-50%);width:9%;min-width:34px;aspect-ratio:1/1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(.8rem,2vw,1.1rem);pointer-events:none}
+.mk.done{background:rgba(201,162,39,.92);color:#241a05;box-shadow:0 0 14px rgba(255,214,102,.9)}
+.mk.now{border:4px solid #4fd2c7;box-shadow:0 0 18px rgba(79,210,199,.95);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.15)}}
+.map-ov{position:fixed;inset:0;z-index:150;background:rgba(5,8,20,.85);display:flex;align-items:center;justify-content:center;padding:14px}
+.map-box{width:100%;max-width:900px;background:#141a30;border:1px solid #2a3560;border-radius:18px;padding:14px;color:#eef0f8}
+.door-ov{position:fixed;inset:0;z-index:180;background:#05070f;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
+.door-ov[hidden],.map-ov[hidden]{display:none}
+.door-ov img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:doorIn 1.7s ease-in forwards}
+@keyframes doorIn{0%{transform:scale(1);filter:brightness(.9)}60%{filter:brightness(1.15)}100%{transform:scale(1.9);filter:brightness(2.2);opacity:.15}}
+.door-cap{position:relative;text-align:center;background:rgba(10,12,24,.62);padding:16px 30px;border-radius:16px;animation:capIn 1.7s ease forwards}
+@keyframes capIn{0%{opacity:0;transform:translateY(8px)}20%,75%{opacity:1;transform:none}100%{opacity:0}}
+.door-name{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;color:#f5f2e6;margin-top:4px}
+.door-sub{color:#d9cfa8;margin-top:4px}
+.door-skip{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#c9c2a8;font-size:.8rem}
+.rank{background:#121833;border:1px solid #2a3560;border-radius:16px;padding:14px 18px;max-width:560px;margin:10px auto 0}
+.rank-list{margin:0;padding:0;list-style:none;max-height:340px;overflow:auto}
+.rank-list li{display:flex;gap:12px;align-items:center;padding:7px 10px;border-radius:10px;font-variant-numeric:tabular-nums}
+.rank-list li:nth-child(odd){background:rgba(255,255,255,.03)}
+.rank-list .no{width:44px;font-weight:800;color:#f0d98a}
+.rank-list .nm{flex:1;font-weight:700}
+.rank-list .tm{color:#a9b0d0;font-size:.85rem}
+.rank-list li.me{background:rgba(79,210,199,.18);outline:1.5px solid #4fd2c7}
+
 /* 소감 */
 .eval-q{margin-bottom:20px}
 .eval-q label{font-weight:700;display:block}
@@ -229,8 +260,8 @@ body[data-phase="escape"] .foot{color:#8b93bd}
 
     <div class="topbar" id="topbar">
       <div class="brandmark">FACTOR ESCAPE</div>
-      <div><div class="roomtag" id="roomtag">ROOM 01 / 06</div><div class="dots" id="dots"></div></div>
-      <div style="width:110px"></div>
+      <div><div class="roomtag" id="roomtag">ROOM 01 / 07</div><div class="dots" id="dots"></div></div>
+      <div style="width:110px;text-align:right"><button class="btn btn-outline btn-sm" id="btnMap" type="button">🗺 지도</button></div>
     </div>
 
     <div class="confetti-layer" id="confettiLayer"></div>
@@ -244,7 +275,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
           <div class="eyebrow" style="margin-bottom:14px">공통수학1 · 다항식의 인수분해</div>
           <h1 class="display-title" style="font-size:clamp(2rem,6vw,3rem);margin:0">FACTOR ESCAPE</h1>
           <p class="display-title" style="font-size:1.1rem;margin:6px 0 18px;font-weight:700">소피 제르맹의 비밀</p>
-          <p class="subtle lead" style="margin-bottom:24px">다항식의 인수분해로<br>잠긴 여섯 개의 문을 열어라.</p>
+          <p class="subtle lead" style="margin-bottom:24px">다항식의 인수분해로<br>수학자의 저택, 잠긴 일곱 개의 문을 열어라.</p>
           <p class="subtle" id="startWho" style="margin:0 0 6px;font-weight:700"></p>
           <p class="subtle" id="startWhere" style="margin:0 0 18px;font-size:.9rem"></p>
           <button class="btn btn-gold" id="btnStart">수업 시작하기 →</button>
@@ -304,7 +335,19 @@ body[data-phase="escape"] .foot{color:#8b93bd}
         <a class="video-fallback" href="https://youtube.com/shorts/bB-T3SA19ac" target="_blank" rel="noopener">영상이 재생되지 않으면 YouTube에서 보기 →</a>
         <p class="subtle center" style="margin:16px 0 4px;font-weight:700">어떻게 이렇게 빠르게 계산할 수 있었을까요?</p>
         <p class="subtle center" style="margin-bottom:14px">직접 계산하지 않고<br><b>식의 구조를 이용할 방법</b>이 있을까요?</p>
-        <div class="row" style="justify-content:space-between"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="challenge" type="button">도전 문제 확인하기 →</button></div>
+        <div class="row" style="justify-content:space-between"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="story" type="button">200년 전으로 →</button></div>
+      </section>
+
+      <!-- PART01: 200년 전 이야기 -->
+      <section class="screen" data-screen="story" data-phase="warmup">
+        <div class="eyebrow">STORY · 200년 전 파리</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:8px 0 14px">촛불 아래에서 수를 쪼갠 소녀</h2>
+        <div class="tale">
+          <p>1789년, 프랑스 파리. 혁명으로 거리가 소란스럽던 그해, 열세 살 소녀는 아버지의 서재에 틀어박혀 책을 읽었습니다. 적군이 쳐들어온 것도 모른 채 모래 위 도형에 빠져 있던 아르키메데스의 이야기를 읽고, 소녀는 수학에 마음을 빼앗겼습니다.</p>
+          <p>부모님은 "여자가 무슨 수학이냐"며 밤에 촛불과 옷을 감췄습니다. 그래도 소녀는 이불을 두르고 몰래 촛불을 켜, 잉크가 얼어붙는 추운 밤에도 수를 쪼개고 또 쪼갰습니다.</p>
+          <p><b>그리고 아무리 커 보이는 수라도 쪼갤 수 있는 공식 하나를 남겼습니다.</b></p>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:18px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="challenge" type="button">도전 문제 확인하기 →</button></div>
       </section>
 
       <!-- PART01: 도전 문제 -->
@@ -313,7 +356,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
         <div class="center" style="padding:20px 0">
           <div style="font-size:clamp(1.8rem,6vw,2.6rem);font-weight:800;color:#1f2947">$11^4+4^{11}$</div>
           <h2 class="display-title" style="font-size:1.3rem;margin:14px 0 6px">여러분도 할 수 있을까요?</h2>
-          <p class="subtle lead">지금 이 수를 직접 계산하려고 하지 마세요.<br>오늘 수업이 끝날 때 여러분은<br><b>인수분해를 이용하여 이 식의 숨겨진 구조</b>를 발견하게 됩니다.</p>
+          <p class="subtle lead">그녀의 공식이라면 이 수도 쪼갤 수 있다고 합니다.<br>지금 이 수를 직접 계산하려고 하지 마세요.<br>오늘 수업이 끝날 때 여러분이 <b>인수분해로 이 식의 숨겨진 구조</b>를 직접 확인하게 됩니다.</p>
         </div>
         <div class="row" style="justify-content:space-between"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="mission" type="button">오늘의 미션 확인하기 →</button></div>
       </section>
@@ -338,26 +381,31 @@ body[data-phase="escape"] .foot{color:#8b93bd}
         </div>
         <a class="video-fallback" href="https://youtu.be/3OEe46UBAwo" target="_blank" rel="noopener">영상이 재생되지 않으면 YouTube에서 보기 →</a>
         <p class="subtle center" style="margin:16px 0 4px">그녀의 삶과 수학 속에는<br>우리가 찾아야 할 단서가 숨어 있습니다.</p>
-        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="transition-escape" type="button">🔐 그녀의 비밀을 추적한다 →</button></div>
+        <div class="row" style="justify-content:space-between;margin-top:14px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="letter" type="button">✉️ 도착한 편지 열어 보기 →</button></div>
       </section>
 
-      <!-- 전환: ESCAPE -->
-      <section class="screen" data-screen="transition-escape" data-phase="escape">
-        <div class="center" style="padding:40px 0">
-          <svg class="transition-lock" viewBox="0 0 24 24" fill="none"><rect x="4" y="11" width="16" height="10" rx="2" stroke="#c9a227" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#c9a227" stroke-width="1.5"/><circle cx="12" cy="16" r="1.6" fill="#c9a227"/></svg>
-          <div class="eyebrow">PART 02</div>
-          <h1 class="display-title" style="font-size:2rem;margin:6px 0 2px">ESCAPE MISSION</h1>
-          <p class="display-title" style="font-size:1.1rem;margin-bottom:18px">소피 제르맹의 비밀</p>
-          <p class="subtle" style="line-height:1.9;max-width:420px;margin:0 auto 26px">그녀가 남긴 흔적을 따라<br>여섯 개의 잠긴 방을 통과하세요.<br><br>마지막 문을 열기 위해서는<br><b style="color:#f5f2e6">수학의 힘</b>이 필요합니다.</p>
-          <button class="btn btn-gold" data-go="room1" type="button">첫 번째 문 열기</button>
-          <div style="margin-top:16px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button></div>
-        </div>
+      <!-- 초대장 -->
+      <section class="screen" data-screen="letter" data-phase="escape">
+        <div class="eyebrow">AN INVITATION</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 14px">수학자의 초대장이 도착했습니다</h2>
+        <img class="fig letter-img" src="img/letter.webp" alt="수학자 써니의 초대장: 일곱 개의 방탈출 미션에 초대합니다. 첫 번째 방인 서재에서 시작하세요. 방마다 숨은 단서를 찾아 수학 퍼즐을 풀면 다음 방으로 가는 길이 열립니다. 일곱 번째 방을 탈출하면 정원으로 나갈 수 있고, 수학자의 보물상자를 얻을 수 있습니다." data-zoom>
+        <div class="ps"><b>추신.</b> 이 저택의 일곱 방에는 소피 제르맹이 남긴 흔적과 그녀의 공식이 숨어 있습니다. 마지막 금고를 여는 사람은 「오늘의 비밀」, $11^4+4^{11}$의 정체를 알게 될 것입니다.</div>
+        <div class="row" style="justify-content:space-between;margin-top:18px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" data-go="mansion" type="button">저택으로 가기 →</button></div>
+      </section>
+
+      <!-- 저택 지도 -->
+      <section class="screen" data-screen="mansion" data-phase="escape">
+        <div class="eyebrow">ESCAPE MISSION · 소피 제르맹의 비밀</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 6px">수학자의 저택</h2>
+        <p class="subtle" style="margin:0 0 14px">서재(1)에서 시작해 일곱 개의 방을 차례로 탈출하면 정원의 보물상자에 닿습니다.</p>
+        <div class="map" id="mapMain"></div>
+        <div class="row" style="justify-content:space-between;margin-top:18px"><button class="btn btn-outline btn-sm" data-back type="button">← 이전</button><button class="btn btn-gold" id="btnMansionGo" type="button">첫 번째 방, 서재로 들어가기 →</button></div>
       </section>
 
       <!-- ROOM 01 -->
       <section class="screen" data-screen="room1" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="eyebrow">ROOM 01</div>
+        <div class="eyebrow">ROOM 01 · 서재</div>
         <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 12px">그녀의 탄생</h2>
         <div class="center" style="margin-bottom:12px"><img class="fig" src="img/germain_eiffel.webp" alt="소피 제르맹 그림" style="max-width:300px;width:100%" data-zoom></div>
         <p class="subtle" style="margin-bottom:6px">단서를 조사해 문제를 해결하세요.</p>
@@ -369,7 +417,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
       <!-- ROOM 02 -->
       <section class="screen" data-screen="room2" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="eyebrow">ROOM 02</div>
+        <div class="eyebrow">ROOM 02 · 작업실</div>
         <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 12px">감춰진 이름</h2>
         <div class="figs2" style="margin-bottom:14px">
           <figure><img class="fig" src="img/gauss.webp" alt="수학자 초상" data-zoom><figcaption>이 수학자는 누구일까요?</figcaption></figure>
@@ -389,7 +437,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
       <!-- ROOM 03 -->
       <section class="screen" data-screen="room3" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="eyebrow">ROOM 03</div>
+        <div class="eyebrow">ROOM 03 · 도서관</div>
         <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 12px">파리에 남겨진 흔적</h2>
         <div class="figs-big">
           <figure style="margin:0"><img class="fig" src="img/chladni.webp" alt="(가) 도형이 만든 진동 무늬 교과서 자료" data-zoom></figure>
@@ -408,7 +456,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
       <!-- ROOM 04 -->
       <section class="screen" data-screen="room4" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="eyebrow">ROOM 04</div>
+        <div class="eyebrow">ROOM 04 · 온실</div>
         <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 8px">수의 비밀</h2>
         <p class="subtle" style="margin:0 0 6px">인수분해를 이용해 두 식의 값을 구하고 수식으로 입력하세요. 두 값이 모두 맞으면 문이 열립니다.</p>
         <div class="qbox"><div class="qline"><span class="q">① $\dfrac{90000\times300-1}{90301}$</span><span class="eq">=</span><span class="mf-slot" data-mf="r4a"></span></div><div class="fb" id="fb-r4a"></div></div>
@@ -422,7 +470,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
       <!-- ROOM 05 -->
       <section class="screen" data-screen="room5" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="eyebrow">ROOM 05</div>
+        <div class="eyebrow">ROOM 05 · 실험실</div>
         <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 8px">인수분해의 힘</h2>
         <p class="subtle" style="margin:0 0 6px">인수분해를 이용해 다음 수를 <b>소인수분해</b>하여 수식으로 입력하세요.</p>
         <div class="qbox"><div class="qline"><span class="q" style="min-width:120px;font-size:1.5rem">$5^4-3^4$</span><span class="eq">=</span><span class="mf-slot" data-mf="r5"></span></div><div class="fb" id="fb-r5"></div></div>
@@ -437,41 +485,46 @@ body[data-phase="escape"] .foot{color:#8b93bd}
       <!-- ROOM 06 FINAL -->
       <section class="screen" data-screen="room6" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="eyebrow" style="color:#e08a7c">FINAL ROOM</div>
-        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 14px">소피 제르맹의 마지막 암호</h2>
+        <div class="eyebrow">ROOM 06 · 천문대</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 14px">제르맹의 암호</h2>
         <div class="center" style="font-size:1.7rem;margin-bottom:14px">$11^4+4^{11}$</div>
         <p class="subtle lead" style="margin-bottom:10px">이 수는 두 개의 네 자리 자연수의 곱으로 표현됩니다. 직접 계산만으로는 탈출할 수 없습니다 — <b style="color:#f5f2e6">소피 제르맹 항등식</b>을 이용하세요.</p>
         <div class="row"><button type="button" class="btn hint-btn" id="hint6Btn">💡 힌트 보기 (1 / 3)</button></div>
         <div class="hint6-list" id="hint6Box"></div>
         <p class="subtle center" style="margin:16px 0 4px;font-size:1.05rem">1▢▢▢ × 2▢▢▢ — 빈칸 6자리를 이어 입력하세요.</p>
         <div class="lock-panel" data-lock="6"></div>
+        <div class="photo" data-photo="6"></div>
       </section>
 
-      <!-- SUCCESS -->
-      <section class="screen" data-screen="success" data-phase="escape">
-        <div class="center" style="padding:26px 0">
-          <h1 class="display-title" style="font-size:1.8rem;color:#f0d98a">ESCAPE COMPLETE</h1>
-          <p style="font-size:1.3rem;margin:6px 0 18px">🎉 방탈출 성공!</p>
-          <p class="subtle" id="successNameMsg" style="margin-bottom:20px"></p>
-          <div style="font-weight:800;letter-spacing:.05em;color:#4fd2c7;margin-bottom:22px">6 / 6 ROOMS CLEARED</div>
-          <button class="btn btn-gold" data-go="recap" type="button">오늘의 비밀 확인하기 →</button>
-        </div>
-      </section>
-
-      <!-- RECAP -->
-      <section class="screen" data-screen="recap" data-phase="escape">
+      <!-- ROOM 07 FINAL: 오늘의 비밀 -->
+      <section class="screen" data-screen="room7" data-phase="escape">
         <div class="ro-banner">마감되어 보기만 할 수 있어요.</div>
-        <div class="row" style="justify-content:space-between"><div class="eyebrow">RECAP</div><button class="link subtle" data-back type="button">← 이전</button></div>
-        <h2 class="display-title" style="font-size:1.3rem;margin:8px 0 14px">처음 만났던 문제를 기억하나요?</h2>
-        <div class="center" style="font-size:clamp(1.6rem,5vw,2.2rem);font-weight:800;color:#f5f2e6;margin-bottom:16px">$11^4+4^{11}$</div>
-        <p class="subtle center" style="margin-bottom:10px">처음엔 손댈 수조차 없어 보였던 이 수를, 이제 배운 인수분해로 <b>소인수분해</b>해 보세요.</p>
-        <div class="qbox"><div class="qline"><span class="q" style="min-width:110px">$11^4+4^{11}$</span><span class="eq">=</span><span class="mf-slot" data-mf="recap"></span></div><div class="fb" id="fb-recap"></div></div>
-        <div class="row" style="justify-content:center;margin-top:10px">
-          <button class="btn btn-gold btn-sm" id="recapCheck" type="button">확인</button>
-          <button class="btn btn-outline btn-sm" id="recapShow" type="button">풀이 보기</button>
+        <div class="eyebrow" style="color:#e08a7c">FINAL ROOM · ROOM 07 · 금고실</div>
+        <h2 class="display-title" style="font-size:1.4rem;margin:6px 0 8px">오늘의 비밀</h2>
+        <p class="subtle lead" style="margin:0 0 6px">처음엔 손댈 수조차 없어 보였던 수입니다. 이제 배운 인수분해로 <b style="color:#f5f2e6">완전히 소인수분해</b>하여 마지막 금고를 여세요.</p>
+        <div class="qbox"><div class="qline"><span class="q" style="min-width:120px;font-size:1.5rem">$11^4+4^{11}$</span><span class="eq">=</span><span class="mf-slot" data-mf="r7"></span></div><div class="fb" id="fb-r7"></div></div>
+        <p class="input-tip">거듭제곱은 ^ (예: 3^2), 곱하기는 × 또는 * 로 입력해요.</p>
+        <div class="row" style="margin-top:8px"><button type="button" class="btn hint-btn" id="hint7Btn">💡 힌트 보기 (1 / 3)</button></div>
+        <div class="hint6-list" id="hint7Box"></div>
+        <button class="btn btn-gold submit-btn" id="r7submit" type="button">제출</button>
+        <div class="hint-msg" id="r7msg"></div>
+        <div id="r7sol" class="center" style="margin-top:12px;line-height:1.9"></div>
+      </section>
+
+      <!-- 정원: 보물상자 + 탈출 순위 -->
+      <section class="screen" data-screen="garden" data-phase="escape">
+        <div class="center" style="padding:10px 0 4px">
+          <img src="../treasure/img/chest_open.webp" alt="열린 보물상자" style="max-width:240px;width:60%">
+          <h1 class="display-title" style="font-size:1.8rem;color:#f0d98a;margin:8px 0 2px">ESCAPE COMPLETE</h1>
+          <div style="font-weight:800;letter-spacing:.05em;color:#4fd2c7;margin-bottom:8px">7 / 7 ROOMS CLEARED</div>
+          <p class="subtle" id="successNameMsg" style="margin:0 0 6px"></p>
         </div>
-        <div id="recapResult" class="center" style="margin-top:14px;line-height:1.8"></div>
-        <div class="center" style="margin-top:18px"><button class="btn btn-gold" id="toReflect" type="button" hidden>소감 쓰러 가기 →</button></div>
+        <div class="rank">
+          <div class="row" style="justify-content:space-between"><h3 style="margin:0">🏆 우리 반 탈출 순위 <small id="rankCls" class="subtle"></small></h3><button class="btn btn-outline btn-sm" id="rankRefresh" type="button">새로 고침</button></div>
+          <p class="subtle" style="margin:4px 0 10px;font-size:.82rem">먼저 탈출한 순서예요. 친구 이름은 가려져 보여요.</p>
+          <ol class="rank-list" id="rankList"><li class="subtle">불러오는 중…</li></ol>
+        </div>
+        <div class="center" style="margin-top:18px"><button class="btn btn-gold" data-go="reflection" type="button">소감 쓰러 가기 →</button></div>
       </section>
 
       <!-- REFLECTION -->
@@ -514,6 +567,13 @@ body[data-phase="escape"] .foot{color:#8b93bd}
   </div>
 </div>
 
+<div class="door-ov" id="doorOv" hidden>
+  <img src="img/door.webp" alt="" id="doorImg">
+  <div class="door-cap"><div class="eyebrow" id="doorTag">ROOM 01</div><div class="door-name" id="doorName"></div><div class="door-sub" id="doorSub"></div></div>
+  <div class="door-skip">눌러서 바로 들어가기</div>
+</div>
+<div class="map-ov" id="mapOv" hidden><div class="map-box"><div class="row" style="justify-content:space-between;margin-bottom:10px"><b>🗺 저택 지도</b><button class="btn btn-outline btn-sm" id="mapClose" type="button">닫기</button></div><div class="map" id="mapModal"></div></div></div>
+
 <script>
 (function () {
   'use strict';
@@ -535,10 +595,11 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     locks: { 2: ['46'], 3: ['4710'], 6: ['465873'] },
     room4: { a: 299, b: 10099 },
     room5: { value: 544 },            // 5^4-3^4 = 2^5 × 17
-    recap: { value: 4208945 },        // 11^4+4^11 = 13^2 × 5 × 17 × 293
+    room7: { value: 4208945 },        // 11^4+4^11 = 13^2 × 5 × 17 × 293
     hints: {
       5: ['두 제곱의 차를 떠올려 보세요.', '$a^2-b^2=(a-b)(a+b)$'],
-      6: ['$4^{11}$을 다른 형태로 바라보세요.', '$a^4+4b^4$ 꼴을 찾아보세요.', '소피 제르맹 항등식 $$a^4+4b^4=(a^2-2ab+2b^2)(a^2+2ab+2b^2)$$']
+      6: ['$4^{11}$을 다른 형태로 바라보세요.', '$a^4+4b^4$ 꼴을 찾아보세요.', '소피 제르맹 항등식 $$a^4+4b^4=(a^2-2ab+2b^2)(a^2+2ab+2b^2)$$'],
+      7: ['6번 방에서 찾은 두 수 $1465$와 $2873$을 떠올려 보세요. $$11^4+4^{11}=1465\\times2873$$', '$1465$는 $5$로, $2873$은 $13$으로 나누어떨어져요.', '$$1465=5\\times293,\\quad 2873=13^2\\times17$$ $293$은 소수예요.']
     }
   };
   const UPLOAD_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co/functions/v1/land-upload';
@@ -547,12 +608,17 @@ body[data-phase="escape"] .foot{color:#8b93bd}
   const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
   const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
 
-  const FLOW = ['start', 'warmup-intro', 'matching', 'video', 'challenge', 'mission', 'germain-intro', 'transition-escape',
-    'room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'success', 'recap', 'reflection', 'done'];
-  const ROOMS = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6'];
+  const FLOW = ['start', 'warmup-intro', 'matching', 'video', 'story', 'challenge', 'mission', 'germain-intro', 'letter', 'mansion',
+    'room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7', 'garden', 'reflection', 'done'];
+  const ROOMS = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6', 'room7'];
+  const NR = [1, 2, 3, 4, 5, 6, 7];
+  // 저택 방 이름과 지도 위 번호 위치(저택 그림 기준 %)
+  const ROOM_INFO = { 1: ['서재', '그녀의 탄생', 26.3, 56.9], 2: ['작업실', '감춰진 이름', 47.2, 57.1], 3: ['도서관', '파리에 남겨진 흔적', 68.2, 57.1],
+    4: ['온실', '수의 비밀', 61.9, 36.5], 5: ['실험실', '인수분해의 힘', 32.0, 36.5], 6: ['천문대', '제르맹의 암호', 28.1, 16.8], 7: ['금고실', '오늘의 비밀', 62.4, 16.8] };
   const LABEL = { start: '첫 화면', 'warmup-intro': '선수학습 안내', matching: '선수학습(선 잇기)', video: '흥미 영상', challenge: '도전 문제', mission: '학습목표',
-    'germain-intro': '소피 제르맹 영상', 'transition-escape': 'ESCAPE 시작', room1: '1번 방', room2: '2번 방', room3: '3번 방', room4: '4번 방', room5: '5번 방',
-    room6: '6번 방(최종)', success: '탈출 성공', recap: '정리', reflection: '소감', done: '제출 완료' };
+    story: '200년 전 이야기', 'germain-intro': '소피 제르맹 영상', letter: '초대장', mansion: '저택 지도', room1: '1번 방(서재)', room2: '2번 방(작업실)', room3: '3번 방(도서관)',
+    room4: '4번 방(온실)', room5: '5번 방(실험실)', room6: '6번 방(천문대)', room7: '7번 방(금고실)', garden: '정원(탈출 성공)', reflection: '소감', done: '제출 완료',
+    'transition-escape': '저택 지도', success: '정원(탈출 성공)', recap: '7번 방(금고실)' };
 
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
@@ -561,8 +627,8 @@ body[data-phase="escape"] .foot{color:#8b93bd}
 
   /* ---------- 진행 상태 (land_records.detail 에 그대로 저장) ---------- */
   function newP() {
-    const rooms = {}; for (let i = 1; i <= 6; i++) rooms[i] = { solved: false, wrong: 0, wrongs: [] };
-    rooms[5].hint = 0; rooms[6].hint = 0;
+    const rooms = {}; for (let i = 1; i <= 7; i++) rooms[i] = { solved: false, wrong: 0, wrongs: [] };
+    rooms[5].hint = 0; rooms[6].hint = 0; rooms[7].hint = 0;
     return { ver: 1, screen: 'start', far: 'start', match: { done: false, skipped: false, wrong: 0, time: 0, over: false, tries: 0 },
       rooms, recap: { tries: 0, ok: false, shown: false, ans: '' }, eval: { u: 3, f: 3, c: '' }, submitted: '', t: 0 };
   }
@@ -571,18 +637,21 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     const p = Object.assign(base, src);
     p.match = Object.assign(newP().match, src.match || {});
     p.rooms = newP().rooms;
-    for (let i = 1; i <= 6; i++) p.rooms[i] = Object.assign(p.rooms[i], (src.rooms || {})[i] || {});
+    for (let i = 1; i <= 7; i++) p.rooms[i] = Object.assign(p.rooms[i], (src.rooms || {})[i] || {});
+    // 예전 화면 이름(v2.0)을 새 화면으로
+    const OLD = { 'transition-escape': 'mansion', success: 'room7', recap: 'room7' };
+    if (OLD[p.screen]) p.screen = OLD[p.screen];
     p.recap = Object.assign(newP().recap, src.recap || {});
     p.eval = Object.assign(newP().eval, src.eval || {});
     return p;
   }
   let P = newP(), enter = null, saver = null, RO = false, current = 'start';
-  const solvedCount = () => [1, 2, 3, 4, 5, 6].filter(i => P.rooms[i].solved).length;
+  const solvedCount = () => NR.filter(i => P.rooms[i].solved).length;
   const cacheKey = () => `fe.cache.${enter.student.no}.${enter.run.id}`;
 
   function extra() {
     const n = solvedCount();
-    return { score: n, level: P.rooms[6].solved ? '탈출 성공' : `방 ${n}/6`, summary: (P.eval.c || '').trim() || null };
+    return { score: n, level: P.rooms[7].solved ? '탈출 성공' : `방 ${n}/7`, summary: (P.eval.c || '').trim() || null };
   }
   function persist() {
     if (RO || !enter) return;
@@ -610,11 +679,11 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     $('#botnav').classList.toggle('show', ri >= 0);
     $('#status').classList.toggle('hide', name === 'start' || !enter);
     if (ri >= 0) {
-      $('#roomtag').textContent = `ROOM ${String(ri + 1).padStart(2, '0')} / 06`;
-      $('#dots').innerHTML = [1, 2, 3, 4, 5, 6].map(i => `<div class="dot${P.rooms[i].solved ? ' done' : ''}${i === ri + 1 ? ' current' : ''}"></div>`).join('');
+      $('#roomtag').textContent = `ROOM ${String(ri + 1).padStart(2, '0')} / 07 · ${ROOM_INFO[ri + 1][0]}`;
+      $('#dots').innerHTML = NR.map(i => `<div class="dot${P.rooms[i].solved ? ' done' : ''}${i === ri + 1 ? ' current' : ''}"></div>`).join('');
       const nb = $('#btnNext');
       nb.disabled = !P.rooms[ri + 1].solved;
-      nb.textContent = ri === 5 ? '탈출하기 →' : '다음 방 →';
+      nb.textContent = ri === 6 ? '정원으로 탈출하기 →' : '다음 방 →';
     }
   }
   function goTo(name, opt) {
@@ -631,16 +700,19 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     if (!opt.noScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
     if (name === 'matching') startMatch();
     else stopMatchTimer();
-    if (name === 'success') { launchConfetti(); $('#successNameMsg').innerHTML = `<b>${esc(enter ? enter.student.name : '학생')}</b> 학생, 소피 제르맹이 남긴 모든 암호를 해결했습니다.`; }
-    if (name === 'room4' || name === 'room5') loadPhotoPreview(name === 'room4' ? 4 : 5);
+    if (name === 'garden') { launchConfetti(); $('#successNameMsg').innerHTML = `<b>${esc(enter ? enter.student.name : '학생')}</b> 학생, 일곱 개의 방을 모두 탈출하고 수학자의 보물상자를 열었습니다!`; loadRank(); }
+    if (name === 'room4' || name === 'room5' || name === 'room6') loadPhotoPreview(+name.slice(4));
+    if (name === 'mansion') renderMap('#mapMain');
+    const rn = ROOMS.indexOf(name) + 1;
+    if (rn && !P.rooms[rn].seen) { P.rooms[rn].seen = true; if (!opt.noDoor && !RO) showDoor(rn); }
     if (name === 'done') renderDone();
     if (!opt.noSave) persist();
   }
   function goBack() {
     const i = FLOW.indexOf(current);
     let prev = FLOW[i - 1];
-    if (current === 'room1') prev = 'transition-escape';
-    if (current === 'recap') prev = 'success';
+    if (current === 'room1') prev = 'mansion';
+    if (current === 'reflection') prev = 'garden';
     if (prev && prev !== 'start') goTo(prev);
   }
   document.addEventListener('click', e => {
@@ -651,7 +723,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
   $('#btnBack').onclick = goBack;
   $('#btnNext').onclick = () => {
     const ri = ROOMS.indexOf(current); if (ri < 0 || !P.rooms[ri + 1].solved) return;
-    goTo(ri === 5 ? 'success' : ROOMS[ri + 1]);
+    goTo(ri === 6 ? 'garden' : ROOMS[ri + 1]);
   };
 
   function launchConfetti() {
@@ -827,7 +899,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
   function lockSolved(panel, n) {
     const input = panel.querySelector('input'), btn = panel.querySelector('button'), msg = panel.querySelector('.hint-msg');
     input.value = CONFIG.locks[n][0]; input.disabled = true; input.classList.add('ok'); btn.disabled = true;
-    msg.className = 'hint-msg ok'; msg.textContent = n === 6 ? '🔓 마지막 문이 열렸습니다! 11⁴+4¹¹ = 1465 × 2873' : '🔓 ACCESS GRANTED — 다음 방으로 이동할 수 있습니다.';
+    msg.className = 'hint-msg ok'; msg.textContent = n === 6 ? '🔓 천문대의 문이 열렸습니다! 11⁴+4¹¹ = 1465 × 2873 — 풀이 사진을 올리고 마지막 금고실로 가세요.' : '🔓 ACCESS GRANTED — 다음 방으로 이동할 수 있습니다.';
   }
 
   /* ---------- 수식 읽기·계산 (방4·방5·정리) ---------- */
@@ -904,7 +976,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
       if (mathliveOk) { el = document.createElement('math-field'); el.setAttribute('math-virtual-keyboard-policy', 'auto'); el.setAttribute('aria-label', '수식 입력'); }
       else { el = document.createElement('input'); el.className = 'mf-fallback'; el.placeholder = '예: 2^5*17'; el.autocomplete = 'off'; el.setAttribute('aria-label', '수식 입력'); }
       el.id = 'mf-' + id; slot.replaceWith(el); MF[id] = el;
-      el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ({ r4a: submitR4, r4b: submitR4, r5: submitR5, recap: checkRecap })[id](); } });
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ({ r4a: submitR4, r4b: submitR4, r5: submitR5, r7: submitR7 })[id](); } });
       el.addEventListener('input', () => el.classList.remove('no'));
     });
   }
@@ -962,17 +1034,17 @@ body[data-phase="escape"] .foot{color:#8b93bd}
 
   /* ---------- 힌트 ---------- */
   function renderHints(n) {
-    const r = P.rooms[n], hs = CONFIG.hints[n], box = $(n === 6 ? '#hint6Box' : '#hint5Box'), btn = $(n === 6 ? '#hint6Btn' : '#hint5Btn');
+    const r = P.rooms[n], hs = CONFIG.hints[n], box = $('#hint' + n + 'Box'), btn = $('#hint' + n + 'Btn');
     const k = Math.min(r.hint || 0, hs.length);
-    box.innerHTML = hs.slice(0, k).map((h, i) => n === 6
+    box.innerHTML = hs.slice(0, k).map((h, i) => n >= 6
       ? `<div class="hint6"><span class="tag">힌트 ${i + 1} / ${hs.length}</span><div>${h}</div></div>`
       : `<div class="hint-card">💡 힌트 ${i + 1}. ${h}</div>`).join('');
     renderMath(box);
     if (k >= hs.length) { btn.textContent = '힌트를 모두 확인했어요'; btn.disabled = true; }
-    else btn.textContent = n === 6 ? `💡 힌트 보기 (${k + 1} / ${hs.length})` : (k ? '💡 다음 힌트 보기' : '💡 힌트 보기');
+    else btn.textContent = n >= 6 ? `💡 힌트 보기 (${k + 1} / ${hs.length})` : (k ? '💡 다음 힌트 보기' : '💡 힌트 보기');
     if (RO) btn.disabled = true;
   }
-  [5, 6].forEach(n => { $(n === 6 ? '#hint6Btn' : '#hint5Btn').onclick = () => { if (RO) return; const r = P.rooms[n]; if ((r.hint || 0) >= CONFIG.hints[n].length) return; r.hint = (r.hint || 0) + 1; renderHints(n); persist(); }; });
+  [5, 6, 7].forEach(n => { $('#hint' + n + 'Btn').onclick = () => { if (RO) return; const r = P.rooms[n]; if ((r.hint || 0) >= CONFIG.hints[n].length) return; r.hint = (r.hint || 0) + 1; renderHints(n); persist(); }; });
 
   /* ---------- 풀이 사진 올리기 (방4·방5) ---------- */
   function buildPhoto(box) {
@@ -1044,34 +1116,84 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     try { if (!myUrls) myUrls = (await post({ action: 'list' })).urls || {}; if (myUrls['m' + n]) img.src = myUrls['m' + n]; } catch (e) { }
   }
 
-  /* ---------- 정리(RECAP) ---------- */
-  function checkRecap() {
-    const R = P.recap; if (RO || tooFast('recap')) return;
-    const raw = mfVal('recap'), s = toExpr(raw), v = evalExpr(s);
-    if (!raw.trim()) { fb('recap', '소인수분해한 식을 입력하세요.', false); return; }
-    R.tries++; R.ans = raw;
-    if (Number.isNaN(v)) fb('recap', '식을 읽지 못했어요. 숫자와 ×, ^ 로 입력해 보세요.', false);
-    else if (!near(v, CONFIG.recap.value)) fb('recap', '값이 11⁴+4¹¹과 달라요. 6번 방의 두 수를 떠올려 보세요.', false);
+  /* ---------- ROOM 7: 오늘의 비밀 ---------- */
+  function submitR7() {
+    const r = P.rooms[7]; if (RO || r.solved || tooFast('r7')) return;
+    const raw = mfVal('r7'), s = toExpr(raw), v = evalExpr(s);
+    if (!raw.trim()) { fb('r7', '소인수분해한 식을 입력하세요.', false); return; }
+    r.input = raw;
+    let msg = '', ok = false;
+    if (Number.isNaN(v)) msg = '식을 읽지 못했어요. 숫자와 ×, ^ 로 입력해 보세요.';
+    else if (!near(v, CONFIG.room7.value)) msg = '값이 11⁴+4¹¹과 달라요. 6번 방의 두 수를 떠올려 보세요.';
     else {
       const f = primeForm(s);
-      if (f.ok) { R.ok = true; fb('recap', '정답! 완벽하게 소인수분해했어요 🎉', true); lockMf('recap', true); showRecapSolution(); }
-      else if (f.why === 'notprime') fb('recap', `값은 맞아요! 그런데 ${f.bad}은(는) 소수가 아니에요. 더 쪼개 보세요.`, false);
-      else fb('recap', '값은 맞아요! 소인수들의 곱 꼴로 나타내 보세요.', false);
+      if (f.ok) ok = true;
+      else if (f.why === 'notprime') msg = `값은 맞아요! 그런데 ${f.bad}은(는) 소수가 아니에요. 더 쪼개 보세요.`;
+      else msg = '값은 맞아요! 이제 소인수들의 곱 꼴로 나타내 보세요.';
     }
-    if (!R.ok && R.tries >= 1) $('#recapShow').hidden = false;
+    if (ok) {
+      r.solved = true; r.at = nowIso(); r.ans = raw; room7Solved(); updateChrome(current);
+      persist(); if (saver) saver.flush();             // 탈출 순위에 바로 들어가도록 곧바로 저장
+      return;
+    }
+    pushWrong(7, raw); fb('r7', msg, false); MF.r7.classList.add('no');
+    $('#r7msg').className = 'hint-msg bad'; $('#r7msg').textContent = '아직 금고가 열리지 않습니다.';
     persist();
   }
-  function showRecapSolution() {
-    $('#recapResult').innerHTML = `오늘 배운 소피 제르맹 항등식으로 풀면<br>
+  function room7Solved() {
+    lockMf('r7', true); $('#r7submit').disabled = true; fb('r7', '정답! 완벽하게 소인수분해했어요 🎉', true);
+    $('#r7msg').className = 'hint-msg ok'; $('#r7msg').textContent = '🔓 마지막 금고가 열렸습니다! 이제 정원으로 탈출하세요.';
+    $('#r7sol').innerHTML = `<span class="subtle">오늘의 비밀 — 소피 제르맹 항등식으로 풀면</span><br>
       $11^4+4^{11}=11^4+4\\times(2^5)^4$ &nbsp;($a=11,\\ b=32$)<br>
       $=(121-704+2048)(121+704+2048)=1465\\times2873$<br>
-      <b>$=5\\times293\\times13^2\\times17$</b><br><span class="subtle">처음엔 풀 수 없었던 문제를, 이제 여러분은 인수분해로 해결할 수 있습니다.</span>`;
-    renderMath($('#recapResult'));
-    $('#toReflect').hidden = false;
+      <b>$=5\\times293\\times13^2\\times17$</b><br><span class="subtle">처음엔 손댈 수 없었던 수를, 이제 여러분은 인수분해로 해결할 수 있습니다.</span>`;
+    renderMath($('#r7sol'));
   }
-  $('#recapCheck').onclick = checkRecap;
-  $('#recapShow').onclick = () => { if (!P.recap.ok) { P.recap.shown = true; persist(); } showRecapSolution(); };
-  $('#toReflect').onclick = () => goTo('reflection');
+  $('#r7submit').onclick = submitR7;
+
+  /* ---------- 저택 지도 ---------- */
+  function renderMap(sel) {
+    const next = NR.find(i => !P.rooms[i].solved) || 0;
+    $(sel).innerHTML = '<img src="img/mansion.webp" alt="수학자의 저택: 1 서재, 2 작업실, 3 도서관, 4 온실, 5 실험실, 6 천문대, 7 금고실, 그리고 정원">' +
+      NR.map(i => { const [, , x, y] = ROOM_INFO[i]; return P.rooms[i].solved ? `<span class="mk done" style="left:${x}%;top:${y}%">✓</span>` : i === next ? `<span class="mk now" style="left:${x}%;top:${y}%"></span>` : ''; }).join('');
+    const b = $('#btnMansionGo');
+    if (b) b.textContent = !next ? '정원으로 가기 →' : next === 1 ? '첫 번째 방, 서재로 들어가기 →' : `${next}번 방, ${ROOM_INFO[next][0]}(으)로 가기 →`;
+  }
+  $('#btnMansionGo').onclick = () => { const next = NR.find(i => !P.rooms[i].solved); goTo(next ? 'room' + next : 'garden'); };
+  $('#btnMap').onclick = () => { renderMap('#mapModal'); $('#mapOv').hidden = false; };
+  $('#mapClose').onclick = () => { $('#mapOv').hidden = true; };
+  $('#mapOv').onclick = e => { if (e.target.id === 'mapOv') $('#mapOv').hidden = true; };
+
+  /* ---------- 방에 들어가는 장면 (처음 들어갈 때만, 약 1.7초) ---------- */
+  let doorTimer;
+  function showDoor(n) {
+    const ov = $('#doorOv'), [place, title] = ROOM_INFO[n];
+    $('#doorTag').textContent = n === 7 ? 'FINAL ROOM · ROOM 07' : `ROOM 0${n} / 07`;
+    $('#doorName').textContent = place; $('#doorSub').textContent = title;
+    ov.hidden = false;
+    ov.querySelectorAll('img, .door-cap').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+    const close = () => { clearTimeout(doorTimer); ov.hidden = true; };
+    ov.onclick = close; doorTimer = setTimeout(close, 1750);
+  }
+
+  /* ---------- 정원: 우리 반 탈출 순위 ---------- */
+  async function loadRank() {
+    const box = $('#rankList');
+    if (!enter || !Land.rpc) { box.innerHTML = '<li class="subtle">순위를 불러올 수 없어요.</li>'; return; }
+    box.innerHTML = '<li class="subtle">불러오는 중…</li>';
+    try {
+      if (saver) await saver.flush();
+      const r = await Land.rpc('land_fe_rank', { p_token: enter.token, p_run_id: enter.run.id });
+      if (!r || !r.ok) throw new Error(r && r.code);
+      $('#rankCls').textContent = `· ${r.grade}학년 ${r.class_no}반`;
+      const t = a => { try { return new Date(a).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); } catch (e) { return ''; } };
+      const medal = k => k === 1 ? '🥇' : k === 2 ? '🥈' : k === 3 ? '🥉' : k + '위';
+      box.innerHTML = r.list.length ? r.list.map(x => `<li class="${x.me ? 'me' : ''}"><span class="no">${medal(x.rank)}</span><span class="nm">${esc(x.name)}${x.me ? ' (나)' : ''}</span><span class="tm">${esc(t(x.at))} 탈출</span></li>`).join('')
+        : '<li class="subtle">아직 탈출한 학생이 없어요.</li>';
+      const me = box.querySelector('li.me'); if (me) me.scrollIntoView({ block: 'nearest' });
+    } catch (e) { console.warn(e); box.innerHTML = '<li class="subtle">순위를 불러오지 못했어요. [새로 고침]을 눌러 보세요.</li>'; }
+  }
+  $('#rankRefresh').onclick = loadRank;
 
   /* ---------- 소감 → 제출 ---------- */
   function syncEval() {
@@ -1097,11 +1219,11 @@ body[data-phase="escape"] .foot{color:#8b93bd}
   };
   function renderDone() {
     const kst = t => t ? new Date(t).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
-    const wr = [1, 2, 3, 4, 5, 6].reduce((a, i) => a + (P.rooms[i].wrong || 0), 0);
-    $('#doneSummary').innerHTML = `<div>🔐 통과한 방: <b>${solvedCount()} / 6</b>${P.rooms[6].solved ? ' (탈출 성공!)' : ''}</div>
+    const wr = NR.reduce((a, i) => a + (P.rooms[i].wrong || 0), 0);
+    $('#doneSummary').innerHTML = `<div>🔐 통과한 방: <b>${solvedCount()} / 7</b>${P.rooms[7].solved ? ' (탈출 성공!)' : ''}</div>
       <div>🧩 선수학습: ${P.match.done ? `완료 (${P.match.time}초)` : '넘어감'}</div>
-      <div>✏️ 틀린 횟수(방 전체): ${wr}번 · 💡 힌트: ${(P.rooms[5].hint || 0) + (P.rooms[6].hint || 0)}개</div>
-      <div>📷 풀이 사진: 4번 방 ${P.rooms[4].photo ? '✓' : '—'} · 5번 방 ${P.rooms[5].photo ? '✓' : '—'}</div>
+      <div>✏️ 틀린 횟수(방 전체): ${wr}번 · 💡 힌트: ${(P.rooms[5].hint || 0) + (P.rooms[6].hint || 0) + (P.rooms[7].hint || 0)}개</div>
+      <div>📷 풀이 사진: 4번 방 ${P.rooms[4].photo ? '✓' : '—'} · 5번 방 ${P.rooms[5].photo ? '✓' : '—'} · 6번 방 ${P.rooms[6].photo ? '✓' : '—'}</div>
       ${P.submitted ? `<div>🕒 제출: ${esc(kst(P.submitted))}</div>` : ''}`;
   }
   $('#btnEditReflect').onclick = () => goTo('reflection');
@@ -1109,7 +1231,7 @@ body[data-phase="escape"] .foot{color:#8b93bd}
   /* ---------- 마감·저장 안내 ---------- */
   function setReadOnly() {
     RO = true; document.body.classList.add('ro');
-    $$('.lock-panel input, .lock-panel button, #r4submit, #r5submit, #recapCheck, #btnFinish, #btnMatchRetry, #sliderU, #sliderF, #feedbackText, .photo button, #hint5Btn, #hint6Btn').forEach(el => el.disabled = true);
+    $$('.lock-panel input, .lock-panel button, #r4submit, #r5submit, #r7submit, #btnFinish, #btnMatchRetry, #sliderU, #sliderF, #feedbackText, .photo button, #hint5Btn, #hint6Btn, #hint7Btn').forEach(el => el.disabled = true);
     Object.keys(MF).forEach(k => lockMf(k, MF[k].classList.contains('ok')));
     renderRoom1();
   }
@@ -1119,15 +1241,13 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     renderRoom1();
     $$('.lock-panel').forEach(buildLock);
     $$('.photo').forEach(buildPhoto);
-    renderHints(5); renderHints(6);
+    renderHints(5); renderHints(6); renderHints(7);
     const r4 = P.rooms[4]; if (r4.inputs) { setMf('r4a', r4.inputs.a); setMf('r4b', r4.inputs.b); }
     if (r4.solved) room4Solved();
     if (P.rooms[5].input) setMf('r5', P.rooms[5].input);
     if (P.rooms[5].solved) room5Solved();
-    if (P.recap.ans) setMf('recap', P.recap.ans);
-    if (P.recap.ok) { fb('recap', '정답! 완벽하게 소인수분해했어요 🎉', true); lockMf('recap', true); showRecapSolution(); }
-    else if (P.recap.shown) showRecapSolution();
-    $('#recapShow').hidden = !(P.recap.tries || P.recap.shown);
+    if (P.rooms[7].input) setMf('r7', P.rooms[7].input);
+    if (P.rooms[7].solved) room7Solved();
     $('#sliderU').value = P.eval.u; $('#sliderF').value = P.eval.f; $('#feedbackText').value = P.eval.c || ''; syncEval();
     if (P.submitted) $('#btnFinish').textContent = '다시 제출하기';
   }
@@ -1171,8 +1291,8 @@ body[data-phase="escape"] .foot{color:#8b93bd}
     $('#btnStart').onclick = () => goTo(resume ? target : 'warmup-intro');
     // 새로 고침했을 때는 첫 화면을 거치지 않고 하던 곳으로 바로
     let reloaded = false; try { reloaded = performance.getEntriesByType('navigation')[0].type === 'reload'; } catch (e) { }
-    if (enter.readOnly) goTo(P.submitted ? 'done' : (resume ? P.screen : 'start'), { noSave: true });
-    else if (resume && reloaded) goTo(P.screen, { noSave: true });
+    if (enter.readOnly) goTo(P.submitted ? 'done' : (resume ? P.screen : 'start'), { noSave: true, noDoor: true });
+    else if (resume && reloaded) goTo(P.screen, { noSave: true, noDoor: true });
     else goTo('start', { noSave: true });
     if (enter.record && !enter.readOnly) setSaved('저장됨 ✓');
   }
