@@ -152,7 +152,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   const SLUG = 'factor-escape';
   const BUCKET = 'land-files';
   const ROOMS = [1, 2, 3, 4, 5, 6, 7];
-  const PHOTO_ROOMS = [4, 5, 6];
+  const PHOTO_ROOMS = [4, 5, 6, 7];
   const RNAME = { 1: '방1 서재 · 탄생 연도', 2: '방2 작업실 · 감춰진 이름', 3: '방3 도서관 · 파리의 흔적', 4: '방4 온실 · 수의 비밀', 5: '방5 실험실 · 인수분해의 힘', 6: '방6 천문대 · 제르맹의 암호', 7: '방7 금고실 · 오늘의 비밀' };
   const RANS = { 1: '1776년', 2: '46', 3: '4710', 4: '① 299 ② 10099', 5: '2⁵ × 17', 6: '465873', 7: '13² × 5 × 17 × 293' };
   const SCREEN = { start: '첫 화면', 'warmup-intro': '선수학습 안내', matching: '선수학습', video: '흥미 영상', challenge: '도전 문제', mission: '학습목표',
@@ -267,7 +267,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
         const L = DATA.filter(d => d.cls === k), n = L.length, avg = n ? (L.reduce((a, d) => a + d.solved, 0) / n).toFixed(1) : '0';
         return `<tr class="pick" data-c="${esc(k)}"><td><b>${esc(classLabel(k))}</b></td><td class="num">${n}</td><td class="num">${avg} / 7</td><td class="num">${L.filter(d => d.escaped).length}</td><td class="num">${PHOTO_ROOMS.map(n => L.filter(d => d.rooms[n].photo).length).join(' / ')}</td><td class="num">${L.filter(d => d.submitted).length}</td><td>${isClosed(k) ? '<span class="chip closed">🔒 마감</span>' : '<span class="chip open">진행 중</span>'}</td></tr>`;
       }).join('');
-      $('clsum').innerHTML = `<div class="scroll sumwrap" style="max-height:none"><table><thead><tr><th>반</th><th class="num">학생 수</th><th class="num">평균 통과</th><th class="num">탈출 성공</th><th class="num">풀이 사진(방4/5/6)</th><th class="num">소감 제출</th><th>상태</th></tr></thead><tbody>${rowsS}</tbody></table></div>`;
+      $('clsum').innerHTML = `<div class="scroll sumwrap" style="max-height:none"><table><thead><tr><th>반</th><th class="num">학생 수</th><th class="num">평균 통과</th><th class="num">탈출 성공</th><th class="num">풀이 사진(방4/5/6/7)</th><th class="num">소감 제출</th><th>상태</th></tr></thead><tbody>${rowsS}</tbody></table></div>`;
       $('clsum').querySelectorAll('tr.pick').forEach(r => r.onclick = () => pickClass(r.dataset.c));
     } else $('clsum').innerHTML = '';
   }
