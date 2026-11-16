@@ -8,8 +8,8 @@
 <meta name="description" content="경남고등학교 수학과 최선지 선생님의 수학 활동 모음. 탐험지를 골라 수학 모험을 떠나요.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
-<link rel="preload" as="image" href="img/hero-island-900.webp" imagesrcset="img/hero-island-560.webp 560w, img/hero-island-900.webp 900w, img/hero-island-1400.webp 1400w" imagesizes="(max-width:640px) 92vw, (max-width:959px) 46vw, 620px">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="preload" as="image" href="img/hero-base-900.webp" imagesrcset="img/hero-base-560.webp 560w, img/hero-base-900.webp 900w, img/hero-base-1400.webp 1400w" imagesizes="(max-width:640px) 104vw, (max-width:959px) 52vw, 620px">
 <style>
 :root{
   --ink:#241C4F; --ink2:#4E4878; --ink3:#726C96; --line:#D7D2EC;
@@ -25,7 +25,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(-
 .skip{position:absolute;left:12px;top:-60px;background:#FFC93C;color:var(--ink);padding:10px 16px;border-radius:10px;font-weight:700;z-index:5}
 .skip:focus{top:12px}
 .wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 24px}
-.display{font-family:'Baloo 2',sans-serif;font-weight:800}
+.display{font-family:'Outfit',system-ui,sans-serif;font-weight:800}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 /* ── 히어로 ── */
@@ -41,14 +41,74 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(-
 
 .hero-body{display:flex;flex-wrap:wrap;align-items:center;gap:18px 40px;padding-top:26px}
 .hero-text{flex:1 1 330px;min-width:0;display:flex;flex-direction:column;gap:12px}
-.eyebrow{margin:0;font-size:12.5px;letter-spacing:2.5px;font-weight:700;color:var(--ink3)}
-.brand{margin:0;font-size:clamp(38px,5.2vw,62px);line-height:.98;letter-spacing:-.5px;color:var(--ink)}
+.mark{gap:11px}
+.eyebrow{font-size:11.5px;letter-spacing:.26em;font-weight:500;color:var(--ink3);white-space:nowrap}
+.brand{margin:0;display:flex;flex-direction:column;color:var(--ink)}
+.b1{font-size:clamp(40px,5.6vw,68px);font-weight:800;letter-spacing:-.028em;line-height:.92}
+.b2{font-size:clamp(16px,2.05vw,25px);font-weight:300;letter-spacing:.4em;text-transform:uppercase;color:var(--ink2);padding-left:.18em;line-height:1.5}
 .headline{margin:0;font-size:clamp(23px,2.7vw,32px);font-weight:700;line-height:1.3;text-wrap:balance}
 .headline .u{background:linear-gradient(transparent 64%,#FFD96B 64%)}
 .lede{margin:0;font-size:16.5px;line-height:1.65;color:var(--ink2);max-width:27em}
 .hero-art{flex:1.12 1 420px;min-width:0;display:flex;justify-content:center}
-.hero-art img{width:100%;max-width:620px;height:auto;display:block}
+.scene{position:relative;width:100%;max-width:620px}
+.scene .base{width:100%;height:auto;display:block}
+.scene .lyr{position:absolute;pointer-events:none}
 
+/* 폭포: 섬 그림 위에 물줄기 무늬만 흘려보냄 */
+.water{inset:0;overflow:hidden;opacity:.62;mix-blend-mode:screen;
+  -webkit-mask-image:url(img/hero-water.webp);mask-image:url(img/hero-water.webp);
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.water i{position:absolute;left:0;right:0;top:0;height:200%;display:block;
+  background:repeating-linear-gradient(180deg,
+    rgba(255,255,255,0) 0 1.7%, rgba(255,255,255,.75) 2.1% 2.7%, rgba(255,255,255,0) 3.1% 5%);
+  animation:flow 2.9s linear infinite;will-change:transform}
+@keyframes flow{to{transform:translateY(-5%)}}
+
+/* 보물상자 안 황금빛 */
+.glow{left:29.9%;top:53.8%;width:25%;aspect-ratio:1;border-radius:50%;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(255,243,196,.9) 0%,rgba(255,206,96,.5) 26%,rgba(255,188,70,0) 62%);
+  animation:breathe 4.8s ease-in-out .6s infinite;will-change:opacity,transform}
+@keyframes breathe{
+  0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(.9)}
+  50%{opacity:.95;transform:translate(-50%,-50%) scale(1.1)}}
+
+/* 깃발: 깃대 쪽을 축으로 바람에 흔들림 */
+.flag{left:38.7%;top:12.6%;width:12.4%;height:auto;transform-origin:5% 52%;
+  animation:wave 5.4s ease-in-out .4s infinite;will-change:transform}
+@keyframes wave{
+  0%,100%{transform:skewY(0deg) scaleY(1)}
+  22%{transform:skewY(1.7deg) scaleY(.982)}
+  50%{transform:skewY(.2deg) scaleY(1.012)}
+  74%{transform:skewY(-1.5deg) scaleY(.99)}}
+
+/* 유리 정육면체·원뿔: 원본 그림 그대로, 빛과 기울기만 움직임 */
+.cube,.cone{display:block}
+.cube>img,.cone>img{width:100%;height:auto;display:block}
+.cube>span,.cone>span{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  -webkit-mask-image:var(--m);mask-image:var(--m);
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  background-image:linear-gradient(112deg,rgba(255,255,255,0) 42%,rgba(255,255,255,.5) 50%,rgba(255,255,255,0) 58%);
+  background-size:280% 100%;background-repeat:no-repeat}
+
+.cube{left:7.33%;top:16.48%;width:15.24%;perspective:640px}
+.cube>img{animation:cubeturn 15s ease-in-out infinite;will-change:transform}
+.cube>span{animation:glint 15s ease-in-out infinite}
+@keyframes cubeturn{
+  0%,100%{transform:rotateY(-16deg) rotateX(4deg)}
+  50%{transform:rotateY(16deg) rotateX(-4deg)}}
+@keyframes glint{0%,100%{background-position:168% 0}48%{background-position:-74% 0}}
+
+.cone{left:20.67%;top:-.56%;width:15.89%}
+.cone>img{animation:coneturn 17s ease-in-out infinite;transform-origin:50% 80%;will-change:transform}
+.cone>span{animation:glintb 17s ease-in-out infinite}
+@keyframes coneturn{
+  0%,100%{transform:rotate(-3.4deg) scaleX(.978)}
+  50%{transform:rotate(3.4deg) scaleX(1)}}
+@keyframes glintb{0%,100%{background-position:-74% 0}48%{background-position:168% 0}}
+
+/* ── 검색줄 ── */
 .toolrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:4px 0 26px}
 .search{display:flex;align-items:center;gap:8px;flex:1 1 380px;min-width:0;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:5px 5px 5px 18px;box-shadow:var(--shadow)}
 .search:focus-within{border-color:var(--accent)}
@@ -102,21 +162,24 @@ footer p{margin:0}
 .rise{opacity:0;transform:translateY(14px);animation:rise .62s cubic-bezier(.22,.8,.3,1) forwards}
 .d1{animation-delay:.05s}.d2{animation-delay:.19s}.d3{animation-delay:.33s}.d4{animation-delay:.47s}.d5{animation-delay:.61s}
 @keyframes rise{to{opacity:1;transform:none}}
-.floaty{animation:floaty 7s ease-in-out 1.2s infinite}
-@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.floaty{animation:floaty 6s ease-in-out 1s infinite;will-change:transform}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .reveal{opacity:0;transform:translateY(16px)}
 .reveal.in{opacity:1;transform:none;transition:opacity .5s ease-out,transform .5s cubic-bezier(.22,.8,.3,1)}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .rise{opacity:1;transform:none;animation:none}
-  .floaty{animation:none}
+  .floaty,.water i,.glow,.flag,.cube>img,.cube>span,.cone>img,.cone>span{animation:none}
+  .glow{opacity:.7;transform:translate(-50%,-50%)}
+  .cube>span,.cone>span{display:none}
+  .water{opacity:.4}
   .reveal,.reveal.in{opacity:1;transform:none;transition:none}
   .card,.pill,.cat{transition:none}
 }
 
 /* ── 반응형 ── */
 @media (max-width:959px){
-  .hero-art img{max-width:520px}
+  .scene{max-width:520px}
   .sidenav{max-width:none;flex-basis:100%}
   .catlist{flex-direction:row;flex-wrap:wrap;gap:7px}
   .cat{border-left:0;border-radius:999px;background:var(--sheet);padding:9px 15px;min-height:40px}
@@ -127,7 +190,8 @@ footer p{margin:0}
   .wrap{padding:0 18px}
   .hero-body{gap:14px;padding-top:18px}
   .hero-art{order:3;width:100%}
-  .hero-art img{max-width:none;width:104%;margin:0 -2%}
+  .scene{max-width:none;width:104%;margin:0 -2%}
+  .mark .eyebrow{display:none}
   .lede{font-size:15.5px}
   .toolrow{padding-bottom:22px}
   .search{flex-basis:100%}
@@ -153,23 +217,37 @@ footer p{margin:0}
         <path d="M9.6 21 21 17.8 32.4 21 21 24.2Z" fill="#C9C1F0"/>
         <circle cx="21" cy="21" r="2.6" fill="#241C4F"/>
       </svg>
+      <span class="eyebrow" translate="no">WELCOME TO MATH LAND</span>
     </a>
     <a class="pill pill-line" href="teacher/">선생님</a>
   </div>
 
   <div class="wrap hero-body">
     <div class="hero-text">
-      <p class="eyebrow rise d1" translate="no">WELCOME TO MATH LAND</p>
-      <h1 class="brand display rise d2" translate="no">Math Land Explorers</h1>
+      <h1 class="brand rise d1" translate="no">
+        <span class="b1 display">Math Land</span>
+        <span class="b2 display">Explorers</span>
+      </h1>
       <p class="headline rise d3">수학이 <span class="u">모험이 되는 순간.</span></p>
       <p class="lede rise d4">문제를 풀고, 단서를 찾고, 새로운 수학 세계를 발견하세요.</p>
     </div>
     <div class="hero-art rise d2" id="heroArt">
-      <img class="floaty" id="heroImg" src="img/hero-island-900.webp"
-           srcset="img/hero-island-560.webp 560w, img/hero-island-900.webp 900w, img/hero-island-1400.webp 1400w"
-           sizes="(max-width:640px) 104vw, (max-width:959px) 52vw, 620px"
-           width="1529" height="891" fetchpriority="high"
-           alt="구름 위에 떠 있는 수학 탐험 섬. 빛나는 보물상자, 시그마가 새겨진 돌 아치, 적분 기호 조형물, 오일러 항등식이 있어요.">
+      <div class="scene floaty" id="scene">
+        <img class="base" id="heroImg" src="img/hero-base-900.webp"
+             srcset="img/hero-base-560.webp 560w, img/hero-base-900.webp 900w, img/hero-base-1400.webp 1400w"
+             sizes="(max-width:640px) 104vw, (max-width:959px) 52vw, 620px"
+             width="1529" height="886" fetchpriority="high"
+             alt="구름 위에 떠 있는 수학 탐험 섬. 빛나는 보물상자, 시그마가 새겨진 돌 아치, 적분 기호 조형물, 유리로 된 정육면체와 원뿔, 오일러 항등식이 있어요.">
+        <span class="lyr water" aria-hidden="true"><i></i></span>
+        <span class="lyr glow" aria-hidden="true"></span>
+        <img class="lyr flag" src="img/hero-flag.webp" width="376" height="212" alt="" aria-hidden="true" loading="eager">
+        <div class="lyr cube" aria-hidden="true" style="--m:url(img/hero-cube.webp)">
+          <img src="img/hero-cube.webp" width="349" height="346" alt="" loading="eager"><span></span>
+        </div>
+        <div class="lyr cone" aria-hidden="true" style="--m:url(img/hero-cone.webp)">
+          <img src="img/hero-cone.webp" width="364" height="328" alt="" loading="eager"><span></span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -215,7 +293,7 @@ footer p{margin:0}
   <p>© 2026 경남고등학교 수학과 최선지 선생님 · Math Land Explorers</p>
   <p>원 저작자를 표시하면 비영리 교육 목적으로 이용할 수 있어요 (CC BY-NC 4.0).</p>
   <p>저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</p>
-  <p>글꼴: Baloo 2, IBM Plex Sans KR (SIL Open Font License) · 서버 연결: supabase-js (MIT License)</p>
+  <p>글꼴: Outfit, IBM Plex Sans KR (SIL Open Font License) · 서버 연결: supabase-js (MIT License)</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -330,7 +408,7 @@ $('clear').addEventListener('click', () => { q = ''; render(); $('q').focus(); }
 
 /* 마우스를 따라 섬이 아주 조금 움직여요 (데스크톱·포인터 있을 때만) */
 (function parallax(){
-  const img = $('heroImg'); if (!img) return;
+  const img = $('scene'); if (!img) return;
   if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   if (!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   let tx=0, ty=0, cx=0, cy=0, raf=null;
