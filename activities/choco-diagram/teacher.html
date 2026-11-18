@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>초코볼 다이어그램 현황판 — Math Land Explorers</title>
+<!--
+  초코볼 다이어그램 · 교사 현황판 (activities/choco-diagram/teacher.html)
+  © 2026 경남고등학교 수학과 최선지 선생님 · 초코볼 다이어그램
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../common/teacher.css">
+<style>
+main{max-width:1400px}
+.top-in{max-width:1400px}
+.classbar,.tabs,.mbar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.cchip,.tab,.mchip{border:1.5px solid var(--line2);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:14px}
+.cchip small,.mchip small{font-weight:400;color:var(--ink3);margin-left:2px}
+.cchip.closed{border-color:var(--coral)}
+.cchip.on,.tab.on,.mchip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.cchip.on small,.mchip.on small{color:#D5D9F0}
+.tabs{margin-top:8px}
+.lock{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;margin:0 0 12px}
+.lock span{color:var(--ink2);font-size:13px;flex:1;min-width:220px}
+.lock.on{background:#FCE4E0;border-color:#F2B8AE}.lock.on b{color:#A0362A}
+.msg{padding:9px 14px;border-radius:12px;margin:0 0 12px;font-size:14px}
+.msg.ok{background:#DFF7EC;color:#1D6B45}.msg.no{background:#FCE4E0;color:#A0362A}
+.note{color:var(--ink3);font-size:13px;line-height:1.6;margin:0 0 10px}
+.sumwrap{margin:0 0 16px}
+tr.pick{cursor:pointer}
+#tbl td,#tbl th{text-align:center;white-space:nowrap;padding:7px 8px}
+#tbl td.l,#tbl th.l{text-align:left}
+.ok{color:var(--green);font-weight:700}.no{color:var(--red)}.dim{color:#B5B9CF}
+.esc{display:inline-block;border-radius:12px;padding:1px 9px;font-weight:700;background:#DFF7EC;color:#1D6B45}
+.detail{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 20px;margin-top:14px}
+.detail h2{margin:0 0 6px;font-size:19px}
+.detail dl{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:6px 14px;margin:8px 0 14px}
+.detail dt{font-weight:700}.detail dd{margin:0;word-break:break-all}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.gcard .ph{aspect-ratio:3/4;border-radius:10px;background:var(--sheet);display:grid;place-items:center;color:var(--ink3);overflow:hidden;font-size:13px;text-align:center;padding:4px}
+.gcard img{width:100%;height:100%;object-fit:contain;display:block}
+.gcard.none{cursor:default;opacity:.75}
+.gcard .nm{font-weight:700}.gcard .ty{font-size:13px;color:var(--ink2)}
+.ov{position:fixed;inset:0;background:rgba(14,18,32,.88);display:grid;place-items:center;z-index:50;padding:16px;cursor:zoom-out}
+.ov img{max-width:100%;max-height:84vh;border-radius:12px;background:#fff;display:block;margin:0 auto}
+.ov .cap{color:#fff;font-weight:700;font-size:18px;text-align:center;margin-top:10px}
+/* 지금 어디에 */
+.where{display:grid;gap:8px}
+.wrow{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.wrow .wn{font-weight:700}.wrow .wn small{display:block;font-weight:400;color:var(--ink3)}
+.wrow .ppl{display:flex;flex-wrap:wrap;gap:6px}
+.pp{border-radius:999px;padding:3px 10px;background:var(--sheet);font-size:13px}
+.pp.stuck{background:#FCE4E0;color:#A0362A;font-weight:700}
+.pp.doneP{background:#DFF7EC;color:#1D6B45}
+.wbar{height:8px;border-radius:6px;background:var(--sheet);overflow:hidden;margin-top:6px}.wbar i{display:block;height:100%;background:#c9a227}
+/* 흔한 오답 */
+.wrongs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.wbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.wbox h3{margin:0 0 4px;font-size:16px}.wbox .sub{font-size:13px;color:var(--ink3);margin:0 0 8px}
+.wl{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}
+.wl code{background:var(--sheet);border-radius:6px;padding:1px 6px;word-break:break-all;font-family:inherit}
+/* 소감 */
+.evtop{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px}
+.evbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.evbox b{display:block;margin-bottom:6px}
+.evrow{display:grid;grid-template-columns:26px 130px 1fr 44px;align-items:center;gap:6px;font-size:13px;margin:3px 0}
+.evf{font-size:18px}.evbar{background:var(--sheet);border-radius:6px;height:12px;overflow:hidden}.evbar i{display:block;height:100%;background:var(--mint);border-radius:6px}.evn{text-align:right;color:var(--ink2)}
+.evtools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 12px}
+.evtools label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.evgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.evcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.evcard.empty{opacity:.65}
+.evhd{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--ink2)}.evhd b{font-size:16px;color:var(--ink);margin-right:auto}
+.evtx{white-space:pre-wrap;line-height:1.65;font-size:15px}
+/* 방탈출 현황판 고유 색: 밤하늘 남색 머리띠 + 금색 줄 */
+:root{--night:#141a30;--gold:#c9a227;--paper:#FFFDF9;--edge:#EADFC8;--line:#ECE3CF;--sheet:#F6F1E4}
+body{background:#F4F1EA}
+.top{background:var(--night);border-bottom:0;box-shadow:0 3px 0 var(--gold)}
+.top .brand,.top .who{color:#F5F2E6}
+.top .nav a{color:#D9DEF5}
+.top .btn{background:transparent;color:#F5F2E6;border-color:#4A5596}
+.card,.stat,.scroll,.detail,.gcard,.evbox,.evcard,.lock,.wrow,.wbox{background:var(--paper);border-color:var(--edge)}
+th{background:#F1E8D2;color:#1c2547}
+.cchip,.tab,.mchip{background:var(--paper);border-color:var(--edge)}
+.cchip.on,.tab.on,.mchip.on{background:var(--night);border-color:var(--night)}
+.btn.dark{background:var(--night);border-color:var(--night)}
+tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
+.home{display:inline-flex;align-items:center;gap:6px;margin:0 0 14px;padding:8px 16px;border-radius:999px;background:var(--paper);border:1.5px solid var(--edge);color:#1c2547;font-weight:700;text-decoration:none}
+.home:hover{border-color:var(--night)}
+
+/* 초코볼 다이어그램: 풀이 채점 */
+.gwrap{display:grid;grid-template-columns:200px minmax(0,1fr);gap:12px;align-items:start}
+.glist{display:flex;flex-direction:column;gap:6px;max-height:75vh;overflow-y:auto}
+.gitem{text-align:left;border:1.5px solid var(--line2);background:#fff;border-radius:12px;padding:6px 10px;font:inherit;font-size:14px;cursor:pointer}
+.gitem.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink) inset}
+.gmain{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px}
+.gtools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.gtools .btn.on{background:var(--ink);color:#fff}
+.gscroll{max-height:70vh;overflow:auto;border-radius:10px;background:#F1F2F7}
+.gscroll canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
+.gform{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.gform input{font:inherit;font-size:17px;padding:6px 10px;border:2px solid var(--line2);border-radius:10px}
+.gform #gsc{width:90px}.gform .grow{flex:1;display:flex;gap:6px;align-items:center}.gform .grow input{flex:1}
+.mbar label.mchip{display:inline-flex;gap:6px;align-items:center}
+@media (max-width:800px){.gwrap{grid-template-columns:1fr}.glist{flex-direction:row;flex-wrap:wrap;max-height:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand display" href="../../" translate="no">Math Land Explorers</a>
+  <nav class="nav" aria-label="선생님 메뉴">
+    <a href="../../teacher/">활동 모음</a>
+    <a href="../../teacher/students.html">학생 관리</a>
+  </nav>
+  <span class="grow"></span>
+  <span class="who" id="who"></span>
+  <button class="btn sm hidden" id="logout" type="button">로그아웃</button>
+</div></header>
+
+<main>
+  <div id="gate"></div>
+  <div id="board" class="hidden">
+    <a class="home" href="../../teacher/">← 활동 모음(교사 홈)으로 돌아가기</a>
+    <h1 id="title">초코볼 다이어그램 현황판</h1>
+    <p class="sub" id="meta"></p>
+    <div class="bar">
+      <label>학년도 <select id="yearSel"></select></label>
+      <label>운영 <select id="runSel"></select></label>
+      <span class="grow"></span>
+      <button class="btn" id="csv" type="button">CSV 내려받기</button>
+      <button class="btn" id="refresh" type="button">새로 고침</button>
+    </div>
+    <div class="classbar" id="classbar" role="group" aria-label="반 고르기"></div>
+    <div id="lockbar"></div>
+    <div class="stats" id="stats"></div>
+    <div id="clsum"></div>
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-t="list" type="button">진행 현황</button>
+      <button class="tab" data-t="where" type="button">지금 어디에?</button>
+      <button class="tab" data-t="choco" type="button">초코볼 사진</button>
+      <button class="tab" data-t="map" type="button">지도 모아 보기</button>
+      <button class="tab" data-t="grade" type="button">풀이 채점</button>
+      <button class="tab" data-t="eval" type="button">소감 모아 보기</button>
+    </div>
+    <div id="msg" aria-live="polite"></div>
+    <div id="view"></div>
+  </div>
+</main>
+
+<footer>
+  <p><b>© 2026 경남고등학교 수학과 최선지 선생님 · 초코볼 다이어그램</b></p>
+  <p>원 저작자(경남고 수학과 최선지 선생님)를 표시하면 비영리 교육 목적으로 이용할 수 있어요(CC BY-NC 4.0).</p>
+  <p>저작자 표시 없는 무단 복제·배포와 상업적 이용은 금지합니다.</p>
+  <p>수식 입력: MathLive (MIT)</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../../common/land.js"></script>
+<script src="../../common/tmath.js"></script>
+<script src="geo.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const { esc, rpc, MODE, sb } = Land;
+  const SLUG = 'choco-diagram';
+  const BUCKET = 'land-files';
+  const MAX = { sol1: 20, sol2: 30 };                     // 풀이 ① 수직이등분선 표 20점, ② 폐교 좌표 30점
+  const PKEY = { sol1: 'm2', sol2: 'm3' };                // 보관함 파일 이름
+  const SNAME = { sol1: '풀이 ① 수직이등분선 표', sol2: '풀이 ② 사라진 학교 좌표' };
+  const FLOW = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Q', 'S71', 'S72', 'S73', 'S8', 'S9', 'S10', 'S11', 'END'];
+  const SCREEN = { S1: '사진', S2: '세 점', S3: '관계', S4: '경계선', S5: '수직이등분선', S6: '풀이①', Q: '퀴즈', S71: '2014 지도', S72: '2024 지도', S73: '폐교 영역', S8: '도전 문제', S9: '풀이②', S10: '학습 확인', S11: '소감', END: '제출 완료' };
+  const CELLS = [['AB', 'mid', 'AB 중점'], ['AB', 'slope', 'AB 기울기'], ['AB', 'eq', 'AB 방정식'], ['BC', 'mid', 'BC 중점'], ['BC', 'slope', 'BC 기울기'], ['BC', 'eq', 'BC 방정식']];
+  const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
+  const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
+  const FACE = ['😭', '😟', '🙂', '😊', '😄'];
+  const VIEW1 = { x0: -30, x1: 30, y0: -20, y1: 20 };
+  const MAPW = 1093 / 67.76, MAPH = 859 / 67.76, O1 = Geo.mapOrigin(1);
+
+  let act = null, YEAR = Land.schoolYear(), RUNS = [], ROWS = [], DATA = [], PIN = {}, GR = {};
+  const DET = {};
+  let tab = 'list', sel = null, timer = null, evalOnly = true, gkey = 'sol1', gsel = null, gOnlyTodo = false;
+  let cls = 'all'; try { cls = localStorage.getItem('cd_cls') || 'all'; } catch (e) { }
+  const kst = (t, full) => { if (!t) return ''; try { return new Date(t).toLocaleString('ko-KR', Object.assign({ timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }, full ? { year: 'numeric' } : {})); } catch (e) { return ''; } };
+  const ago = t => { if (!t) return ''; const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? '방금' : m < 60 ? m + '분 전' : kst(t); };
+  // 학생이 수식 칸에 쓴 LaTeX를 읽기 쉽게 (예: 2^{5}\cdot17 → 2^5×17)
+  const pretty = s => String(s || '').replace(/\\cdot|\\times/g, '×').replace(/\\div/g, '÷').replace(/\\left|\\right/g, '').replace(/\^\{([^{}]*)\}/g, '^$1')
+    .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/\\sqrt\{([^{}]*)\}/g, '√($1)').replace(/\\[,;! ]/g, '');
+  const classLabel = k => k === 'all' ? '전체' : Land.classLabel(k);
+  const VIEW = () => (cls === 'all' ? DATA : DATA.filter(d => d.cls === cls)).slice().sort((a, b) => a.sid.localeCompare(b.sid) || a.rid - b.rid);
+  function note(m, k) { $('msg').innerHTML = m ? `<div class="msg ${k || 'ok'}">${esc(m)}</div>` : ''; }
+
+  /* ───────── 보관함 주소 (선생님 계정으로 10분짜리 주소) ───────── */
+  const URLS = {};
+  async function signed(paths) {
+    const now = Date.now(), need = [...new Set(paths.filter(p => p && !(URLS[p] && URLS[p].until > now)))];
+    for (let i = 0; i < need.length; i += 100) {
+      const part = need.slice(i, i + 100);
+      const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(part, 600);
+      if (error) throw error;
+      (data || []).forEach((s, j) => { URLS[part[j]] = { url: s.signedUrl || null, until: now + (s.signedUrl ? 540000 : 60000) }; });
+    }
+    const out = {}; paths.forEach(p => { out[p] = URLS[p] && URLS[p].url; }); return out;
+  }
+
+  /* ───────── 불러오기 ───────── */
+  async function loadDetails(rows) {
+    const need = rows.filter(r => !DET[r.record_id] || DET[r.record_id].saved !== r.saved_at);
+    let i = 0;
+    const worker = async () => { while (i < need.length) { const r = need[i++]; try { const P = await rpc('land_t_record_detail', { p_record_id: r.record_id }); DET[r.record_id] = { saved: r.saved_at, P: P || {} }; } catch (e) { console.warn(e); } } };
+    await Promise.all(Array.from({ length: Math.min(8, need.length) }, worker));
+  }
+  async function load(quiet) {
+    if (!quiet) note('불러오는 중…');
+    try {
+      const [acts, rows, studs, grades] = await Promise.all([rpc('land_t_activities'), rpc('land_t_records', { p_slug: SLUG, p_year: YEAR }), rpc('land_t_students', { p_year: YEAR }).catch(() => []), rpc('land_t_grades', { p_slug: SLUG, p_year: YEAR }).catch(() => [])]);
+      GR = {}; (grades || []).forEach(g => { (GR[g.record_id] = GR[g.record_id] || {})[g.key] = g; });
+      act = acts.find(a => a.slug === SLUG) || act;
+      RUNS = (act ? act.runs : []).filter(r => r.year === YEAR);
+      PIN = {}; (studs || []).forEach(s => { PIN[s.id] = s.pin_set; });
+      fillRuns();
+      const run = $('runSel').value;
+      ROWS = rows.filter(r => !run || String(r.run_id) === run);
+      await loadDetails(ROWS);
+      DATA = ROWS.map(toStudent);
+      render();
+      if (!quiet) note('');
+    } catch (e) { console.error(e); note('불러오지 못했어요. 인터넷 연결을 확인하고 [새로 고침]을 눌러 주세요.', 'no'); }
+  }
+  function fillRuns() {
+    const keep = $('runSel').value;
+    const opts = RUNS.map(r => `<option value="${r.id}">${MODE[r.mode]} · ${esc(r.label || '이름 없음')}${r.status === 'closed' ? ' (마감)' : ''}</option>`);
+    $('runSel').innerHTML = (RUNS.length > 1 ? '<option value="">모든 운영</option>' : '') + opts.join('') || '<option value="">운영 없음</option>';
+    if (keep && RUNS.some(r => String(r.id) === keep)) $('runSel').value = keep;
+    else if (RUNS.length > 1) { const open = RUNS.find(r => r.status === 'open'); $('runSel').value = open ? String(open.id) : ''; }
+  }
+  function lockRun() {
+    const v = $('runSel').value;
+    if (v) return RUNS.find(r => String(r.id) === v) || null;
+    const open = RUNS.filter(r => r.status === 'open');
+    return open.length === 1 ? open[0] : null;
+  }
+  const isClosed = k => { const r = lockRun(); return !!r && (r.status === 'closed' || (r.closed_classes || []).includes(k)); };
+
+  /* ───────── 그리기 ───────── */
+  function classBar() {
+    const keys = [...new Set([...DATA.map(d => d.cls), ...((lockRun() || {}).target_classes || [])])]
+      .sort((a, b) => { const [ga, ca] = a.split('-').map(Number), [gb, cb] = b.split('-').map(Number); return (ga - gb) || (ca - cb); });
+    if (cls !== 'all' && !keys.includes(cls)) cls = 'all';
+    const cnt = k => k === 'all' ? DATA.length : DATA.filter(d => d.cls === k).length;
+    $('classbar').innerHTML = ['all', ...keys].map(k => `<button type="button" class="cchip${k === cls ? ' on' : ''}${k !== 'all' && isClosed(k) ? ' closed' : ''}" data-c="${esc(k)}">${k !== 'all' && isClosed(k) ? '🔒 ' : ''}${esc(classLabel(k))} <small>${cnt(k)}</small></button>`).join('');
+    $('classbar').querySelectorAll('.cchip').forEach(b => b.onclick = () => pickClass(b.dataset.c));
+    lockBar();
+    $('csv').textContent = (cls === 'all' ? '전체' : classLabel(cls)) + ' CSV 내려받기';
+    if (cls === 'all' && keys.length > 1) {
+      const rowsS = keys.map(k => {
+        const L = DATA.filter(d => d.cls === k), n = L.length, avg = n ? (L.reduce((a, d) => a + d.s5ok, 0) / n).toFixed(1) : '0';
+        return `<tr class="pick" data-c="${esc(k)}"><td><b>${esc(classLabel(k))}</b></td><td class="num">${n}</td><td class="num">${avg} / 6</td><td class="num">${L.filter(d => d.s8ok).length}</td><td class="num">${L.filter(d => d.files.m2).length} / ${L.filter(d => d.files.m3).length}</td><td class="num">${L.filter(d => d.submitted).length}</td><td>${isClosed(k) ? '<span class="chip closed">🔒 마감</span>' : '<span class="chip open">진행 중</span>'}</td></tr>`;
+      }).join('');
+      $('clsum').innerHTML = `<div class="scroll sumwrap" style="max-height:none"><table><thead><tr><th>반</th><th class="num">학생 수</th><th class="num">수직이등분선 표 평균</th><th class="num">도전 성공</th><th class="num">풀이 사진 ①/②</th><th class="num">소감 제출</th><th>상태</th></tr></thead><tbody>${rowsS}</tbody></table></div>`;
+      $('clsum').querySelectorAll('tr.pick').forEach(r => r.onclick = () => pickClass(r.dataset.c));
+    } else $('clsum').innerHTML = '';
+  }
+  function pickClass(c) { cls = c; try { localStorage.setItem('cd_cls', cls); } catch (e) { } sel = null; render(); }
+  function lockBar() {
+    const box = $('lockbar');
+    if (cls === 'all') { box.innerHTML = ''; return; }
+    const run = lockRun();
+    if (!run) { box.innerHTML = `<div class="lock"><b>${esc(classLabel(cls))}</b><span>위에서 운영을 하나 고르면 이 반을 마감하거나 마감을 풀 수 있어요.</span></div>`; return; }
+    if (run.status === 'closed') { box.innerHTML = `<div class="lock on"><b>🔒 운영 전체가 마감됨</b><span>「${esc(run.label || '이름 없음')}」 운영 전체가 마감되어 있어요. 다시 열려면 활동 모음에서 운영을 여세요.</span></div>`; return; }
+    const at = (run.closed_classes || []).includes(cls);
+    box.innerHTML = at
+      ? `<div class="lock on"><b>🔒 ${esc(classLabel(cls))} 마감됨</b><span>학생들은 이 반 기록을 더 이상 고치거나 제출할 수 없어요. (운영: ${esc(run.label || '이름 없음')})</span><button class="btn sm" id="lockbtn" type="button">마감 풀기</button></div>`
+      : `<div class="lock"><b>${esc(classLabel(cls))} 진행 중</b><span>마감하면 이 반 학생들은 저장·제출을 할 수 없고, 지금 기록이 그대로 남아요. (운영: ${esc(run.label || '이름 없음')})</span><button class="btn sm warn" id="lockbtn" type="button">이 반 마감하기</button></div>`;
+    let armed = false; const b = $('lockbtn');
+    b.onclick = async () => {
+      if (!armed) { armed = true; b.textContent = at ? '정말 마감을 풀까요? 한 번 더 누르세요' : '정말 마감할까요? 한 번 더 누르세요'; return; }
+      b.disabled = true;
+      try { run.closed_classes = await rpc('land_t_close_class', { p_id: run.id, p_class: cls, p_closed: !at }) || []; note(at ? classLabel(cls) + ' 마감을 풀었어요.' : classLabel(cls) + '을 마감했어요.', 'ok'); render(); }
+      catch (e) { console.error(e); note('바꾸지 못했어요. 다시 눌러 주세요.', 'no'); b.disabled = false; }
+    };
+  }
+  const path = (d, f) => `${SLUG}/${YEAR}/run${d.run_id}/${d.sid}/${f}.jpg`;
+  function toStudent(r) {
+    const P = (DET[r.record_id] && DET[r.record_id].P) || {}, s5 = P.s5 || {}, s8 = P.s8 || {};
+    const cells = CELLS.map(([s, k]) => ((s5[s] || {})[k]) || { ok: false, wrong: 0, input: '' });
+    const g = GR[r.record_id] || {};
+    return {
+      rid: r.record_id, run_id: r.run_id, run_label: r.run_label, mode: r.mode, version: r.version,
+      student_id: r.student_id, sid: r.no, name: r.name, cls: `${r.grade}-${r.class_no}`, moved: r.student_status === 'moved',
+      P, cells, s5ok: cells.filter(c => c.ok).length, ver: P.ver || 1, s8: s8, s8ok: !!((s8.A || {}).ok && (s8.B || {}).ok),
+      quiz: (P.quiz || []).filter(q => q.ok).length, files: P.files || {}, grade: g,
+      screen: P.screen || 'S1', saved: r.saved_at, submitted: r.finished_at || P.submitted || '', saves: r.save_count,
+      eval: { u: (P.s11 || {}).u, f: (P.s11 || {}).c, c: (P.s11 || {}).text || '' }
+    };
+  }
+  const stuck = d => d.cells.some(c => !c.ok && c.wrong >= 3) || ['A', 'B'].some(k => d.s8[k] && !d.s8[k].ok && d.s8[k].wrong >= 3);
+  const cell = s => s.ok ? `<span class="ok">✓</span>${s.wrong ? `<span class="dim"> ${s.wrong}</span>` : ''}` : (s.wrong ? `<span class="no">✗${s.wrong}</span>` : '<span class="dim">·</span>');
+  const gtxt = (d, k) => d.grade[k] ? `<b>${d.grade[k].score}</b>` : (d.files[PKEY[k]] ? '<span class="no">채점 전</span>' : '<span class="dim">·</span>');
+  const total = d => (d.grade.sol1 || d.grade.sol2) ? (d.grade.sol1 ? d.grade.sol1.score : 0) + (d.grade.sol2 ? d.grade.sol2.score : 0) : '';
+
+  /* ───────── 그리기 ───────── */
+  function render() {
+    classBar();
+    const V = VIEW(), n = V.length;
+    const avg = n ? (V.reduce((a, d) => a + d.s5ok, 0) / n).toFixed(1) : 0;
+    $('stats').innerHTML = [[classLabel(cls) + ' 접속 학생', n], ['수직이등분선 표 평균', avg + ' / 6칸'], ['도전 문제 성공', V.filter(d => d.s8ok).length],
+      ['풀이 사진 ① / ②', V.filter(d => d.files.m2).length + ' / ' + V.filter(d => d.files.m3).length], ['채점 ① / ②', V.filter(d => d.grade.sol1).length + ' / ' + V.filter(d => d.grade.sol2).length], ['소감 제출', V.filter(d => d.submitted).length]]
+      .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${esc(k)}</span></div>`).join('');
+    ({ list, where, choco, map: mapView, grade: gradeView, eval: evalView })[tab]();
+  }
+
+  /* ---------- 진행 현황 ---------- */
+  function list() {
+    const V = VIEW(), multiRun = new Set(V.map(d => d.run_id)).size > 1;
+    const rows = V.map(d => `<tr class="pick${sel === d.rid ? ' sel' : ''}" data-r="${d.rid}" tabindex="0"><td>${esc(d.sid)}</td><td class="l">${esc(d.name)}${d.moved ? ' <span class="chip">전출</span>' : ''}${PIN[d.student_id] === false ? ' <span class="no">(비번 초기화됨)</span>' : ''}${multiRun ? ` <span class="chip">${esc(d.run_label || '')}</span>` : ''}</td>
+      <td>${esc(SCREEN[d.screen] || d.screen)}</td><td>${d.P.nb && d.P.nb.warned ? (d.P.nb.ignored ? '<span class="no">경고 무시</span>' : '<span class="no">경고</span>') : (d.P.nb ? '<span class="ok">✓</span>' : '<span class="dim">·</span>')}</td>
+      ${d.cells.map(c => `<td>${cell(c)}</td>`).join('')}<td>${d.quiz}/3</td><td>${d.ver}</td><td>${cell(d.s8.A || {})}</td><td>${cell(d.s8.B || {})}</td>
+      <td>${d.files.m2 ? '<span class="ok">①</span>' : '<span class="dim">①</span>'} ${d.files.m3 ? '<span class="ok">②</span>' : '<span class="dim">②</span>'}</td><td>${gtxt(d, 'sol1')}</td><td>${gtxt(d, 'sol2')}</td><td><b>${total(d)}</b></td>
+      <td>${esc(ago(d.saved))}</td><td>${d.submitted ? '<span class="ok">✓</span>' : '<span class="dim">·</span>'}</td></tr>`).join('');
+    $('view').innerHTML = `<p class="note">✓ 맞힘(옆 숫자는 맞히기 전 틀린 횟수) · ✗n 아직 못 맞힘(틀림 n번) · 세 점: 사진 색 검사에서 이웃이 아닌 것 같다는 경고가 떴는지 · 학생을 누르면 자세한 기록이 보여요. 30초마다 자동으로 새로 고쳐져요.</p>
+    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>지금 화면</th><th>세 점</th>${CELLS.map(c => `<th>${c[2]}</th>`).join('')}<th>퀴즈</th><th>도전 버전</th><th>학교 A</th><th>학교 B</th><th>사진</th><th>① /20</th><th>② /30</th><th>합계</th><th>마지막 저장</th><th>제출</th></tr></thead><tbody>${rows || '<tr><td colspan="22">아직 접속한 학생이 없어요.</td></tr>'}</tbody></table></div><div id="det"></div>`;
+    const tb = $('tbl');
+    tb.onclick = e => { const tr = e.target.closest('tr.pick'); if (tr) { sel = +tr.dataset.r; tb.querySelectorAll('tr.pick').forEach(x => x.classList.toggle('sel', x === tr)); detail(); } };
+    tb.onkeydown = e => { const tr = e.target.closest('tr.pick'); if (tr && e.key === 'Enter') tr.click(); };
+    if (sel) detail();
+  }
+  function detail() {
+    const d = DATA.find(x => x.rid === sel); if (!d) { $('det').innerHTML = ''; return; }
+    const P = d.P, abc = P.abc || {}, V8 = Geo.VERSIONS[d.ver - 1];
+    $('det').innerHTML = `<div class="detail"><h2>${esc(d.sid)} ${esc(d.name)}</h2>
+    <p class="muted" style="margin:0">${esc(MODE[d.mode] || '')} · ${esc(d.run_label || '')} · 버전 v${esc(d.version)} · 저장 ${d.saves}번 · 지금 화면: ${esc(SCREEN[d.screen] || '')}</p>
+    <dl><dt>세 점</dt><dd>${abc.A ? `A(${abc.A}) · B(${abc.B}) · C(${abc.C})` : '<span class="dim">아직</span>'}${P.nb && P.nb.warned ? ` · <span class="no">이웃 경고(AB ${P.nb.AB}%, BC ${P.nb.BC}%)${P.nb.ignored ? ' 무시하고 진행' : ''}</span>` : ''}</dd>
+    <dt>관계 쓰기</dt><dd>${esc(P.s3 || '') || '<span class="dim">없음</span>'}</dd>
+    ${CELLS.map(([s, k, nm], i) => `<dt>${nm}</dt><dd>${cell(d.cells[i])} <code>${esc(pretty(d.cells[i].input === 'none' ? '기울기 없음' : d.cells[i].input))}</code></dd>`).join('')}
+    <dt>도전 문제</dt><dd>버전 ${d.ver} (답 A(${V8.A}), B(${V8.B})) · 학교 A ${cell(d.s8.A || {})} <code>${esc(pretty((d.s8.A || {}).input))}</code> · 학교 B ${cell(d.s8.B || {})} <code>${esc(pretty((d.s8.B || {}).input))}</code></dd>
+    <dt>2014 · 2024 지도</dt><dd>${esc((P.s71 || {}).why || '') || '<span class="dim">이유 없음</span>'} / ${esc((P.s72 || {}).why || '') || '<span class="dim">이유 없음</span>'}</dd>
+    <dt>채점</dt><dd>① ${d.grade.sol1 ? d.grade.sol1.score + '/20 ' + esc(d.grade.sol1.memo || '') : '<span class="dim">아직</span>'} · ② ${d.grade.sol2 ? d.grade.sol2.score + '/30 ' + esc(d.grade.sol2.memo || '') : '<span class="dim">아직</span>'}</dd>
+    <dt>이해도 / 수업</dt><dd>${d.submitted && d.eval.u ? esc(U[d.eval.u - 1]) + ' / ' + esc(F[(d.eval.f || 3) - 1]) : '<span class="dim">없음</span>'} ${esc(d.eval.c)}</dd></dl>
+    <div class="btns"><button class="btn warn" id="rst" type="button">비밀번호 초기화</button></div><div id="dm" style="margin-top:10px"></div></div>`;
+    let armed = false;
+    $('rst').onclick = async () => {
+      if (!armed) { armed = true; $('rst').textContent = '정말 초기화할까요? 한 번 더 누르세요'; return; }
+      $('rst').disabled = true;
+      try { await rpc('land_t_reset_pin', { p_student_id: d.student_id }); PIN[d.student_id] = false; $('dm').innerHTML = '<div class="msg ok">초기화했어요. 학생이 같은 학번·이름으로 들어와 새 비밀번호를 만들면 기록은 그대로 이어져요.</div>'; }
+      catch (e) { console.error(e); $('dm').innerHTML = '<div class="msg no">초기화하지 못했어요. 다시 눌러 주세요.</div>'; $('rst').disabled = false; }
+    };
+  }
+
+  /* ---------- 지금 어디에? ---------- */
+  function where() {
+    const V = VIEW(), mx = Math.max(1, V.length);
+    const html = FLOW.map(s => {
+      const L = V.filter(d => d.screen === s);
+      const pp = L.map(d => `<span class="pp${stuck(d) ? ' stuck' : ''}${s === 'END' ? ' doneP' : ''}" title="마지막 저장 ${esc(ago(d.saved))}">${esc(d.sid)} ${esc(d.name)}</span>`).join('');
+      return `<div class="wrow"><div class="wn">${esc(SCREEN[s])} <small>${L.length}명</small><div class="wbar"><i style="width:${Math.round(L.length / mx * 100)}%"></i></div></div><div class="ppl">${pp || '<span class="dim">없음</span>'}</div></div>`;
+    }).join('');
+    $('view').innerHTML = `<p class="note">학생이 지금 보고 있는 화면이에요. <span class="pp stuck" style="font-size:12px">빨간 이름</span>은 수직이등분선 표나 도전 문제의 한 칸에서 3번 이상 틀리고 아직 못 맞힌 학생이에요.</p><div class="where">${html}</div>`;
+  }
+
+  /* ---------- 그림 도우미 (SVG) ---------- */
+  const NS = 'http://www.w3.org/2000/svg';
+  function S(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs || {}) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function board(v, K = 10) { const W = (v.x1 - v.x0) * K, H = (v.y1 - v.y0) * K; const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, style: 'width:100%;display:block;background:#fff;border-radius:10px' }); return { svg, K, W, H, v, X: x => (x - v.x0) * K, Y: y => (v.y1 - y) * K }; }
+  function lineEnds(l, v) { const [a, b, c] = l, out = []; if (Math.abs(b) > 1e-12) for (const x of [v.x0, v.x1]) { const y = -(a * x + c) / b; if (y >= v.y0 - 1e-9 && y <= v.y1 + 1e-9) out.push([x, y]); } if (Math.abs(a) > 1e-12) for (const y of [v.y0, v.y1]) { const x = -(b * y + c) / a; if (x >= v.x0 - 1e-9 && x <= v.x1 + 1e-9) out.push([x, y]); } return out.length >= 2 ? [out[0], out[out.length - 1]] : null; }
+  const texLine = t => { try { return t && t !== 'none' ? Geo.lineOf(TMath.compileXY(TMath.latexToPlain(t)).f) : null; } catch (e) { return null; } };
+
+  /* ---------- 초코볼 사진 모아 보기 ---------- */
+  function choco() {
+    const V = VIEW().filter(d => d.files.m1 && d.P.photo);
+    $('view').innerHTML = `<p class="note">학생이 올린 초코볼 사진 위에 세 점 A, B, C와 학생이 쓴 두 수직이등분선(파랑 AB, 보라 BC)을 그렸어요. 누르면 크게 보여요.</p>${V.length ? '<div class="gallery" id="cg"></div>' : '<p>아직 사진을 올린 학생이 없어요.</p>'}`;
+    if (!V.length) return;
+    signed(V.map(d => path(d, 'm1'))).then(urls => {
+      if (tab !== 'choco') return;
+      V.forEach(d => {
+        const b = board(VIEW1), ph = d.P.photo, u = urls[path(d, 'm1')];
+        if (u) S('image', { href: u, x: b.X(ph.x - ph.w / 2), y: b.Y(ph.y + ph.h / 2), width: ph.w * b.K, height: ph.h * b.K, preserveAspectRatio: 'none', opacity: .9, transform: `rotate(${-ph.angle} ${b.X(ph.x)} ${b.Y(ph.y)})` }, b.svg);
+        S('line', { x1: 0, y1: b.Y(0), x2: b.W, y2: b.Y(0), stroke: '#1A1F4D', 'stroke-opacity': .5 }, b.svg); S('line', { x1: b.X(0), y1: 0, x2: b.X(0), y2: b.H, stroke: '#1A1F4D', 'stroke-opacity': .5 }, b.svg);
+        [['AB', '#2F6FDB'], ['BC', '#7A3FC4']].forEach(([s, col]) => { const l = texLine(((d.P.s5 || {})[s] || {}).eq && d.P.s5[s].eq.input); const e = l && lineEnds(l, VIEW1); if (e) S('line', { x1: b.X(e[0][0]), y1: b.Y(e[0][1]), x2: b.X(e[1][0]), y2: b.Y(e[1][1]), stroke: col, 'stroke-width': 3 }, b.svg); });
+        ['A', 'B', 'C'].forEach(k => { const p = (d.P.abc || {})[k]; if (p) { S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 6, fill: '#D23B2E', stroke: '#fff', 'stroke-width': 2 }, b.svg); S('text', { x: b.X(p[0]) + 8, y: b.Y(p[1]) - 6, 'font-size': 14, 'font-weight': 700, fill: '#1A1F4D' }, b.svg).textContent = k; } });
+        const card = document.createElement('button'); card.type = 'button'; card.className = 'gcard';
+        card.innerHTML = `<div class="nm">${esc(d.sid)} ${esc(d.name)}</div><div class="ty">수직이등분선 표 ${d.s5ok}/6칸${d.P.nb && d.P.nb.warned ? ' · <span class="no">이웃 경고</span>' : ''}</div>`;
+        card.prepend(b.svg); card.onclick = () => big(b.svg.cloneNode(true), `${d.sid} ${d.name}`);
+        $('cg') && $('cg').appendChild(card);
+      });
+    }).catch(e => { console.error(e); note('사진을 불러오지 못했어요.', 'no'); });
+  }
+  function big(node, cap) {
+    const o = document.createElement('div'); o.className = 'ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', cap);
+    const box = document.createElement('div'); box.style.cssText = 'width:min(94vw,1300px)'; node.style.maxHeight = '84vh'; box.appendChild(node);
+    box.insertAdjacentHTML('beforeend', `<div class="cap">${esc(cap)}</div>`); o.appendChild(box);
+    const close = () => { o.remove(); document.removeEventListener('keydown', key); }, key = e => { if (e.key === 'Escape') close(); };
+    o.onclick = close; document.addEventListener('keydown', key); document.body.appendChild(o);
+  }
+
+  /* ---------- 지도 모아 보기 (반 전체 겹쳐 보기, 기준판 좌표) ---------- */
+  let mapShow = { x: true, pick: true, cell: true };
+  function mapView() {
+    const V = VIEW(), six = [...Geo.others(1), Geo.VERSIONS[0].P, Geo.VERSIONS[0].Q];
+    const v = { x0: O1[0], x1: O1[0] + MAPW, y0: O1[1], y1: O1[1] + MAPH }, b = board(v, 67.76);
+    S('image', { href: 'img/' + (mapShow.cell ? 'map-base.png' : 'pop-2014.png'), x: 0, y: 0, width: b.W, height: b.H, preserveAspectRatio: 'none' }, b.svg);
+    const vo = Geo.voronoi(six, v);
+    if (mapShow.cell) {
+      const cnt = vo.cells.map((_, i) => V.filter(d => ((d.P.s73 || {}).cells || []).includes(i)).length), mx = Math.max(1, ...cnt);
+      vo.cells.forEach((c, i) => { if (cnt[i]) { S('polygon', { points: c.map(p => `${b.X(p[0])},${b.Y(p[1])}`).join(' '), fill: '#FF6F59', opacity: (.12 + .5 * cnt[i] / mx).toFixed(2) }, b.svg); } });
+      vo.edges.forEach(e => S('line', { x1: b.X(e.p[0]), y1: b.Y(e.p[1]), x2: b.X(e.q[0]), y2: b.Y(e.q[1]), stroke: '#2F55D4', 'stroke-width': 3 }, b.svg));
+      vo.cells.forEach((c, i) => { if (cnt[i]) { const m = c.reduce((a, p) => [a[0] + p[0] / c.length, a[1] + p[1] / c.length], [0, 0]); S('text', { x: b.X(m[0]), y: b.Y(m[1]), 'font-size': 26, 'font-weight': 700, fill: '#A0362A', 'text-anchor': 'middle' }, b.svg).textContent = cnt[i] + '명'; } });
+      six.forEach(p => S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 9, fill: '#2F55D4', stroke: '#fff', 'stroke-width': 3 }, b.svg));
+    }
+    V.forEach(d => {
+      const xs = (d.P.s71 || {}).xs || [], pk = (d.P.s72 || {}).picked || [];
+      if (mapShow.x) xs.forEach(p => { const x = b.X(p[0]), y = b.Y(p[1]); S('path', { d: `M${x - 9} ${y - 9}L${x + 9} ${y + 9}M${x + 9} ${y - 9}L${x - 9} ${y + 9}`, stroke: '#2F6FDB', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: .35 }, b.svg); });
+      if (mapShow.pick) pk.forEach(i => { const p = xs[i]; if (p) S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 20, fill: 'none', stroke: '#D23B2E', 'stroke-width': 4, opacity: .45 }, b.svg); });
+    });
+    $('view').innerHTML = `<div class="mbar"><label class="mchip"><input type="checkbox" id="mx" ${mapShow.x ? 'checked' : ''}> 2014 학교 X 표시</label><label class="mchip"><input type="checkbox" id="mp" ${mapShow.pick ? 'checked' : ''}> 2024 사라진 곳(동그라미)</label><label class="mchip"><input type="checkbox" id="mc" ${mapShow.cell ? 'checked' : ''}> 폐교 영역 색칠(칸별 인원)</label><span class="grow"></span><button class="btn" id="mbig" type="button">크게 보기</button></div>
+      <p class="note">${esc(classLabel(cls))} ${V.length}명의 표시를 한 지도에 겹쳤어요. 도전 문제 버전이 달라도 같은 자리로 맞춰 보여 줘요. 칸 색칠을 끄면 2014년 인구 지도 위에 보여요.</p><div id="mapbox" style="background:#fff;border-radius:14px;padding:6px"></div>`;
+    $('mapbox').appendChild(b.svg);
+    [['mx', 'x'], ['mp', 'pick'], ['mc', 'cell']].forEach(([id, k]) => $(id).onchange = e => { mapShow[k] = e.target.checked; mapView(); });
+    $('mbig').onclick = () => big(b.svg.cloneNode(true), `${classLabel(cls)} · 지도 모아 보기`);
+  }
+
+  /* ---------- 풀이 채점 (사진 위 펜 + 점수) ---------- */
+  function gradeView() {
+    const all = VIEW(), V = all.filter(d => !gOnlyTodo || (d.files[PKEY[gkey]] && !d.grade[gkey]));
+    if (!V.some(d => d.rid === gsel)) { const f = V.find(d => d.files[PKEY[gkey]] && !d.grade[gkey]) || V.find(d => d.files[PKEY[gkey]]); gsel = f ? f.rid : null; }
+    const st = d => d.grade[gkey] ? `<span class="ok">${d.grade[gkey].score}점</span>` : d.files[PKEY[gkey]] ? '<span class="no">채점 전</span>' : '<span class="dim">사진 없음</span>';
+    $('view').innerHTML = `<div class="mbar">${['sol1', 'sol2'].map(k => `<button type="button" class="mchip${k === gkey ? ' on' : ''}" data-k="${k}">${SNAME[k]} <small>${all.filter(d => d.grade[k]).length}/${all.filter(d => d.files[PKEY[k]]).length}</small></button>`).join('')}
+      <label class="mchip"><input type="checkbox" id="gtodo" ${gOnlyTodo ? 'checked' : ''}> 채점 안 한 학생만</label></div>
+      <div class="gwrap"><div class="glist" id="glist">${V.map(d => `<button type="button" class="gitem${d.rid === gsel ? ' on' : ''}" data-r="${d.rid}">${esc(d.sid)} ${esc(d.name)}<br>${st(d)}</button>`).join('') || '<p class="note">학생이 없어요.</p>'}</div><div id="gmain" class="gmain"></div></div>`;
+    $('view').querySelectorAll('[data-k]').forEach(b => b.onclick = () => { gkey = b.dataset.k; gsel = null; gradeView(); });
+    $('gtodo').onchange = e => { gOnlyTodo = e.target.checked; gradeView(); };
+    $('glist').onclick = e => { const b = e.target.closest('.gitem'); if (b) { gsel = +b.dataset.r; gradeView(); } };
+    const d = DATA.find(x => x.rid === gsel); if (d) grader(d, V);
+  }
+  function grader(d, V) {
+    const g = d.grade[gkey] || {}, m = (g.marks && !Array.isArray(g.marks)) ? g.marks : { rot: 0, s: [] };
+    let marks = { rot: m.rot || 0, s: (m.s || []).slice() }, pen = { c: '#E53935', w: 4, erase: false }, hide = false, img = null, zoomK = 1;
+    const box = $('gmain');
+    if (!d.files[PKEY[gkey]]) { box.innerHTML = `<p>${esc(d.sid)} ${esc(d.name)} 학생은 아직 ${esc(SNAME[gkey])} 사진을 올리지 않았어요.</p>`; }
+    else box.innerHTML = `<div class="gtools"><b>${esc(d.sid)} ${esc(d.name)}</b><span class="grow"></span>
+        <button class="btn sm gp on" data-c="#E53935" type="button">빨강</button><button class="btn sm gp" data-c="#1E63D6" type="button">파랑</button>
+        <button class="btn sm gw" type="button">굵게</button><button class="btn sm ge" type="button">지우개</button><button class="btn sm gu" type="button">되돌리기</button>
+        <button class="btn sm gh" type="button">펜 자국 숨기기</button><button class="btn sm gr" type="button">⟳ 90°</button><button class="btn sm gz" type="button">확대 1×</button></div>
+      <div class="gscroll"><canvas id="gcv"></canvas></div>`;
+    box.insertAdjacentHTML('beforeend', `<div class="gform"><label>점수 <input id="gsc" type="number" inputmode="numeric" min="0" max="${MAX[gkey]}" step="1" value="${g.score ?? ''}"> / ${MAX[gkey]}</label>
+      <label class="grow">메모 <input id="gmemo" type="text" maxlength="200" value="${esc(g.memo || '')}"></label><button class="btn primary" id="gsave" type="button">저장하고 다음 학생</button></div><div id="gmsg"></div>`);
+    const cv = $('gcv');
+    const draw = () => {
+      if (!cv || !img) return;
+      const r = marks.rot % 4, iw = img.naturalWidth, ih = img.naturalHeight, k = Math.min(1, 1400 / Math.max(iw, ih));
+      const w = Math.round((r % 2 ? ih : iw) * k), h = Math.round((r % 2 ? iw : ih) * k); cv.width = w; cv.height = h;
+      const c = cv.getContext('2d'); c.save(); c.translate(w / 2, h / 2); c.rotate(r * Math.PI / 2); c.drawImage(img, -iw * k / 2, -ih * k / 2, iw * k, ih * k); c.restore();
+      if (!hide) marks.s.forEach(s => { c.strokeStyle = s.c; c.lineWidth = s.w * w / 1000; c.lineCap = c.lineJoin = 'round'; c.beginPath(); s.p.forEach((p, i) => i ? c.lineTo(p[0] * w, p[1] * h) : c.moveTo(p[0] * w, p[1] * h)); c.stroke(); });
+      cv.style.width = (zoomK * 100) + '%';
+    };
+    if (cv) {
+      signed([path(d, PKEY[gkey])]).then(u => { const url = u[path(d, PKEY[gkey])]; if (!url) { box.querySelector('.gscroll').textContent = '사진을 찾지 못했어요.'; return; } img = new Image(); img.crossOrigin = 'anonymous'; img.onload = draw; img.src = url; });
+      const at = e => { const r = cv.getBoundingClientRect(); return [+((e.clientX - r.left) / r.width).toFixed(4), +((e.clientY - r.top) / r.height).toFixed(4)]; };
+      cv.onpointerdown = e => {
+        if (hide || !img) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
+        if (pen.erase) { const p = at(e); const i = marks.s.findIndex(s => s.p.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < .02)); if (i >= 0) { marks.s.splice(i, 1); draw(); } return; }
+        const s = { c: pen.c, w: pen.w, p: [at(e)] }; marks.s.push(s);
+        cv.onpointermove = ev => { s.p.push(at(ev)); draw(); };
+        cv.onpointerup = cv.onpointercancel = () => { cv.onpointermove = null; if (s.p.length < 2) marks.s.pop(); };
+      };
+      box.querySelectorAll('.gp').forEach(b => b.onclick = () => { pen.c = b.dataset.c; pen.erase = false; box.querySelectorAll('.gp,.ge').forEach(x => x.classList.toggle('on', x === b)); });
+      box.querySelector('.gw').onclick = e => { pen.w = pen.w === 4 ? 9 : 4; e.target.textContent = pen.w === 4 ? '굵게' : '가늘게'; };
+      box.querySelector('.ge').onclick = e => { pen.erase = !pen.erase; e.target.classList.toggle('on', pen.erase); };
+      box.querySelector('.gu').onclick = () => { marks.s.pop(); draw(); };
+      box.querySelector('.gh').onclick = e => { hide = !hide; e.target.textContent = hide ? '펜 자국 보이기' : '펜 자국 숨기기'; draw(); };
+      box.querySelector('.gr').onclick = () => { marks.rot = (marks.rot + 1) % 4; marks.s = []; draw(); note('돌리면 펜 자국은 지워져요(사진 방향이 바뀌어서).', 'ok'); };
+      box.querySelector('.gz').onclick = e => { zoomK = zoomK === 1 ? 1.5 : zoomK === 1.5 ? 2 : 1; e.target.textContent = `확대 ${zoomK}×`; draw(); };
+    }
+    $('gsave').onclick = async () => {
+      const v = $('gsc').value.trim(), n = Number(v);
+      if (v === '' || !Number.isInteger(n) || n < 0 || n > MAX[gkey]) { $('gmsg').innerHTML = `<div class="msg no">점수는 0~${MAX[gkey]} 사이의 정수로 적어 주세요.</div>`; return; }
+      $('gsave').disabled = true;
+      try {
+        const r = await rpc('land_t_grade', { p_record_id: d.rid, p_key: gkey, p_score: n, p_max: MAX[gkey], p_memo: $('gmemo').value, p_marks: marks });
+        if (!r || !r.ok) throw new Error((r && r.code) || 'fail');
+        GR[d.rid] = Object.assign(GR[d.rid] || {}, { [gkey]: { score: n, memo: $('gmemo').value, marks } }); d.grade = GR[d.rid];
+        const nx = V.slice(V.findIndex(x => x.rid === d.rid) + 1).find(x => x.files[PKEY[gkey]] && !x.grade[gkey]);
+        note(`${d.sid} ${d.name} ${n}점 저장했어요.` + (nx ? '' : ' 남은 학생이 없어요.'), 'ok');
+        gsel = nx ? nx.rid : d.rid; gradeView();
+      } catch (e) { console.error(e); $('gmsg').innerHTML = '<div class="msg no">저장하지 못했어요. 다시 눌러 주세요.</div>'; $('gsave').disabled = false; }
+    };
+  }
+
+  function evalView() {
+    const V = VIEW(), wrote = V.filter(d => String(d.eval.c || '').trim());
+    const hist = key => { const h = [0, 0, 0, 0, 0]; V.forEach(d => { const v = d.eval[key]; if (d.submitted && v >= 1 && v <= 5) h[v - 1]++; }); return h; };
+    const bars = (title, key, labels) => { const h = hist(key), mx = Math.max(1, ...h);
+      return `<div class="evbox"><b>${esc(title)}</b>${h.map((n, i) => `<div class="evrow"><span class="evf">${FACE[i]}</span><span>${esc(labels[i])}</span><span class="evbar"><i style="width:${Math.round(n / mx * 100)}%"></i></span><span class="evn">${n}명</span></div>`).join('')}</div>`; };
+    const L = evalOnly ? wrote : V;
+    const cards = L.map(d => { const e = d.eval, c = String(e.c || '').trim();
+      return `<div class="evcard${c ? '' : ' empty'}"><div class="evhd"><b>${esc(d.sid)} ${esc(d.name)}</b><span title="이해도">${e.u ? FACE[e.u - 1] + ' ' + esc(U[e.u - 1]) : ''}</span><span title="수업">${e.f ? FACE[e.f - 1] + ' ' + esc(F[e.f - 1]) : ''}</span></div><div class="evtx">${c ? esc(c) : '<span class="dim">아직 쓰지 않았어요</span>'}</div></div>`; }).join('');
+    $('view').innerHTML = `<div class="evtop">${bars('오늘 수학 시간 이해도 (제출한 학생)', 'u', U)}${bars('오늘 수업은 어땠나요? (제출한 학생)', 'f', F)}</div>
+      <div class="evtools"><span>${esc(classLabel(cls))} · 한 줄 소감을 쓴 학생 <b>${wrote.length}</b> / ${V.length}명</span>
+      <label><input type="checkbox" id="evonly" ${evalOnly ? 'checked' : ''}> 쓴 학생만 보기</label>
+      <button class="btn sm" id="evcopy" type="button">모두 복사</button></div>
+      ${L.length ? `<div class="evgrid">${cards}</div>` : '<p>아직 소감을 쓴 학생이 없어요.</p>'}`;
+    $('evonly').onchange = e => { evalOnly = e.target.checked; evalView(); };
+    $('evcopy').onclick = async () => {
+      const txt = wrote.map(d => `${d.sid} ${d.name}\t${U[(d.eval.u || 3) - 1]}\t${F[(d.eval.f || 3) - 1]}\t${String(d.eval.c).trim().replace(/\s+/g, ' ')}`).join('\n');
+      if (!txt) return note('복사할 소감이 없어요.', 'no');
+      let ok = false;
+      try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) { }
+      if (!ok) { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) { } ta.remove(); }
+      note(ok ? `소감 ${wrote.length}개를 복사했어요. 한글이나 엑셀에 붙여넣으면 학번·이름·이해도·수업·소감 순으로 들어가요.` : '복사하지 못했어요. 직접 선택해서 복사해 주세요.', ok ? 'ok' : 'no');
+    };
+  }
+
+  /* ───────── 시작 ───────── */
+  /* ───────── 시작 ───────── */
+  async function init() {
+    const acts = await rpc('land_t_activities');
+    act = acts.find(a => a.slug === SLUG);
+    if (act) {
+      document.title = `${act.title} 현황판 — Math Land Explorers`;
+      $('title').textContent = `${act.title} 현황판`;
+      $('meta').textContent = `${act.grade_label || ''} · ${act.unit || ''} · 지금 버전 v${act.version}`;
+    } else $('meta').innerHTML = '<span class="err">활동(choco-diagram)이 아직 등록되지 않았어요. SQL 파일을 먼저 실행해 주세요.</span>';
+    let years = await rpc('land_t_years', { p_slug: SLUG });
+    const now = Land.schoolYear();
+    if (!years.includes(now)) years = [now, ...years];
+    $('yearSel').innerHTML = years.map(y => `<option value="${y}">${y}학년도${y === now ? ' (올해)' : ' (보관)'}</option>`).join('');
+    YEAR = +$('yearSel').value;
+    await load();
+    clearInterval(timer); timer = setInterval(() => { if ((tab === 'list' || tab === 'where') && !document.hidden) load(true); }, 30000);
+  }
+  $('yearSel').onchange = () => { YEAR = +$('yearSel').value; $('runSel').innerHTML = ''; sel = null; load(); };
+  $('runSel').onchange = () => { sel = null; load(); };
+  $('refresh').onclick = () => load();
+  $('csv').onclick = () => {
+    const L = VIEW(); if (!L.length) return note('내려받을 기록이 없어요.', 'no');
+    const r = s => s && s.ok ? `맞음(틀림 ${s.wrong || 0})` : s && s.wrong ? `못 맞힘(틀림 ${s.wrong})` : '';
+    const head = ['학번', '이름', '반', '운영', '지금 화면', '이웃 경고', ...CELLS.map(c => c[2]), '퀴즈(맞힌 수)', '도전 버전', '학교 A', '학교 B', '풀이① 점수(20)', '풀이① 메모', '풀이② 점수(30)', '풀이② 메모', '합계(50)', '이해도', '수업', '한 줄 소감', '관계 쓰기', '마지막 저장', '제출 시각'];
+    const body = L.map(d => [d.sid, d.name, classLabel(d.cls), d.run_label || '', SCREEN[d.screen] || d.screen, d.P.nb && d.P.nb.warned ? (d.P.nb.ignored ? '경고 무시' : '경고') : '',
+      ...d.cells.map(r), d.quiz, d.ver, r(d.s8.A), r(d.s8.B),
+      d.grade.sol1 ? d.grade.sol1.score : '', d.grade.sol1 ? d.grade.sol1.memo || '' : '', d.grade.sol2 ? d.grade.sol2.score : '', d.grade.sol2 ? d.grade.sol2.memo || '' : '', total(d),
+      d.submitted && d.eval.u ? U[d.eval.u - 1] : '', d.submitted && d.eval.f ? F[d.eval.f - 1] : '', String(d.eval.c || '').trim().replace(/\s+/g, ' '), String(d.P.s3 || '').trim().replace(/\s+/g, ' '),
+      kst(d.saved), d.submitted ? kst(d.submitted) : '']);
+    const csv = '\ufeff' + [head, ...body].map(x => x.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `초코볼다이어그램_${YEAR}학년도_${cls === 'all' ? '전체' : classLabel(cls)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => { tab = t.dataset.t; document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); note(''); render(); });
+
+  $('logout').addEventListener('click', Land.teacherLogout);
+  Land.teacherGate($('gate'), user => {
+    $('gate').innerHTML = ''; $('board').classList.remove('hidden');
+    $('who').textContent = user.email; $('logout').classList.remove('hidden');
+    init().catch(e => { console.error(e); $('meta').innerHTML = '<span class="err">불러오지 못했어요. 새로 고침해 보세요.</span>'; });
+  });
+})();
+</script>
+</body>
+</html>

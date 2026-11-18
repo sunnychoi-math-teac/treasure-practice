@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>초코볼 다이어그램 · Math Land Explorers</title>
+<meta name="author" content="경남고등학교 수학과 최선지">
+<meta name="copyright" content="© 2026 경남고등학교 수학과 최선지 선생님. CC BY-NC 4.0">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&family=Nunito:ital,wght@1,900&display=swap">
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.108.2/mathlive.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../../common/land.js"></script>
+<script src="../../common/tmath.js"></script>
+<script src="../../common/mathpad.js"></script>
+<script src="geo.js"></script>
+<style>
+:root{--ink:#1A1F4D;--ink2:#4A4F72;--yel:#FFC93C;--coral:#FF6F59;--mint:#6EDBB8;--card:#F4F5F9;--line:#D9DCEB;--choco:#6B3E26;--ok:#1E8E5A;--okbg:#E3F6EC;--no:#C0392B;--nobg:#FDECEA}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'IBM Plex Sans KR',system-ui,sans-serif;color:var(--ink);background:#FBF7F3;font-size:17px;line-height:1.6;word-break:keep-all;-webkit-text-size-adjust:100%}
+button{font-family:inherit}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--choco);color:#FFF4E6;padding:8px max(14px,env(safe-area-inset-left,0px))}
+.brand{font-family:'Nunito',sans-serif;font-style:italic;font-weight:900;font-size:21px;white-space:nowrap}
+.who{font-size:13px;opacity:.85;white-space:nowrap}
+.who button{background:none;border:0;color:inherit;text-decoration:underline;font-size:12px;cursor:pointer}
+.chips{display:flex;gap:5px;flex-wrap:wrap;flex:1;justify-content:flex-end}
+.chip{height:28px;border-radius:14px;border:1.5px solid rgba(255,244,230,.5);background:transparent;color:#FFF4E6;font-size:12.5px;padding:0 9px;cursor:pointer}
+.chip.done{background:#FFF4E6;color:var(--choco);border-color:#FFF4E6}
+.chip.here{outline:2px solid var(--yel);outline-offset:1px;font-weight:700}
+.chip[disabled]{opacity:.45;cursor:default}
+.ro-band{background:var(--coral);color:#fff;text-align:center;font-size:14px;padding:4px}
+/* 작업 화면: 가로 = 왼쪽 문제·입력 | 오른쪽 그림, 세로 = 위 그림 | 아래 입력 */
+.ws{display:grid;grid-template-columns:minmax(340px,40%) minmax(0,1fr);height:calc(100dvh - var(--topH,52px));overflow:hidden}
+.ws.solo{grid-template-columns:minmax(0,1fr)}
+.ws.solo .stage{display:none}
+.ws.solo .pane{max-width:820px;margin:0 auto;width:100%;border-right:0}
+.pane{display:flex;flex-direction:column;min-height:0;border-right:2px solid var(--line);background:#fff}
+.scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 24px}
+.ws-dock{flex:none}
+.nav{flex:none;display:flex;gap:10px;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line);background:#fff}
+.stage{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;padding:10px;background:#F6F1EC}
+.board{width:100%;height:100%;max-height:100%;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(26,31,77,.12);touch-action:none;user-select:none;-webkit-user-select:none}
+@media (orientation:portrait){.ws{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,46%) minmax(0,1fr)}.stage{order:-1}.pane{border-right:0;border-top:2px solid var(--line)}}
+h2{font-size:23px;margin:0 0 6px;line-height:1.3}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;background:var(--yel);border-radius:999px;padding:1px 10px;margin-bottom:6px}
+p{margin:.35em 0}
+.note{font-size:14.5px;color:var(--ink2)}
+.box{background:var(--card);border-radius:12px;padding:10px 14px;margin:10px 0}
+.btn{min-height:46px;border:0;border-radius:999px;background:var(--ink);color:#fff;font-size:16px;font-weight:700;padding:0 20px;cursor:pointer}
+.btn.line{background:#fff;color:var(--ink);border:2px solid var(--line)}
+.btn.yel{background:var(--yel);color:var(--ink)}
+.btn.small{min-height:38px;font-size:14.5px;padding:0 14px}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fb{font-weight:700;font-size:15px;border-radius:10px;padding:6px 12px;margin-top:6px}
+.fb.ok{background:var(--okbg);color:var(--ok)}.fb.no{background:var(--nobg);color:var(--no)}.fb.info{background:#EEF0FB;color:var(--ink)}
+textarea{width:100%;min-height:110px;font:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;padding:10px;resize:vertical}
+textarea:focus{outline:none;border-color:var(--ink)}
+label.sl{display:block;font-weight:700;margin-top:10px}
+input[type=range]{width:100%;accent-color:var(--choco)}
+table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
+.t th,.t td{border:1px solid var(--line);padding:6px;vertical-align:middle}
+.t th{background:var(--card);font-weight:700}
+.kv{background:#fff;border-radius:10px;padding:6px 8px;margin-top:6px}.kv .k{font-size:13.5px;font-weight:700;color:var(--ink2)}.kv.ok{background:var(--okbg)}.kv.no{background:var(--nobg)}
+.cell{display:flex;flex-direction:column;gap:4px}
+.cell .row{flex-wrap:nowrap}
+.mark{font-size:13px;font-weight:700;min-height:18px}
+.mark.ok{color:var(--ok)}.mark.no{color:var(--no)}
+.opt{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:9px 12px;margin:6px 0;font-size:16px;cursor:pointer;color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--no);background:var(--nobg)}
+.opt svg{width:120px;height:96px;flex:none;background:#fff;border-radius:8px;border:1px solid var(--line)}
+.preview{max-width:100%;max-height:300px;border-radius:12px;border:2px solid var(--line);display:block;margin-top:8px}
+.foot{margin-top:20px}
+.big{font-size:52px;text-align:center;line-height:1.1;margin:8px 0}
+.faces{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2)}
+.toastx{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 16px;border-radius:999px;z-index:90;font-size:14px}
+</style>
+</head>
+<body>
+<div class="top" id="top"><span class="brand">초코볼 다이어그램</span><span class="who" id="who"></span><nav class="chips" id="chips" aria-label="단계"></nav></div>
+<div id="ro" class="ro-band" hidden>마감된 활동이에요. 보기만 할 수 있어요.</div>
+<main class="ws" id="ws">
+  <section class="pane"><div class="scroll" id="pane"></div><div class="ws-dock"></div><div class="nav"><button class="btn line" id="prev" type="button">← 이전</button><button class="btn" id="next" type="button">다음 →</button></div></section>
+  <section class="stage" id="stage" aria-label="그림"></section>
+</main>
+<script>
+(async function () {
+  'use strict';
+  const SLUG = 'choco-diagram', TITLE = '초코볼 다이어그램';
+  const UPLOAD_URL = 'https://jerhkttkwvkfhiusgjhv.supabase.co/functions/v1/land-upload';
+  const UPLOAD_KEY = 'sb_publishable_MVAoOq79TXkJWwCXuPBSPQ_DvZpeCPR';
+  // 화면 순서와 위쪽 칩 이름
+  const FLOW = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Q', 'S71', 'S72', 'S73', 'S8', 'S9', 'S10', 'S11', 'END'];
+  const NAME = { S1: '사진', S2: '세 점', S3: '관계', S4: '경계선', S5: '수직이등분선', S6: '풀이①', Q: '퀴즈', S71: '2014', S72: '2024', S73: '폐교 영역', S8: '도전', S9: '풀이②', S10: '확인', S11: '소감', END: '제출' };
+  const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
+  const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
+  const UF = ['😵', '🤔', '🙂', '😊', '🤩'];
+  const VIEW1 = { x0: -30, x1: 30, y0: -20, y1: 20 };            // 초코볼 좌표평면(데스모스와 같음)
+  const VIEW4 = { x0: -15, x1: 15, y0: -20, y1: 20 };            // 선생님 실험 사진
+  const MAPW = 1093 / 67.76, MAPH = 859 / 67.76;                 // 지도 크기(칸)
+  // 선생님 실험 사진(1932×2576)의 초코볼 7개 → 사진을 가로 30, 세로 40 으로 가운데 둔 좌표
+  const TEACHER = [[392, 1140], [680, 1640], [1100, 1128], [1048, 480], [1540, 700], [1632, 1552], [980, 2020]]
+    .map(([x, y]) => [+((x / 1932 - .5) * 30).toFixed(2), +((.5 - y / 2576) * 40).toFixed(2)]);
+
+  const $ = s => document.querySelector(s);
+  const esc = Land.esc;
+  function h(tag, attrs, kids) {
+    const e = document.createElement(tag);
+    for (const k in attrs || {}) { const v = attrs[k]; if (k === 'class') e.className = v; else if (k === 'html') e.innerHTML = v; else if (k === 'text') e.textContent = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v); }
+    [].concat(kids == null ? [] : kids).forEach(c => c != null && e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c));
+    return e;
+  }
+  const NS = 'http://www.w3.org/2000/svg';
+  function S(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs || {}) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function toast(m) { const t = h('div', { class: 'toastx', text: m, role: 'status' }); document.body.appendChild(t); setTimeout(() => t.remove(), 2200); }
+  const fmt = v => (Math.round(v * 100) / 100).toString().replace('-', '−');
+  const pt = p => `(${fmt(p[0])}, ${fmt(p[1])})`;
+
+  /* ---------- 진행 상태 (land_records.detail) ---------- */
+  function newP(no) {
+    const c = () => ({ input: '', ok: false, wrong: 0 });
+    return { v: 1, ver: 1 + (Number(no) % 5), screen: 'S1', done: [], photo: null, abc: { A: [-10, 0], B: [0, 0], C: [10, 0] }, nb: null, s3: '', s4: [],
+      s5: { AB: { mid: c(), slope: c(), eq: c() }, BC: { mid: c(), slope: c(), eq: c() } }, files: {}, quiz: [0, 1, 2].map(() => ({ first: null, tries: 0, ok: false })),
+      s71: { xs: [], why: '' }, s72: { picked: [], why: '' }, s73: { cells: [], icons: [[0.6, 11.2], [1.6, 11.2]] }, s8: { A: c(), B: c() },
+      s10: { q1: { first: null, tries: 0, ok: false }, q2: { first: null, tries: 0, ok: false }, eq: c() }, s11: { u: 3, c: 3, text: '' }, submitted: '' };
+  }
+  function merge(a, b) { if (!b || typeof b !== 'object' || Array.isArray(b)) return b === undefined ? a : b; const o = Object.assign({}, a); for (const k in b) o[k] = (a && typeof a[k] === 'object' && a[k] && !Array.isArray(a[k])) ? merge(a[k], b[k]) : b[k]; return o; }
+
+  let enter = await Land.start({ slug: SLUG, title: TITLE });
+  const RO = enter.readOnly;
+  let P = merge(newP(enter.student.no), (enter.record && enter.record.detail) || {});
+  const V = Geo.VERSIONS[P.ver - 1];
+  const saver = Land.saver(enter, { title: TITLE });
+  const save = () => { if (!RO) saver.save(P); };
+  $('#who').innerHTML = `${esc(enter.student.no)} ${esc(enter.student.name)} <button type="button" id="out">로그아웃</button>`;
+  $('#out').onclick = () => Land.logout();
+  if (RO) $('#ro').hidden = false;
+  const setTopH = () => document.documentElement.style.setProperty('--topH', ($('#top').offsetHeight + ($('#ro').hidden ? 0 : $('#ro').offsetHeight)) + 'px');
+  window.addEventListener('resize', setTopH); setTopH();
+  const ML = MathPad.ready();
+
+  /* ---------- 사진 올리기 (land-upload: m1 초코볼, m2 풀이①, m3 풀이②) ---------- */
+  function shrink(file, max) {
+    return new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); res({ url: c.toDataURL('image/jpeg', .85), w: c.width, h: c.height }); }; im.onerror = () => rej(new Error('그림을 읽지 못했어요')); im.src = fr.result; };
+      fr.onerror = () => rej(new Error('파일을 읽지 못했어요')); fr.readAsDataURL(file);
+    });
+  }
+  async function post(body) {
+    const res = await fetch(UPLOAD_URL, { method: 'POST', headers: { 'content-type': 'application/json', apikey: UPLOAD_KEY }, body: JSON.stringify(Object.assign({ token: enter.token, run_id: enter.run.id }, body)) });
+    let r = null; try { r = await res.json(); } catch (e) { }
+    if (!r) throw new Error('서버 응답 없음'); if (!r.ok) throw new Error(r.code || '올리기 실패'); return r;
+  }
+  async function upload(key, dataUrl) {
+    let err;
+    for (let k = 0; k < 3; k++) { try { return await post({ key, data: dataUrl }); } catch (e) { err = e; if (/closed|ended|not_target|bad_|too_big|no_session/.test(e.message)) throw e; await new Promise(r => setTimeout(r, 1500 * (k + 1))); } }
+    throw err;
+  }
+  const upErr = e => /closed|ended/.test(e.message) ? '마감되어 올릴 수 없어요.' : '올리지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.';
+  let myUrls = null;
+  async function myUrl(key) { try { if (!myUrls) myUrls = (await post({ action: 'list' })).urls || {}; } catch (e) { myUrls = {}; } return myUrls[key] || null; }
+  const local = {};   // 이번에 고른 사진(dataURL)
+  async function photoSrc(key) { return local[key] || (P.files[key] ? await myUrl(key) : null); }
+
+  /* ---------- 좌표평면 그림판 ---------- */
+  function Board(host, v, opt = {}) {
+    const K = 20, W = (v.x1 - v.x0) * K, H = (v.y1 - v.y0) * K;
+    const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, class: 'board', role: 'img', 'aria-label': opt.label || '좌표평면' });
+    host.innerHTML = ''; host.appendChild(svg);
+    const X = x => (x - v.x0) * K, Y = y => (v.y1 - y) * K;
+    const world = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [q.x / K + v.x0, v.y1 - q.y / K]; };
+    const g = () => S('g', {}, svg);
+    return { svg, K, X, Y, world, g, v, W, H };
+  }
+  function axes(b, step, every, parent) {
+    const g = S('g', { 'pointer-events': 'none' }, parent || b.svg), v = b.v;
+    for (let x = Math.ceil(v.x0 / step) * step; x <= v.x1; x += step) S('line', { x1: b.X(x), y1: 0, x2: b.X(x), y2: b.H, stroke: x === 0 ? '#1A1F4D' : '#1A1F4D', 'stroke-opacity': x === 0 ? .8 : .1, 'stroke-width': x === 0 ? 2 : 1 }, g);
+    for (let y = Math.ceil(v.y0 / step) * step; y <= v.y1; y += step) S('line', { x1: 0, y1: b.Y(y), x2: b.W, y2: b.Y(y), stroke: '#1A1F4D', 'stroke-opacity': y === 0 ? .8 : .1, 'stroke-width': y === 0 ? 2 : 1 }, g);
+    const ox = Math.min(Math.max(b.X(0), 4), b.W - 30), oy = Math.min(Math.max(b.Y(0), 16), b.H - 4);
+    for (let x = Math.ceil(v.x0 / every) * every; x <= v.x1; x += every) if (x) S('text', { x: b.X(x), y: oy + 16, 'font-size': 13, 'text-anchor': 'middle', fill: '#4A4F72' }, g).textContent = String(x).replace('-', '−');
+    for (let y = Math.ceil(v.y0 / every) * every; y <= v.y1; y += every) if (y) S('text', { x: ox + 5, y: b.Y(y) + 4, 'font-size': 13, fill: '#4A4F72' }, g).textContent = String(y).replace('-', '−');
+    return g;
+  }
+  // 직선 ax+by+c=0 을 그림 테두리까지
+  function lineEnds(l, v) {
+    const [a, b, c] = l, out = [];
+    if (Math.abs(b) > 1e-12) for (const x of [v.x0, v.x1]) { const y = -(a * x + c) / b; if (y >= v.y0 - 1e-9 && y <= v.y1 + 1e-9) out.push([x, y]); }
+    if (Math.abs(a) > 1e-12) for (const y of [v.y0, v.y1]) { const x = -(b * y + c) / a; if (x >= v.x0 - 1e-9 && x <= v.x1 + 1e-9) out.push([x, y]); }
+    return out.length >= 2 ? [out[0], out[out.length - 1]] : null;
+  }
+  function drawLine(b, l, attrs, parent) { const e = lineEnds(l, b.v); if (e) S('line', Object.assign({ x1: b.X(e[0][0]), y1: b.Y(e[0][1]), x2: b.X(e[1][0]), y2: b.Y(e[1][1]), 'stroke-width': 3 }, attrs), parent || b.svg); }
+  function seg(b, p, q, attrs, parent) { return S('line', Object.assign({ x1: b.X(p[0]), y1: b.Y(p[1]), x2: b.X(q[0]), y2: b.Y(q[1]) }, attrs), parent || b.svg); }
+  function dragger(b, el, onMove, onEnd) {
+    if (RO) return;
+    el.style.cursor = 'grab';
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault(); b.svg.setPointerCapture(e.pointerId);
+      const mv = ev => onMove(b.world(ev)), up = () => { b.svg.removeEventListener('pointermove', mv); b.svg.removeEventListener('pointerup', up); b.svg.removeEventListener('pointercancel', up); onEnd && onEnd(); };
+      b.svg.addEventListener('pointermove', mv); b.svg.addEventListener('pointerup', up); b.svg.addEventListener('pointercancel', up);
+    });
+  }
+  // 사진(좌표평면 위): photo = {x,y,w,h,angle}  (x,y 는 가운데)
+  function placePhoto(b, src, ph, parent) {
+    const im = S('image', { href: src, preserveAspectRatio: 'none', opacity: .9 }, parent || b.svg);
+    const set = () => { im.setAttribute('x', b.X(ph.x - ph.w / 2)); im.setAttribute('y', b.Y(ph.y + ph.h / 2)); im.setAttribute('width', ph.w * b.K); im.setAttribute('height', ph.h * b.K); im.setAttribute('transform', `rotate(${-ph.angle} ${b.X(ph.x)} ${b.Y(ph.y)})`); };
+    set(); im.update = set; return im;
+  }
+  function school(b, p, color, parent, label) {
+    const g = S('g', { transform: `translate(${b.X(p[0])} ${b.Y(p[1])})` }, parent || b.svg);
+    S('circle', { r: 15, fill: color, opacity: .2 }, g);
+    S('path', { d: 'M-9 4v-8l9-7 9 7v8z', fill: color, stroke: '#fff', 'stroke-width': 1.5 }, g);
+    S('rect', { x: -2.5, y: -1, width: 5, height: 5, fill: '#fff' }, g);
+    if (label) { const t = S('text', { x: 14, y: -10, 'font-size': 14, 'font-weight': 700, fill: color, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, g); t.textContent = label; }
+    g.move = q => g.setAttribute('transform', `translate(${b.X(q[0])} ${b.Y(q[1])})`);
+    return g;
+  }
+
+  /* ---------- 화면 틀 ---------- */
+  let cur = FLOW.includes(P.screen) ? P.screen : 'S1';
+  const reached = () => Math.max(FLOW.indexOf(cur), ...P.done.map(s => FLOW.indexOf(s)));
+  function chips() {
+    const box = $('#chips'); box.innerHTML = '';
+    FLOW.slice(0, -1).forEach((s, i) => {
+      const b = h('button', { class: 'chip' + (P.done.includes(s) ? ' done' : '') + (s === cur ? ' here' : ''), type: 'button', text: NAME[s], 'aria-current': s === cur ? 'step' : null });
+      b.disabled = !(P.done.includes(s) || s === cur || i <= reached());
+      b.onclick = () => go(s); box.appendChild(b);
+    });
+    setTopH();
+  }
+  function go(s) {
+    if (window.MathPad) MathPad.KP.close();
+    cur = s; P.screen = s; save(); chips(); render();
+    $('#pane').scrollTop = 0;
+  }
+  let gate = () => '';   // 다음으로 가기 전에 확인(안 되면 안내 글)
+  $('#next').onclick = () => {
+    const m = RO ? '' : gate(); if (m) { toast(m); return; }
+    if (!P.done.includes(cur)) P.done.push(cur);
+    const i = FLOW.indexOf(cur); if (i < FLOW.length - 1) go(FLOW[i + 1]);
+  };
+  $('#prev').onclick = () => { const i = FLOW.indexOf(cur); if (i > 0) go(FLOW[i - 1]); };
+  function frame(solo) {
+    $('#ws').classList.toggle('solo', !!solo);
+    $('#prev').hidden = cur === 'S1' || cur === 'END'; $('#next').hidden = cur === 'S11' || cur === 'END';
+    gate = () => ''; const pane = $('#pane'); pane.innerHTML = ''; $('#stage').innerHTML = '';
+    return pane;
+  }
+  function fbBox() { return h('div', { 'aria-live': 'polite' }); }
+  function say(box, kind, text) { box.innerHTML = ''; if (text) box.appendChild(h('div', { class: 'fb ' + kind, text })); }
+  const RENDER = {};
+  function render() { (RENDER[cur] || RENDER.S1)(); }
+
+  /* ---------- S1 초코볼 사진 ---------- */
+  RENDER.S1 = () => {
+    const pane = frame();
+    const msg = fbBox(), file = h('input', { type: 'file', accept: 'image/*', hidden: '' });
+    const pick = h('button', { class: 'btn yel', type: 'button', text: P.files.m1 ? '사진 다시 올리기' : '📷 사진 찍기 / 고르기', onclick: () => file.click(), disabled: RO });
+    const sz = h('input', { type: 'range', min: 10, max: 120, step: 1, 'aria-label': '사진 크기' }), ang = h('input', { type: 'range', min: -180, max: 180, step: 1, 'aria-label': '사진 돌리기' });
+    pane.append(h('span', { class: 'tag', text: '파트1 초코볼 다이어그램' }), h('h2', { text: '① 초코볼 다이어그램 사진 올리기' }),
+      h('p', { text: '모둠 실험 접시를 위에서 찍어 올려 주세요.' }), h('div', { class: 'row' }, [pick, file]), msg,
+      h('div', { class: 'box' }, [h('p', { html: '사진을 끌어서 옮기고, 아래 막대로 크기와 방향을 맞춰요.<br><b>사진의 너비가 60, 높이가 40에 가깝게</b> 맞춰 주세요.' }),
+        h('label', { class: 'sl', text: '크기' }), sz, h('label', { class: 'sl', text: '돌리기' }), ang]));
+    const b = Board($('#stage'), VIEW1, { label: '초코볼 사진을 올린 좌표평면' });
+    const back = b.g(); axes(b, 5, 5);
+    let im = null;
+    const draw = async () => {
+      back.innerHTML = ''; const src = await photoSrc('m1'); if (!src || !P.photo) return;
+      im = placePhoto(b, src, P.photo, back);
+      let off = null;
+      dragger(b, im, w => { if (!off) off = [w[0] - P.photo.x, w[1] - P.photo.y]; P.photo.x = Math.round((w[0] - off[0]) * 10) / 10; P.photo.y = Math.round((w[1] - off[1]) * 10) / 10; im.update(); }, () => { off = null; save(); });
+      sz.value = P.photo.w; ang.value = P.photo.angle;
+    };
+    sz.oninput = () => { if (!P.photo || !im) return; const r = P.photo.h / P.photo.w; P.photo.w = +sz.value; P.photo.h = +(P.photo.w * r).toFixed(2); im.update(); save(); };
+    ang.oninput = () => { if (!P.photo || !im) return; P.photo.angle = +ang.value; im.update(); save(); };
+    file.onchange = async () => {
+      const f = file.files[0]; if (!f) return; say(msg, 'info', '사진을 올리는 중…');
+      try {
+        const s = await shrink(f, 1600); local.m1 = s.url;
+        const w = s.w >= s.h ? 60 : 40 * s.w / s.h;
+        P.photo = { x: 0, y: 0, w: +w.toFixed(2), h: +(w * s.h / s.w).toFixed(2), angle: 0 }; P.nb = null; await draw();
+        await upload('m1', s.url); P.files.m1 = new Date().toISOString(); save(); say(msg, 'ok', '✓ 사진을 올렸어요');
+        pick.textContent = '사진 다시 올리기';
+      } catch (e) { console.warn(e); say(msg, 'no', e.message.includes('읽지') ? e.message : upErr(e)); }
+      file.value = '';
+    };
+    if (P.files.m1 || local.m1) say(msg, 'ok', '✓ 올린 사진이 있어요');
+    draw();
+    gate = () => (P.photo && (local.m1 || P.files.m1)) ? '' : '먼저 초코볼 사진을 올려 주세요.';
+  };
+
+  /* ---------- S2 세 점 A, B, C ---------- */
+  function rgb2lab(r, g, b) {
+    const f = c => (c /= 255) <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4;
+    const R = f(r), G = f(g), B = f(b);
+    let x = (R * .4124 + G * .3576 + B * .1805) / .95047, y = R * .2126 + G * .7152 + B * .0722, z = (R * .0193 + G * .1192 + B * .9505) / 1.08883;
+    const t = v => v > .008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116; x = t(x); y = t(y); z = t(z);
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+  }
+  function loadImg(src) { return new Promise((res, rej) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
+  // 사진 색으로 A–B, B–C 사이에 「제3의 색」이 얼마나 있는지(%) — 브라우저 시험: 이웃 ≤ 5, 이웃 아님 33~80
+  async function neighbourCheck() {
+    const src = await photoSrc('m1'); if (!src) return null;
+    const im = await loadImg(src), k = 800 / Math.max(im.width, im.height), cw = Math.round(im.width * k), ch = Math.round(im.height * k);
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch; const g = c.getContext('2d', { willReadFrequently: true });
+    if ('filter' in g) { g.filter = 'blur(3px)'; g.drawImage(im, 0, 0, cw, ch); }
+    else { const s = document.createElement('canvas'); s.width = Math.round(cw / 3); s.height = Math.round(ch / 3); s.getContext('2d').drawImage(im, 0, 0, s.width, s.height); g.drawImage(s, 0, 0, cw, ch); }   // shortcut: 흐림 대신 줄였다 키우기(오래된 사파리)
+    const d = g.getImageData(0, 0, cw, ch).data, lab = new Float32Array(cw * ch * 3);
+    for (let i = 0, j = 0; i < d.length; i += 4, j += 3) lab.set(rgb2lab(d[i], d[i + 1], d[i + 2]), j);
+    const ph = P.photo, a = ph.angle * Math.PI / 180;
+    const px = p => { const dx = p[0] - ph.x, dy = p[1] - ph.y, u = dx * Math.cos(a) + dy * Math.sin(a), v = -dx * Math.sin(a) + dy * Math.cos(a); return [(u / ph.w + .5) * cw, (.5 - v / ph.h) * ch]; };
+    const skip = 110 / 2576 * Math.max(cw, ch);
+    return { AB: Geo.otherColour(lab, cw, ch, px(P.abc.A), px(P.abc.B), skip), BC: Geo.otherColour(lab, cw, ch, px(P.abc.B), px(P.abc.C), skip) };
+  }
+  function abcLayer(b, parent, dragOk, onChange) {
+    const g = S('g', {}, parent || b.svg), col = { A: '#2F6FDB', B: '#D23B2E', C: '#7A3FC4' };
+    ['A', 'B', 'C'].forEach(k => {
+      const p = P.abc[k], gg = S('g', {}, g);
+      const c = S('circle', { r: 9, fill: col[k], stroke: '#fff', 'stroke-width': 3 }, gg); S('circle', { r: 22, fill: col[k], opacity: .15 }, gg);
+      const t = S('text', { 'font-size': 17, 'font-weight': 700, fill: col[k], stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, gg);
+      const set = () => { gg.setAttribute('transform', `translate(${b.X(P.abc[k][0])} ${b.Y(P.abc[k][1])})`); t.setAttribute('x', 14); t.setAttribute('y', -12); t.textContent = `${k}${pt(P.abc[k])}`; };
+      set();
+      if (dragOk) dragger(b, gg, w => { const q = [Math.max(b.v.x0, Math.min(b.v.x1, Math.round(w[0]))), Math.max(b.v.y0, Math.min(b.v.y1, Math.round(w[1])))]; if (q[0] !== P.abc[k][0] || q[1] !== P.abc[k][1]) { P.abc[k] = q; P.nb = null; set(); onChange && onChange(); } }, () => save());
+    });
+    return g;
+  }
+  async function photoBoard(label) {
+    const b = Board($('#stage'), VIEW1, { label }); const back = b.g(); axes(b, 5, 5);
+    const src = await photoSrc('m1'); if (src && P.photo) placePhoto(b, src, P.photo, back);
+    return b;
+  }
+  RENDER.S2 = async () => {
+    const pane = frame(), msg = fbBox();
+    const done = h('button', { class: 'btn yel', type: 'button', text: '다 옮겼어요', disabled: RO });
+    pane.append(h('h2', { text: '② 세 점 A, B, C를 초코볼 가운데로' }),
+      h('p', { text: '점을 끌어 초코볼 가운데에 놓아요. 좌표는 정수로 붙어요.' }),
+      h('div', { class: 'box' }, [h('p', { html: '<b>A와 B, B와 C는 색이 바로 맞닿은 두 초코볼</b>이어야 해요.<br>그래야 두 점 사이의 색 경계선과 수직이등분선을 비교할 수 있어요.' })]),
+      done, msg);
+    const b = await photoBoard('초코볼 사진 위의 세 점 A, B, C');
+    abcLayer(b, null, true, () => say(msg, '', ''));
+    if (P.nb && P.nb.checked) say(msg, 'ok', '✓ 세 점을 정했어요');
+    done.onclick = async () => {
+      const { A, B, C } = P.abc;
+      if (!Geo.perpBisector(A, B) || !Geo.perpBisector(B, C) || !Geo.perpBisector(A, C)) { say(msg, 'no', '두 점이 겹쳐 있어요. 점을 옮겨 주세요.'); return; }
+      say(msg, 'info', '사진을 살펴보는 중…');
+      let r = null; try { r = await neighbourCheck(); } catch (e) { console.warn('이웃 검사 건너뜀', e); }
+      P.nb = Object.assign({ checked: true, warned: false, ignored: false }, r || {});
+      const bad = r && [r.AB > 25 ? 'A와 B' : '', r.BC > 25 ? 'B와 C' : ''].filter(Boolean);
+      if (bad && bad.length) {
+        P.nb.warned = true; save(); msg.innerHTML = '';
+        msg.append(h('div', { class: 'fb no', text: `${bad.join(', ')} 사이에 다른 색 영역이 있는 것 같아요. 점을 다시 옮겨 볼까요?` }),
+          h('div', { class: 'row', style: 'margin-top:6px' }, [h('button', { class: 'btn small line', type: 'button', text: '다시 옮기기', onclick: () => { P.nb = null; say(msg, '', ''); save(); } }),
+            h('button', { class: 'btn small', type: 'button', text: '이대로 갈래요', onclick: () => { P.nb.ignored = true; save(); say(msg, 'ok', '✓ 세 점을 정했어요'); } })]));
+      } else { save(); say(msg, 'ok', '✓ 세 점을 정했어요'); }
+    };
+    gate = () => (P.nb && P.nb.checked && (!P.nb.warned || P.nb.ignored)) ? '' : '[다 옮겼어요]를 눌러 세 점을 정해 주세요.';
+  };
+
+  /* ---------- S3 관계 쓰기 ---------- */
+  RENDER.S3 = async () => {
+    const pane = frame();
+    const ta = h('textarea', { 'aria-label': '경계선과 세 점의 관계', placeholder: '자유롭게 써 보세요.', disabled: RO });
+    ta.value = P.s3; ta.oninput = () => { P.s3 = ta.value; save(); };
+    pane.append(h('h2', { text: '③ 초코볼의 좌표와 경계선의 관계는?' }), h('p', { text: '평면을 나누는 색 경계들은 세 점 A, B, C와 어떤 관계가 있는 것 같나요? 모둠에서 이야기한 뒤 써 보세요.' }), ta);
+    const b = await photoBoard('초코볼 사진'); abcLayer(b, null, false);
+    gate = () => P.s3.trim() ? '' : '생각을 한 줄 이상 써 주세요.';
+  };
+
+  /* ---------- S4 경계선 확인하기 (선생님 실험 사진) ---------- */
+  RENDER.S4 = () => {
+    const pane = frame();
+    const show = h('button', { class: 'btn yel', type: 'button', text: '경계선 확인하기' }), clr = h('button', { class: 'btn small line', type: 'button', text: '내 선 지우기', disabled: RO });
+    pane.append(h('h2', { text: '④ 초코볼 다이어그램은 어떻게 만들어질까?' }),
+      h('p', { text: '선생님이 실험한 초코볼 다이어그램이에요.' }),
+      h('div', { class: 'box' }, [h('p', { html: '<b>경계선을 사이에 두고 있는 초코볼끼리 선분으로 이어</b> 보세요(그림 위에 손가락이나 펜으로 그어요).<br>그다음 [경계선 확인하기]를 눌러 두 그림의 관계를 생각해 봐요.' })]),
+      h('div', { class: 'row' }, [show, clr]));
+    const b = Board($('#stage'), VIEW4, { label: '선생님 실험 사진' });
+    S('image', { href: 'img/teacher-choco.jpg', x: 0, y: 0, width: b.W, height: b.H, preserveAspectRatio: 'none' }, b.svg);
+    const ink = b.g(), over = b.g();
+    TEACHER.forEach(p => S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 7, fill: '#2F6FDB', stroke: '#fff', 'stroke-width': 2.5 }, over));
+    const poly = s => S('polyline', { points: s.map(p => `${b.X(p[0])},${b.Y(p[1])}`).join(' '), fill: 'none', stroke: '#D23B2E', 'stroke-width': 5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, ink);
+    const redraw = () => { ink.innerHTML = ''; P.s4.forEach(poly); };
+    redraw();
+    if (!RO) b.svg.addEventListener('pointerdown', e => {
+      e.preventDefault(); b.svg.setPointerCapture(e.pointerId);
+      // 저장 크기 제한(서버 500KB): 점은 소수 한 자리, 한 획 200점, 마지막 30획만
+      const pt1 = ev => b.world(ev).map(v => Math.round(v * 10) / 10);
+      const s = [pt1(e)]; P.s4.push(s); let el = poly(s);
+      const mv = ev => { const q = pt1(ev), l = s[s.length - 1]; if (s.length >= 200 || (q[0] === l[0] && q[1] === l[1])) return; s.push(q); el.remove(); el = poly(s); };
+      const up = () => { b.svg.removeEventListener('pointermove', mv); b.svg.removeEventListener('pointerup', up); if (s.length < 2) P.s4.pop(); P.s4 = P.s4.slice(-30); redraw(); save(); };
+      b.svg.addEventListener('pointermove', mv); b.svg.addEventListener('pointerup', up);
+    });
+    clr.onclick = () => { P.s4 = []; redraw(); save(); };
+    let vg = null;
+    show.onclick = () => { if (vg) { vg.remove(); vg = null; show.textContent = '경계선 확인하기'; return; } vg = S('g', { 'pointer-events': 'none' }, b.svg); Geo.voronoi(TEACHER, VIEW4).edges.forEach(e => seg(b, e.p, e.q, { stroke: '#1A4FD0', 'stroke-width': 4 }, vg)); b.svg.appendChild(over); show.textContent = '경계선 숨기기'; };
+  };
+
+  /* ---------- S5 수직이등분선 표 ---------- */
+  const near = (a, b) => Math.abs(a - b) < 1e-9;
+  function readLine(w) {
+    const s = w.plain(); if (!/=/.test(s)) return 'form';
+    try { return Geo.lineOf(TMath.compileXY(s).f) || 'form'; } catch (e) { return 'form'; }
+  }
+  RENDER.S5 = async () => {
+    const pane = frame(); await ML;
+    const { A, B, C } = P.abc;
+    const BIS = { AB: Geo.perpBisector(A, B), BC: Geo.perpBisector(B, C) };
+    pane.append(h('h2', { text: '⑤ 초코볼 다이어그램의 숨은 비밀' }),
+      h('p', { html: `세 점의 좌표는 <b>A${pt(A)}, B${pt(B)}, C${pt(C)}</b> 이에요.` }),
+      h('p', { text: '선분 AB와 선분 BC의 수직이등분선의 방정식을 구해 봐요. 칸마다 [확인]을 눌러요.' }));
+    if (!BIS.AB || !BIS.BC) { pane.append(h('div', { class: 'fb no', text: '두 점이 겹쳐 있어요. ② 세 점 화면에서 점을 옮겨 주세요.' })); return; }
+    const tbl = h('div'), KN = { mid: '중점', slope: '수직이등분선의 기울기', eq: '수직이등분선의 방정식' };
+    const CHECK = {
+      mid: (w, bis) => { try { const p = TMath.parsePoint(w.plain()); return near(p[0], bis.mid[0]) && near(p[1], bis.mid[1]); } catch (e) { return 'form-pt'; } },
+      slope: (w, bis) => { if (w.none) return bis.slope === null; if (bis.slope === null) return false; try { return near(TMath.parseNumber(w.plain()), bis.slope); } catch (e) { return 'form-num'; } },
+      eq: (w, bis) => { const l = readLine(w); return l === 'form' ? 'form' : Geo.sameLine(l, bis.line); }
+    };
+    const FORM = { 'form-pt': '(x좌표, y좌표) 꼴로 써 주세요.', 'form-num': '수 하나를 써 주세요.', form: '직선의 방정식(○ = ○ 꼴)으로 써 주세요.' };
+    ['AB', 'BC'].forEach(seg => {
+      const tr = h('div', { class: 'box' }, [h('p', { html: `<b>선분 ${seg}</b>` })]);
+      ['mid', 'slope', 'eq'].forEach(k => {
+        const st = P.s5[seg][k], td = h('div', { class: 'kv' + (st.ok ? ' ok' : '') }, [h('span', { class: 'k', text: KN[k] })]), mark = h('div', { class: 'mark' + (st.ok ? ' ok' : ''), text: st.ok ? '✓' : '', 'aria-live': 'polite' });
+        const w = MathPad.mathInput(st.input === 'none' ? '' : st.input, () => chk());
+        const chk = () => {
+          if (RO) return;
+          const tex = w.none ? 'none' : w.tex(); if (!w.none && !tex.trim()) return;
+          const r = CHECK[k](w, BIS[seg]);
+          if (typeof r === 'string') { mark.className = 'mark no'; mark.textContent = FORM[r]; return; }
+          st.input = tex; st.ok = r; if (!r) st.wrong++;
+          td.className = 'kv ' + (r ? 'ok' : 'no'); mark.className = 'mark ' + (r ? 'ok' : 'no'); mark.textContent = r ? '✓' : '아직 아니에요'; save();
+        };
+        const row = h('div', { class: 'row' }, [w, h('button', { class: 'btn small', type: 'button', text: '확인', onclick: chk, disabled: RO })]);
+        if (k === 'slope') {
+          w.none = st.input === 'none';
+          const nb = h('button', { class: 'btn small line', type: 'button', text: '기울기 없음', 'aria-pressed': String(w.none), disabled: RO });
+          nb.onclick = () => { w.none = !w.none; nb.setAttribute('aria-pressed', String(w.none)); nb.className = 'btn small ' + (w.none ? 'yel' : 'line'); if (w.none) { w.setTex(''); chk(); } };
+          if (w.none) nb.className = 'btn small yel';
+          w.field.addEventListener('input', () => { if (w.none && w.tex()) { w.none = false; nb.className = 'btn small line'; } });
+          td.append(h('div', { class: 'cell' }, [row, nb, mark]));
+        } else td.append(h('div', { class: 'cell' }, [row, mark]));
+        tr.append(td);
+      });
+      tbl.append(tr);
+    });
+    const gbtn = h('button', { class: 'btn yel', type: 'button', text: '그래프 확인하기', style: 'margin-top:12px' }), q = h('div');
+    pane.append(tbl, gbtn, q);
+    const b = await photoBoard('초코볼 사진 위의 수직이등분선'); abcLayer(b, null, false); const lg = b.g();
+    gbtn.onclick = () => {
+      lg.innerHTML = ''; let n = 0;
+      [['AB', '#2F6FDB'], ['BC', '#7A3FC4']].forEach(([s, col]) => {
+        const tex = P.s5[s].eq.input; if (!tex) return;
+        try { const l = Geo.lineOf(TMath.compileXY(TMath.latexToPlain(tex)).f); if (l) { drawLine(b, l, { stroke: col }, lg); n++; } } catch (e) { }
+      });
+      say(q, n ? 'info' : 'no', n ? '사진 속 색 경계선과 비슷한가요? 실험이라 완벽히 겹치지는 않아요.' : '먼저 수직이등분선의 방정식을 입력해 주세요.');
+    };
+  };
+
+  /* ---------- S6 · S9 풀이 사진 ---------- */
+  function solRender(key, title, what) {
+    const pane = frame(true), msg = fbBox(), file = h('input', { type: 'file', accept: 'image/*', hidden: '' });
+    const img = h('img', { class: 'preview', alt: '올린 풀이 사진', hidden: '' });
+    const pick = h('button', { class: 'btn yel', type: 'button', text: P.files[key] ? '사진 다시 올리기' : '📷 풀이 사진 찍기 / 고르기', onclick: () => file.click(), disabled: RO });
+    pane.append(h('h2', { text: title }), h('p', { text: what }), h('p', { class: 'note', text: '학습지는 선생님께 그대로 내요. 사진은 글씨가 잘 보이게 찍어 주세요.' }), h('div', { class: 'row' }, [pick, file]), msg, img);
+    (async () => { const u = await photoSrc(key); if (u) { img.src = u; img.hidden = false; say(msg, 'ok', '✓ 올린 사진이 있어요'); } })();
+    file.onchange = async () => {
+      const f = file.files[0]; if (!f) return; say(msg, 'info', '사진을 올리는 중…');
+      try { const s = await shrink(f, 2000); local[key] = s.url; img.src = s.url; img.hidden = false; await upload(key, s.url); P.files[key] = new Date().toISOString(); save(); say(msg, 'ok', '✓ 사진을 올렸어요'); pick.textContent = '사진 다시 올리기'; }
+      catch (e) { console.warn(e); say(msg, 'no', e.message.includes('읽지') ? e.message : upErr(e)); }
+      file.value = '';
+    };
+  }
+  RENDER.S6 = () => solRender('m2', '⑥ 풀이 사진 ① 올리기', '학습지의 수직이등분선 표 풀이를 찍어 올려 주세요.');
+  RENDER.S9 = () => solRender('m3', '⑫ 풀이 사진 ② 올리기', '학습지의 사라진 학교 좌표 구하기 풀이를 찍어 올려 주세요.');
+
+  /* ---------- Q 퀴즈 3문항 ---------- */
+  const QS = [[2, 5.6], [5, 4], [8.2, 5.4], [2.6, 1.6], [7, 1.4], [5.2, 7.4]];   // 사이트: 1=A, 0=B, 4=C
+  const QBOX = { x0: 0, x1: 10, y0: 0, y1: 8 };
+  function quizFig(mode) {
+    const b = Board(h('div'), QBOX, { label: '보로노이 그림' }), vo = Geo.voronoi(QS, QBOX);
+    if (mode === 'cell') S('polygon', { points: vo.cells[1].map(p => `${b.X(p[0])},${b.Y(p[1])}`).join(' '), fill: '#BFEBD8' }, b.svg);
+    vo.edges.forEach(e => seg(b, e.p, e.q, { stroke: '#3A5BD9', 'stroke-width': 3 }));
+    const lab = (p, t, dx, dy) => { const e = S('text', { x: b.X(p[0]) + dx, y: b.Y(p[1]) + dy, 'font-size': 16, 'font-weight': 700, fill: '#1A1F4D' }, b.svg); e.textContent = t; };
+    QS.forEach(p => S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 4, fill: '#1A1F4D' }, b.svg));
+    lab(QS[1], 'A', 6, -6); lab(QS[0], 'B', 6, -6); lab(QS[4], 'C', 6, -6);
+    if (mode === 'edge') { const e = vo.edges.find(x => x.a === 1 && x.b === 4); seg(b, e.p, e.q, { stroke: '#FF6F59', 'stroke-width': 6 }); [[e.p, 'V'], [e.q, 'W']].forEach(([p, t]) => { S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 5, fill: '#FF6F59' }, b.svg); lab(p, t, 7, 16); }); }
+    b.svg.style.maxHeight = '260px'; return b.svg;
+  }
+  function tri(kind) {   // 세 점 그림 보기 4개
+    const T3 = [[3, 6], [7.2, 5.2], [4.4, 2]], box = { x0: 0, x1: 10, y0: 0, y1: 8 };
+    const b = Board(h('div'), box, { label: '세 점 그림' });
+    if (kind === 'right') Geo.voronoi(T3, box).edges.forEach(e => seg(b, e.p, e.q, { stroke: '#E0448A', 'stroke-width': 4 }));
+    if (kind === 'through') [[0, 1], [1, 2], [2, 0]].forEach(([i, j]) => { const [p, q] = [T3[i], T3[j]], dx = q[0] - p[0], dy = q[1] - p[1]; drawLine(b, [-dy, dx, dy * p[0] - dx * p[1]], { stroke: '#E0448A', 'stroke-width': 4 }); });
+    if (kind === 'circle') T3.forEach(p => S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 30, fill: 'none', stroke: '#E0448A', 'stroke-width': 4 }, b.svg));
+    if (kind === 'wrong') { const o = [6.5, 3.4]; [90, 200, 320].forEach(a => seg(b, o, [o[0] + 9 * Math.cos(a * Math.PI / 180), o[1] + 9 * Math.sin(a * Math.PI / 180)], { stroke: '#E0448A', 'stroke-width': 4 })); }
+    T3.forEach(p => S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 7, fill: '#3A5BD9' }, b.svg));
+    return b.svg;
+  }
+  const QUIZ = [
+    { q: '그림에서 색칠한 칸 안의 점들에 대한 알맞은 설명은?', fig: () => quizFig('cell'), a: 2,
+      opts: ['A까지의 거리가 모두 같은 점들이다', 'A와 B까지의 거리가 같은 점들이다', '다른 어느 초코볼(점)보다 A에 가장 가까운 점들이다', 'A를 중심으로 하는 원 위의 점들이다'] },
+    { q: '그림에서 경계 VW 위에 있는 점들에 대한 알맞은 설명은?', fig: () => quizFig('edge'), a: 0, after: '그래서 경계 VW는 선분 AC의 수직이등분선 위에 있어요.',
+      opts: ['A와 C까지의 거리가 같다', 'A, B, C까지의 거리가 모두 같다', 'V와 W까지의 거리가 같다', 'A까지의 거리가 가장 멀다'] },
+    { q: '세 점으로 만든 보로노이 다이어그램은 어느 것일까요?', a: 3, figs: ['through', 'circle', 'wrong', 'right'] }
+  ];
+  RENDER.Q = () => {
+    const pane = frame(true);
+    pane.append(h('span', { class: 'tag', text: '정리 퀴즈' }), h('h2', { text: '보로노이 다이어그램 정리하기' }));
+    QUIZ.forEach((Q, i) => {
+      const st = P.quiz[i], box = h('div', { class: 'box' }), fb = fbBox();
+      box.append(h('p', { html: `<b>${i + 1}. ${esc(Q.q)}</b>` })); if (Q.fig) box.append(Q.fig());
+      const btns = (Q.figs || Q.opts).map((o, j) => {
+        const b = h('button', { class: 'opt' + (st.ok && j === Q.a ? ' ok' : ''), type: 'button', disabled: RO }, [h('b', { text: '①②③④'[j] }), Q.figs ? tri(o) : h('span', { text: o })]);
+        b.onclick = () => {
+          if (st.first === null) st.first = j; st.tries++; st.ok = j === Q.a;
+          btns.forEach(x => x.className = 'opt'); b.className = 'opt ' + (st.ok ? 'ok' : 'no');
+          say(fb, st.ok ? 'ok' : 'no', st.ok ? '✓ 맞았어요! ' + (Q.after || '') : '아직 아니에요. 다시 골라 보세요.'); save();
+        };
+        return b;
+      });
+      box.append(...btns, fb); pane.append(box);
+      if (st.ok) say(fb, 'ok', '✓ 맞았어요! ' + (Q.after || ''));
+    });
+  };
+
+  /* ---------- 파트2 지도 ---------- */
+  function mapBoard(img, label) {
+    const o = Geo.mapOrigin(P.ver), v = { x0: o[0], x1: o[0] + MAPW, y0: o[1], y1: o[1] + MAPH };
+    const b = Board($('#stage'), v, { label });
+    S('image', { href: img, x: 0, y: 0, width: b.W, height: b.H, preserveAspectRatio: 'none' }, b.svg);
+    axes(b, 1, 2); return b;
+  }
+  const cur6 = () => [...Geo.others(P.ver), V.P, V.Q];
+  const fromBase = p => [+(p[0] - V.shift[0]).toFixed(2), +(p[1] - V.shift[1]).toFixed(2)];
+  const toBase = p => Geo.toBase(p, P.ver);
+  function xMark(b, p, g, col) { const x = b.X(p[0]), y = b.Y(p[1]); S('path', { d: `M${x - 9} ${y - 9}L${x + 9} ${y + 9}M${x + 9} ${y - 9}L${x - 9} ${y + 9}`, stroke: col || '#2F6FDB', 'stroke-width': 5, 'stroke-linecap': 'round' }, g); }
+  RENDER.S71 = () => {
+    const pane = frame(), why = h('textarea', { 'aria-label': '이유', placeholder: '왜 그렇게 표시했나요?', disabled: RO }), cnt = h('p', { class: 'note' });
+    why.value = P.s71.why; why.oninput = () => { P.s71.why = why.value; save(); };
+    pane.append(h('span', { class: 'tag', text: '파트2 사라진 옛 학교' }), h('h2', { text: '⑦ 2014년 초등학생 인구 분포' }),
+      h('p', { html: '진한 색일수록 초등학생이 많이 살아요. 2014년에 이 지역에는 <b>초등학교가 8개</b> 있었어요.' }),
+      h('p', { html: '8개 초등학교의 위치는 어디였을까요? 지도를 눌러 <b>X</b>를 표시해요(다시 누르면 지워져요).' }), cnt, h('label', { class: 'sl', text: '그렇게 표시한 이유' }), why);
+    const b = mapBoard('img/pop-2014.png', '2014년 초등학생 인구 분포 지도'), g = b.g();
+    const draw = () => { g.innerHTML = ''; P.s71.xs.forEach(p => xMark(b, fromBase(p), g)); cnt.textContent = `표시한 학교: ${P.s71.xs.length} / 8`; };
+    draw();
+    if (!RO) b.svg.addEventListener('pointerdown', e => {
+      const w = b.world(e), i = P.s71.xs.findIndex(p => Math.hypot(fromBase(p)[0] - w[0], fromBase(p)[1] - w[1]) < .4);
+      if (i >= 0) { P.s71.xs.splice(i, 1); P.s72.picked = P.s72.picked.filter(j => j !== i).map(j => j > i ? j - 1 : j); }
+      else if (P.s71.xs.length < 8) P.s71.xs.push(toBase(w).map(v => +v.toFixed(2)));
+      else toast('8개까지 표시할 수 있어요.');
+      draw(); save();
+    });
+    gate = () => !P.s71.xs.length ? '지도에 학교를 표시해 주세요.' : !P.s71.why.trim() ? '표시한 이유를 써 주세요.' : '';
+  };
+  RENDER.S72 = () => {
+    const pane = frame(), why = h('textarea', { 'aria-label': '이유', placeholder: '왜 그렇게 생각했나요?', disabled: RO });
+    why.value = P.s72.why; why.oninput = () => { P.s72.why = why.value; save(); };
+    pane.append(h('h2', { text: '⑧ 10년 뒤, 2024년 초등학생 인구 분포' }),
+      h('p', { html: '인구가 바뀌면서 8개 학교 중 <b>2개 학교가 폐교</b>되었어요.' }),
+      h('p', { html: '앞에서 표시한 X 중 사라졌을 것 같은 <b>2곳을 눌러 동그라미</b>를 쳐요.' }), h('label', { class: 'sl', text: '그렇게 생각한 이유' }), why);
+    const b = mapBoard('img/pop-2024.png', '2024년 초등학생 인구 분포 지도'), g = b.g();
+    const draw = () => { g.innerHTML = ''; P.s71.xs.forEach((p, i) => { const q = fromBase(p); xMark(b, q, g); if (P.s72.picked.includes(i)) S('circle', { cx: b.X(q[0]), cy: b.Y(q[1]), r: 22, fill: 'none', stroke: '#D23B2E', 'stroke-width': 4 }, g); }); };
+    draw();
+    if (!RO) b.svg.addEventListener('pointerdown', e => {
+      const w = b.world(e), i = P.s71.xs.findIndex(p => Math.hypot(fromBase(p)[0] - w[0], fromBase(p)[1] - w[1]) < .5);
+      if (i < 0) return;
+      const k = P.s72.picked.indexOf(i);
+      if (k >= 0) P.s72.picked.splice(k, 1); else if (P.s72.picked.length < 2) P.s72.picked.push(i); else toast('2곳까지 고를 수 있어요.');
+      draw(); save();
+    });
+    gate = () => P.s72.picked.length < 2 ? '사라졌을 것 같은 2곳을 골라 주세요.' : !P.s72.why.trim() ? '이유를 써 주세요.' : '';
+  };
+  RENDER.S73 = () => {
+    const pane = frame();
+    pane.append(h('h2', { text: '⑨ 사라진 학교는 어디에?' }),
+      h('p', { html: '지도에는 지금 남아 있는 <b>6개 초등학교</b>와, 그 학교들로 그린 <b>보로노이 다이어그램</b>이 있어요.' }),
+      h('p', { html: '① 사라진 두 학교가 있었을 것 같은 <b>칸 두 개를 눌러 색칠</b>해요.<br>② 왼쪽 위의 <b>학교 두 개를 끌어</b> 있었을 것 같은 곳에 놓아요.' }),
+      h('p', { class: 'note', text: '보로노이 다이어그램이 만들어지는 원리를 생각해 보세요.' }));
+    const b = mapBoard('img/map-base.png', '6개 초등학교와 보로노이 다이어그램'), six = cur6(), vo = Geo.voronoi(six, b.v);
+    const cg = b.g(); const eg = b.g(); vo.edges.forEach(e => seg(b, e.p, e.q, { stroke: '#2F55D4', 'stroke-width': 3 }, eg));
+    const sg = b.g(); six.forEach(p => school(b, p, '#2F55D4', sg));
+    const draw = () => { cg.innerHTML = ''; P.s73.cells.forEach(i => S('polygon', { points: vo.cells[i].map(p => `${b.X(p[0])},${b.Y(p[1])}`).join(' '), fill: '#FF6F59', opacity: .35 }, cg)); };
+    draw();
+    const inPoly = (p, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > p[1]) !== (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
+    if (!RO) b.svg.addEventListener('pointerdown', e => {
+      if (e.target.closest && e.target.closest('.icon')) return;
+      const w = b.world(e), i = vo.cells.findIndex(c => inPoly(w, c)); if (i < 0) return;
+      const k = P.s73.cells.indexOf(i); if (k >= 0) P.s73.cells.splice(k, 1); else if (P.s73.cells.length < 2) P.s73.cells.push(i); else toast('칸은 두 개까지 색칠할 수 있어요.');
+      draw(); save();
+    });
+    const o = Geo.mapOrigin(P.ver);
+    P.s73.icons.forEach((bp, n) => {
+      const ic = school(b, fromBase(bp), '#D23B2E', null, '?'); ic.classList.add('icon');
+      dragger(b, ic, w => { const q = [Math.max(o[0], Math.min(o[0] + MAPW, w[0])), Math.max(o[1], Math.min(o[1] + MAPH, w[1]))]; P.s73.icons[n] = toBase(q).map(v => +v.toFixed(2)); ic.move(q); }, () => save());
+    });
+  };
+
+  /* ---------- S8 도전 문제 ---------- */
+  RENDER.S8 = async () => {
+    const pane = frame(); await ML;
+    const L = l => { const s = -l[1]; const m = l[0] / s, c = l[2] / s; return `y = ${m === 1 ? '' : fmt(m)}x${c ? (c > 0 ? ' + ' : ' − ') + fmt(Math.abs(c)) : ''}`; };
+    pane.append(h('span', { class: 'tag', text: '도전 문제' }), h('h2', { text: '⑩ 사라진 옛 학교를 찾아라!' }),
+      h('p', { html: `지도에 나타난 두 점 <b>P${pt(V.P)}, Q${pt(V.Q)}</b>의 좌표와<br>보로노이 다이어그램 경계선의 방정식 <b>${L(V.lineA)}</b>, <b>${L(V.lineB)}</b>를 이용하여` }),
+      h('p', { html: '사라진 두 학교 <b>A(a, b), B(c, d)</b>의 좌표를 구해 보자. <b>학습지에 직접 풀어</b> 보세요.' }));
+    const b = mapBoard('img/map-base.png', '사라진 옛 학교 찾기 지도'), eight = [...Geo.others(P.ver), V.P, V.Q, V.A, V.B];
+    const eg = b.g(), rg = b.g(), sg = b.g(), ans = b.g();
+    const vo = Geo.voronoi(eight, b.v);
+    vo.edges.forEach(e => { const red = (e.a === 4 && e.b === 6) || (e.a === 5 && e.b === 7); seg(b, e.p, e.q, red ? { stroke: '#D23B2E', 'stroke-width': 5 } : { stroke: '#2F55D4', 'stroke-width': 3 }, red ? rg : eg); });
+    [[4, 6, V.lineA], [5, 7, V.lineB]].forEach(([a, c, l]) => { const e = vo.edges.find(x => x.a === a && x.b === c); if (!e) return; const s0 = eight[a], far = Math.hypot(e.p[0] - s0[0], e.p[1] - s0[1]) > Math.hypot(e.q[0] - s0[0], e.q[1] - s0[1]) ? e.p : e.q; const t = S('text', { x: b.X(far[0]) + 8, y: b.Y(far[1]) + (far[1] < s0[1] ? 22 : -8), 'font-size': 16, 'font-weight': 700, fill: '#D23B2E', stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, rg); t.textContent = L(l); });
+    Geo.others(P.ver).forEach(p => school(b, p, '#2F55D4', sg));
+    school(b, V.P, '#D23B2E', sg, `P${pt(V.P)}`); school(b, V.Q, '#D23B2E', sg, `Q${pt(V.Q)}`);
+    const fields = {}, marks = {};
+    const showAns = () => { ans.innerHTML = ''; ['A', 'B'].forEach(k => { const s = P.s8[k]; if (!s.input) return; try { const p = TMath.parsePoint(TMath.latexToPlain(s.input)); school(b, p, s.ok ? '#1E8E5A' : '#9AA0BF', ans, k); } catch (e) { } }); };
+    ['A', 'B'].forEach(k => {
+      const st = P.s8[k]; fields[k] = MathPad.mathInput(st.input, () => btn.click()); marks[k] = h('div', { class: 'mark' + (st.ok ? ' ok' : ''), text: st.ok ? '✓' : '' });
+      pane.append(h('div', { class: 'box' }, [h('p', { html: `<b>학교 ${k}</b>의 좌표 <span class="note">(예: (2, 3))</span>` }), fields[k], marks[k]]));
+    });
+    const btn = h('button', { class: 'btn yel', type: 'button', text: '학교의 위치 확인하기', disabled: RO }), fb = fbBox();
+    pane.append(btn, fb);
+    btn.onclick = () => {
+      let all = true;
+      ['A', 'B'].forEach(k => {
+        const st = P.s8[k], tex = fields[k].tex(); if (!tex.trim()) { all = false; return; }
+        let p; try { p = TMath.parsePoint(fields[k].plain()); } catch (e) { marks[k].className = 'mark no'; marks[k].textContent = '(x좌표, y좌표) 꼴로 써 주세요.'; all = false; return; }
+        const ok = near(p[0], V[k][0]) && near(p[1], V[k][1]); if (!ok) st.wrong++;
+        st.input = tex; st.ok = ok; all = all && ok;
+        marks[k].className = 'mark ' + (ok ? 'ok' : 'no'); marks[k].textContent = ok ? '✓' : '아직 아니에요';
+      });
+      showAns(); save();
+      say(fb, all ? 'ok' : '', all ? '✓ 사라진 두 학교를 찾았어요! 경계선이 빨간 선과 딱 맞지요?' : '');
+    };
+    showAns();
+  };
+
+  /* ---------- S10 오늘의 학습 확인 ---------- */
+  RENDER.S10 = async () => {
+    const pane = frame(true); await ML;
+    pane.append(h('span', { class: 'tag', text: '마무리' }), h('h2', { text: '오늘의 학습 확인' }), h('p', { text: '두 점 A(2, 4), B(−3, −1)의 수직이등분선을 y = f(x) 꼴로 구해 봐요.' }));
+    const MC = [['q1', '1. 수직이등분선의 기울기는?', ['−4/3', '−1', '1', '4/3'], 1], ['q2', '2. 수직이등분선이 반드시 지나는 점은?', ['A(2, 4)', 'B(−3, −1)', '(−1/2, 3/2)', '(−1, 3)'], 2]];
+    MC.forEach(([key, q, opts, a]) => {
+      const st = P.s10[key], box = h('div', { class: 'box' }, [h('p', { html: `<b>${q}</b>` })]), fb = fbBox();
+      const bs = opts.map((o, j) => { const b = h('button', { class: 'opt' + (st.ok && j === a ? ' ok' : ''), type: 'button', text: o, disabled: RO }); b.onclick = () => { if (st.first === null) st.first = j; st.tries++; st.ok = j === a; bs.forEach(x => x.className = 'opt'); b.className = 'opt ' + (st.ok ? 'ok' : 'no'); say(fb, st.ok ? 'ok' : 'no', st.ok ? '✓' : '아직 아니에요'); save(); }; return b; });
+      box.append(...bs, fb); pane.append(box);
+    });
+    const st = P.s10.eq, w = MathPad.mathInput(st.input, () => chk()), mk = h('div', { class: 'mark' + (st.ok ? ' ok' : ''), text: st.ok ? '✓' : '' });
+    const chk = () => { if (RO || !w.tex().trim()) return; const l = readLine(w); if (l === 'form') { mk.className = 'mark no'; mk.textContent = '직선의 방정식(○ = ○ 꼴)으로 써 주세요.'; return; } st.input = w.tex(); st.ok = Geo.sameLine(l, [1, 1, -1]); if (!st.ok) st.wrong++; mk.className = 'mark ' + (st.ok ? 'ok' : 'no'); mk.textContent = st.ok ? '✓' : '아직 아니에요'; save(); };
+    pane.append(h('div', { class: 'box' }, [h('p', { html: '<b>3. 선분 AB의 수직이등분선의 방정식</b>' }), h('div', { class: 'row' }, [w, h('button', { class: 'btn small', type: 'button', text: '확인', onclick: chk, disabled: RO })]), mk]));
+  };
+
+  /* ---------- S11 소감 · END ---------- */
+  RENDER.S11 = () => {
+    const pane = frame(true);
+    const mk = (key, q, words) => {
+      const face = h('div', { class: 'big', text: UF[P.s11[key] - 1] }), word = h('p', { style: 'text-align:center;font-weight:700', text: words[P.s11[key] - 1] });
+      const r = h('input', { type: 'range', min: 1, max: 5, step: 1, 'aria-label': q, disabled: RO }); r.value = P.s11[key];
+      r.oninput = () => { P.s11[key] = +r.value; face.textContent = UF[r.value - 1]; word.textContent = words[r.value - 1]; save(); };
+      return h('div', { class: 'box' }, [h('p', { html: `<b>${q}</b>` }), face, r, word]);
+    };
+    const ta = h('textarea', { 'aria-label': '한 줄 소감', placeholder: '(선택) 오늘 수업에서 새롭게 알게 된 점이나 느낀 점', disabled: RO }); ta.value = P.s11.text; ta.oninput = () => { P.s11.text = ta.value; save(); };
+    const sub = h('button', { class: 'btn yel', type: 'button', text: '제출하기', disabled: RO }), fb = fbBox();
+    pane.append(h('h2', { text: '오늘 잘했나요?' }),
+      h('div', { class: 'box' }, [h('p', { html: '오늘의 학습 목표<br>· 보로노이 다이어그램 속에서 두 직선의 수직 조건을 탐구하고 이해한다.<br>· 두 직선의 수직 조건을 이용하여 지도 위의 위치를 찾는 실생활 문제를 해결한다.' })]),
+      mk('u', '오늘 수학 시간에 얼마나 잘 이해했나요?', U), mk('c', '오늘 수업은 어땠나요?', F), ta, sub, fb);
+    sub.onclick = async () => {
+      sub.disabled = true; say(fb, 'info', '제출하는 중…');
+      P.submitted = new Date().toISOString(); if (!P.done.includes('S11')) P.done.push('S11');
+      const r = await saver.finish(P, { summary: (P.s11.text || '').trim() || (P.s3 || '').trim().slice(0, 200) || null });
+      if (r && r.ok) go('END'); else { sub.disabled = false; say(fb, 'no', '제출하지 못했어요. 다시 눌러 주세요.'); }
+    };
+  };
+  RENDER.END = () => {
+    const pane = frame(true);
+    pane.append(h('div', { class: 'big', text: '🍫' }), h('h2', { style: 'text-align:center', text: '제출했어요! 수고했어요.' }),
+      h('p', { style: 'text-align:center', text: '학습지는 선생님께 내 주세요. 위쪽 칩을 눌러 지난 화면을 다시 볼 수 있어요.' }),
+      h('div', { class: 'foot', html: Land.footerHtml(TITLE) + '<p class="note" style="text-align:center">수식 입력: MathLive (MIT License)</p>' }));
+  };
+
+  chips(); render();
+})();
+</script>
+</body>
+</html>
