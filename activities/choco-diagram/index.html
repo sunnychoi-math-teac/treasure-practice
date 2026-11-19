@@ -38,6 +38,7 @@ button{font-family:inherit}
 .tencol{align-self:center}.ten{min-height:60px;font-size:18px}
 @media (orientation:portrait){.maps{grid-template-columns:1fr}.tencol{justify-self:center}}
 .figs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.figs .opt{margin:0}.figs .opt svg{width:100%;height:auto;max-width:220px}
+.mth{font-family:KaTeX_Main,'Times New Roman',serif;font-size:19px}.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;line-height:1.15;margin:0 2px}.fr>span+span{border-top:1.5px solid currentColor}
 .box.sol{border:2px dashed var(--line)}
 .ro-band{background:var(--coral);color:#fff;text-align:center;font-size:14px;padding:4px}
 /* 작업 화면: 가로 = 왼쪽 문제·입력 | 오른쪽 그림, 세로 = 위 그림 | 아래 입력 */
@@ -136,7 +137,7 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
     return { v: 2, ver: 1 + (Number(no) % 5), screen: 'T', done: [], photo: null, abc: { A: [-10, 0], B: [0, 0], C: [10, 0] }, nb: null, s3: '', s4: [],
       s5: { AB: { mid: c(), slope: c(), eq: c() }, BC: { mid: c(), slope: c(), eq: c() } }, files: {}, quiz: [0, 1, 2, 3].map(() => ({ first: null, tries: 0, ok: false })),
       s71: { xs: [], why: '' }, s72: { picked: [], why: '', open: false }, s8: { A: c(), B: c() },
-      s10: { q1: { first: null, tries: 0, ok: false }, q2: { first: null, tries: 0, ok: false }, eq: c() }, s11: { u: 3, c: 3, text: '' }, submitted: '' };
+      s10: { q1: { first: null, tries: 0, ok: false }, q2: { first: null, tries: 0, ok: false }, eq: c() }, s11: { u: 3, c: 3, text: '', apply: '' }, submitted: '' };
   }
   function merge(a, b) { if (!b || typeof b !== 'object' || Array.isArray(b)) return b === undefined ? a : b; const o = Object.assign({}, a); for (const k in b) o[k] = (a && typeof a[k] === 'object' && a[k] && !Array.isArray(a[k])) ? merge(a[k], b[k]) : b[k]; return o; }
 
@@ -676,6 +677,8 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
   };
 
   /* ---------- 마무리: 오늘의 학습 확인 (그래프) ---------- */
+  // '−4/3' 같은 글을 위아래 분수로
+  const frac = t => esc(t).replace(/(\d+)\/(\d+)/g, '<span class="fr"><span>$1</span><span>$2</span></span>');
   RENDER.S10 = async () => {
     const pane = frame(); await ML;
     pane.append(h('h2', { text: '오늘의 학습 확인' }), h('p', { text: '오른쪽 두 점 A(2, 4), B(−3, −1)의 수직이등분선의 방정식을 y = f(x) 꼴로 구해 봐요.' }));
@@ -685,7 +688,7 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
     const MC = [['q1', '1. 수직이등분선의 기울기는?', ['−4/3', '−1', '1', '4/3'], 1], ['q2', '2. 수직이등분선이 반드시 지나는 점은?', ['A(2, 4)', 'B(−3, −1)', '(−1/2, 3/2)', '(−1, 3)'], 2]];
     MC.forEach(([key, q, opts, a]) => {
       const st = P.s10[key], box = h('div', { class: 'box' }, [h('p', { html: `<b>${q}</b>` })]), fb = fbBox();
-      const bs = opts.map((o, j) => { const bt = h('button', { class: 'opt' + (st.ok && j === a ? ' ok' : ''), type: 'button', text: o, disabled: RO }); bt.onclick = () => { if (st.first === null) st.first = j; st.tries++; st.ok = j === a; bs.forEach(x => x.className = 'opt'); bt.className = 'opt ' + (st.ok ? 'ok' : 'no'); say(fb, st.ok ? 'ok' : 'no', st.ok ? '✓' : '아직 아니에요'); save(); }; return bt; });
+      const bs = opts.map((o, j) => { const bt = h('button', { class: 'opt' + (st.ok && j === a ? ' ok' : ''), type: 'button', disabled: RO }, [h('b', { text: '①②③④'[j] }), h('span', { class: 'mth', html: frac(o) })]); bt.onclick = () => { if (st.first === null) st.first = j; st.tries++; st.ok = j === a; bs.forEach(x => x.className = 'opt'); bt.className = 'opt ' + (st.ok ? 'ok' : 'no'); say(fb, st.ok ? 'ok' : 'no', st.ok ? '✓' : '아직 아니에요'); save(); }; return bt; });
       box.append(...bs, fb); pane.append(box);
     });
     const st = P.s10.eq, w = MathPad.mathInput(st.input, () => chk()), mk = h('div', { class: 'mark' + (st.ok ? ' ok' : ''), text: st.ok ? '✓' : '' });
@@ -703,10 +706,13 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
       return h('div', { class: 'box' }, [h('p', { html: `<b>${q}</b>` }), face, r, word]);
     };
     const ta = h('textarea', { 'aria-label': '한 줄 소감', placeholder: '(선택) 오늘 수업에서 새롭게 알게 된 점이나 느낀 점', disabled: RO }); ta.value = P.s11.text; ta.oninput = () => { P.s11.text = ta.value; save(); };
+    const ap = h('textarea', { 'aria-label': '보로노이 다이어그램을 적용해 보고 싶은 실생활·진로 분야', placeholder: '예) 어떤 분야에서, 무엇을 나누거나 찾는 데 쓸 수 있을까요?', disabled: RO }); ap.value = P.s11.apply || ''; ap.oninput = () => { P.s11.apply = ap.value; save(); };
     const sub = h('button', { class: 'btn yel', type: 'button', text: '제출하기', disabled: RO }), fb = fbBox();
     pane.append(h('h2', { text: '오늘 잘했나요?' }),
       h('div', { class: 'box' }, [h('p', { html: '오늘의 학습 목표<br>· 보로노이 다이어그램 속에서 두 직선의 수직 조건을 탐구하고 이해한다.<br>· 두 직선의 수직 조건을 이용하여 지도 위의 위치를 찾는 실생활 문제를 해결한다.' })]),
-      mk('u', '오늘 수학 시간에 얼마나 잘 이해했나요?', U), mk('c', '오늘 수업은 어땠나요?', F), ta, sub, fb);
+      mk('u', '오늘 수학 시간에 얼마나 잘 이해했나요?', U), mk('c', '오늘 수업은 어땠나요?', F),
+      h('div', { class: 'box' }, [h('p', { html: '<b>보로노이 다이어그램의 원리를 적용해 보고 싶은 실생활 분야나, 나의 진로 분야와 함께할(콜라보) 수 있는 부분이 있나요?</b>' }), ap]),
+      h('label', { class: 'sl', text: '한 줄 소감' }), ta, sub, fb);
     sub.onclick = async () => {
       sub.disabled = true; say(fb, 'info', '제출하는 중…');
       P.submitted = new Date().toISOString(); if (!P.done.includes('S11')) P.done.push('S11');

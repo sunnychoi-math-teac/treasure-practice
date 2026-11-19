@@ -19,12 +19,45 @@ def remove_names(img):
     return cv2.inpaint(img, mask, 5, cv2.INPAINT_TELEA)
 
 def boundary(blank, school):
-    # 학교 표시 지도의 굵은 회색 테두리(밝기 약 182, 폭 약 11px)만 골라 가운데 선으로
+    # 학교 표시 지도의 굵은 회색 테두리(폭 약 11px)만: 가운데에서 가장자리까지 4.5px 넘는 굵은 부분(가는 길은 빠짐)
+    # → 끊긴 곳(철길과 겹친 곳) 잇기 → 큰 덩어리만 → 가운데 선
     from skimage.morphology import disk
     g = school.astype(int).mean(2); neu = (school.max(2).astype(int) - school.min(2)) < 14
-    m = ndimage.binary_opening((g >= 168) & (g <= 196) & neu, structure=disk(4))
+    raw = (g >= 160) & (g <= 200) & neu
+    core = ndimage.distance_transform_edt(raw) >= 4.5
+    m = ndimage.binary_closing(ndimage.binary_dilation(core, structure=disk(5)), structure=disk(9))
     lab, n = ndimage.label(m); sz = ndimage.sum(m, lab, range(1, n + 1))
-    return skeletonize(np.isin(lab, 1 + np.where(sz > 1500)[0])).astype(np.uint8)
+    return prune(skeletonize(np.isin(lab, 1 + np.where(sz > 3000)[0])).astype(np.uint8))
+
+def prune(sk, maxlen=45):
+    # 테두리 고리에 붙은 짧은 잔가지(끝점에서 갈림길까지 maxlen px 미만) 지우기
+    sk = sk.copy(); H, W = sk.shape
+    nb = lambda y, x: [(y + dy, x + dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if (dy or dx) and 0 <= y + dy < H and 0 <= x + dx < W and sk[y + dy, x + dx]]
+    for y, x in zip(*np.nonzero(sk)):
+        if not sk[y, x] or len(nb(y, x)) != 1: continue
+        path, prev, cur = [], None, (y, x)
+        while True:
+            path.append(cur); n = [q for q in nb(*cur) if q != prev and q not in path]
+            if len(n) != 1 or len(path) > maxlen: break
+            prev, cur = cur, n[0]
+        if len(path) <= maxlen and len(n) >= 2:
+            for q in path: sk[q] = 0
+    return sk
+
+def land_border(blank, school):
+    # 테두리 고리 안쪽을 채우고, 바다와 가까운 곳은 실제 해안선(흰 땅과 회색 바다의 경계)까지 맞춤 → 그 땅 영역의 바깥선
+    from skimage.morphology import disk
+    d = ndimage.binary_dilation(boundary(blank, school).astype(bool), structure=disk(2)); d[-1, 470:620] = True   # 아래 가장자리에서 닫기
+    f = ndimage.binary_fill_holes(d)
+    g = blank.astype(int).mean(2); sea = sea_mask(blank); sea = sea | (ndimage.binary_dilation(sea, structure=disk(2)) & (g < 240))
+    ext = ndimage.binary_dilation(f, structure=disk(28)) & (ndimage.distance_transform_edt(~sea) < 28) & ~f
+    R = (f | ndimage.binary_opening(ext, structure=disk(5))) & ~sea
+    R[398:, 862:] = False   # 오른쪽 운하 옆 가는 땅줄기는 동구 밖(원래 테두리가 y≈395에서 꺾임)
+    R = ndimage.binary_opening(R, structure=disk(3)); lab, n = ndimage.label(R); sz = ndimage.sum(R, lab, range(1, n + 1))
+    R = ndimage.binary_fill_holes(lab == 1 + np.argmax(sz))
+    cs, _ = cv2.findContours(R.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    out = np.zeros(g.shape, np.uint8); cv2.drawContours(out, cs, -1, 1, 1); out[-2:] = 0
+    return out
 
 def sea_mask(blank):
     # 오른쪽 아래 바다(밝기 228 회색의 넓은 영역)
@@ -51,9 +84,9 @@ def redraw_pop(pop, blank, base):
 def main(blank_p, school_p, p14, p24, choco_p, out):
     blank = cv2.imread(blank_p); school = cv2.imread(school_p)
     base = remove_names(blank)
-    line = cv2.GaussianBlur(cv2.dilate(boundary(blank, school) * 255, np.ones((3, 3), np.uint8)).astype(np.float32), (3, 3), 0) / 255
+    line = cv2.GaussianBlur(cv2.dilate(land_border(blank, school) * 255, np.ones((5, 5), np.uint8)).astype(np.float32), (3, 3), 0) / 255
     a = np.clip(line * 1.2, 0, 1)[..., None]
-    cv2.imwrite(f'{out}/map-base.png', (base * (1 - a) + np.array([105, 105, 105]) * a).astype(np.uint8))
+    cv2.imwrite(f'{out}/map-base.png', (base * (1 - a) + np.array([120, 120, 120]) * a).astype(np.uint8))   # 회색 테두리
     cv2.imwrite(f'{out}/sea-mask.png', sea_mask(blank).astype(np.uint8) * 255)   # 흰색 = 바다(학교·X를 못 놓음)
     cv2.imwrite(f'{out}/pop-2014.png', redraw_pop(cv2.imread(p14), blank, base))
     cv2.imwrite(f'{out}/pop-2024.png', redraw_pop(cv2.imread(p24), blank, base))
