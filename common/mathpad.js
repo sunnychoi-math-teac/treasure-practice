@@ -53,11 +53,12 @@
   /* ---------- 수식 자판 (앱 안에 직접 그리는 키패드) ---------- */
   const KP = (function () {
     let target = null, box = null;
+    // 초코볼 다이어그램용(선생님 요청): 왼쪽 숫자 3×4, 오른쪽 기호. f·g·h·i·x²·xⁿ·√ 는 뺌. ['', 'gap'] 은 왼쪽·오른쪽 사이 빈칸
     const K = [
-      [['x', 'x'], ['y', 'y'], ['f', 'f'], ['g', 'g'], ['h', 'h'], ['i', 'i'], ['(', '('], [')', ')'], [',', ','], ['=', '=']],
-      [['7', '7'], ['8', '8'], ['9', '9'], ['+', '+'], ['−', '-'], ['×', 'times'], ['÷', 'div'], ['분수', 'frac'], ['x²', 'sq'], ['xⁿ', 'pow']],
-      [['4', '4'], ['5', '5'], ['6', '6'], ['1', '1'], ['2', '2'], ['3', '3'], ['0', '0'], ['.', '.'], ['√', 'sqrt'], ['⌫', 'back']],
-      [['◀', 'left'], ['▶', 'right'], ['모두 지우기', 'clear', 3], ['자판 닫기', 'close', 3], ['입력 ↵', 'enter', 2]]
+      [['7', '7'], ['8', '8'], ['9', '9'], ['', 'gap'], ['x', 'x'], ['y', 'y'], ['(', '('], [')', ')']],
+      [['4', '4'], ['5', '5'], ['6', '6'], ['', 'gap'], ['+', '+'], ['−', '-'], ['×', 'times'], ['÷', 'div']],
+      [['1', '1'], ['2', '2'], ['3', '3'], ['', 'gap'], [',', ','], ['=', '='], ['분수', 'frac'], ['◀', 'left']],
+      [['0', '0'], ['.', '.'], ['⌫', 'back'], ['', 'gap'], ['▶', 'right'], ['모두 지우기', 'clear'], ['자판 닫기', 'close'], ['입력 ↵', 'enter']]
     ];
     const TEX = { times: '\\times', div: '\\div', frac: '\\frac{#?}{#?}', sq: '^2', pow: '^{#?}', sqrt: '\\sqrt{#?}' };
     const TXT = { times: '*', div: '/', frac: '/', sq: '^2', pow: '^', sqrt: 'sqrt(' };
@@ -88,6 +89,7 @@
       K.forEach(row => {
         const r = el('div', { class: 'kp-row' });
         row.forEach(([label, code, span]) => {
+          if (code === 'gap') { r.appendChild(el('span', { 'aria-hidden': 'true' })); return; }
           const b = el('button', { class: 'kp-key' + (/^[0-9.]$/.test(code) ? ' num' : '') + (['close', 'enter', 'clear', 'back'].includes(code) ? ' fn' : ''), type: 'button', text: label, style: span ? `grid-column:span ${span}` : null });
           b.addEventListener('pointerdown', e => { e.preventDefault(); press(code); });
           b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); press(code); } });
@@ -122,7 +124,7 @@ math-field::part(menu-toggle),math-field::part(virtual-keyboard-toggle){display:
 .kp-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:40px;height:32px;border-radius:8px;border:1.5px solid #C5CBE6;background:#F4F5F9;color:#1A1F4D;font-size:19px;line-height:1;cursor:pointer;display:grid;place-items:center;z-index:2}
 .mf-wrap.kp-on .kp-toggle{background:#1A1F4D;border-color:#1A1F4D;color:#fff}
 .keypad{position:fixed;left:0;right:0;bottom:0;z-index:70;background:#2A2F5E;padding:8px;display:flex;flex-direction:column;gap:6px;align-items:center;box-shadow:0 -6px 18px rgba(0,0,0,.25)}
-.kp-row{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;width:min(820px,100%)}
+.kp-row{display:grid;grid-template-columns:repeat(3,1fr) 10px repeat(4,1fr);gap:6px;width:min(720px,100%)}
 .kp-key{min-height:44px;border:0;border-radius:9px;background:#E9E6FB;color:#1A1F4D;font-size:19px;font-family:'Times New Roman',Georgia,serif;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .kp-key.num{background:#fff}
 .kp-key.fn{background:#FFC93C;color:#1A1F4D;font-family:inherit;font-size:14px;font-weight:700}

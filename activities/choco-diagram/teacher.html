@@ -173,8 +173,11 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   const MAX = { sol1: 20, sol2: 30 };                     // 풀이 ① 수직이등분선 표 20점, ② 폐교 좌표 30점
   const PKEY = { sol1: 'm2', sol2: 'm3' };                // 보관함 파일 이름
   const SNAME = { sol1: '풀이 ① 수직이등분선 표', sol2: '풀이 ② 사라진 학교 좌표' };
-  const FLOW = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Q', 'S71', 'S72', 'S73', 'S8', 'S9', 'S10', 'S11', 'END'];
-  const SCREEN = { S1: '사진', S2: '세 점', S3: '관계', S4: '경계선', S5: '수직이등분선', S6: '풀이①', Q: '퀴즈', S71: '2014 지도', S72: '2024 지도', S73: '폐교 영역', S8: '도전 문제', S9: '풀이②', S10: '학습 확인', S11: '소감', END: '제출 완료' };
+  const FLOW = ['T', 'S1', 'S2', 'S5', 'Q', 'MAP', 'S8', 'S10', 'S11', 'END'];
+  const SCREEN = { T: '실험 관찰', S1: '사진', S2: '세 점', S5: '수직이등분선·풀이①', Q: '깜짝퀴즈', MAP: '지도(2014·2024)', S8: '도전·풀이②', S10: '학습 확인', S11: '소감', END: '제출 완료' };
+  const OLD = { S3: 'T', S4: 'T', S6: 'S5', S71: 'MAP', S72: 'MAP', S73: 'MAP', S9: 'S8' };   // 첫판 기록의 화면 이름
+  const EXP = e => e === 'ok' ? '<span class="ok">성공</span>' : e === 'far' ? '<span class="no">다름</span>' : e === 'unknown' ? '<span class="dim">판정 못함</span>' : '<span class="dim">·</span>';
+  const EXPT = e => ({ ok: '성공', far: '다름', unknown: '판정 못함' })[e] || '';
   const CELLS = [['AB', 'mid', 'AB 중점'], ['AB', 'slope', 'AB 기울기'], ['AB', 'eq', 'AB 방정식'], ['BC', 'mid', 'BC 중점'], ['BC', 'slope', 'BC 기울기'], ['BC', 'eq', 'BC 방정식']];
   const U = ['전혀 모르겠어요', '조금 알겠어요', '그럭저럭 이해했어요', '잘 이해했어요', '완벽히 이해했어요'];
   const F = ['별로였어요', '조금 아쉬웠어요', '보통이었어요', '재밌었어요', '최고였어요'];
@@ -295,7 +298,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
       student_id: r.student_id, sid: r.no, name: r.name, cls: `${r.grade}-${r.class_no}`, moved: r.student_status === 'moved',
       P, cells, s5ok: cells.filter(c => c.ok).length, ver: P.ver || 1, s8: s8, s8ok: !!((s8.A || {}).ok && (s8.B || {}).ok),
       quiz: (P.quiz || []).filter(q => q.ok).length, files: P.files || {}, grade: g,
-      screen: P.screen || 'S1', saved: r.saved_at, submitted: r.finished_at || P.submitted || '', saves: r.save_count,
+      screen: OLD[P.screen] || P.screen || 'T', exp: [((P.s5 || {}).AB || {}).exp, ((P.s5 || {}).BC || {}).exp], saved: r.saved_at, submitted: r.finished_at || P.submitted || '', saves: r.save_count,
       eval: { u: (P.s11 || {}).u, f: (P.s11 || {}).c, c: (P.s11 || {}).text || '' }
     };
   }
@@ -320,11 +323,11 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     const V = VIEW(), multiRun = new Set(V.map(d => d.run_id)).size > 1;
     const rows = V.map(d => `<tr class="pick${sel === d.rid ? ' sel' : ''}" data-r="${d.rid}" tabindex="0"><td>${esc(d.sid)}</td><td class="l">${esc(d.name)}${d.moved ? ' <span class="chip">전출</span>' : ''}${PIN[d.student_id] === false ? ' <span class="no">(비번 초기화됨)</span>' : ''}${multiRun ? ` <span class="chip">${esc(d.run_label || '')}</span>` : ''}</td>
       <td>${esc(SCREEN[d.screen] || d.screen)}</td><td>${d.P.nb && d.P.nb.warned ? (d.P.nb.ignored ? '<span class="no">경고 무시</span>' : '<span class="no">경고</span>') : (d.P.nb ? '<span class="ok">✓</span>' : '<span class="dim">·</span>')}</td>
-      ${d.cells.map(c => `<td>${cell(c)}</td>`).join('')}<td>${d.quiz}/3</td><td>${d.ver}</td><td>${cell(d.s8.A || {})}</td><td>${cell(d.s8.B || {})}</td>
+      ${d.cells.map(c => `<td>${cell(c)}</td>`).join('')}<td>${EXP(d.exp[0])} ${EXP(d.exp[1])}</td><td>${d.quiz}/4</td><td>${d.ver}</td><td>${cell(d.s8.A || {})}</td><td>${cell(d.s8.B || {})}</td>
       <td>${d.files.m2 ? '<span class="ok">①</span>' : '<span class="dim">①</span>'} ${d.files.m3 ? '<span class="ok">②</span>' : '<span class="dim">②</span>'}</td><td>${gtxt(d, 'sol1')}</td><td>${gtxt(d, 'sol2')}</td><td><b>${total(d)}</b></td>
       <td>${esc(ago(d.saved))}</td><td>${d.submitted ? '<span class="ok">✓</span>' : '<span class="dim">·</span>'}</td></tr>`).join('');
     $('view').innerHTML = `<p class="note">✓ 맞힘(옆 숫자는 맞히기 전 틀린 횟수) · ✗n 아직 못 맞힘(틀림 n번) · 세 점: 사진 색 검사에서 이웃이 아닌 것 같다는 경고가 떴는지 · 학생을 누르면 자세한 기록이 보여요. 30초마다 자동으로 새로 고쳐져요.</p>
-    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>지금 화면</th><th>세 점</th>${CELLS.map(c => `<th>${c[2]}</th>`).join('')}<th>퀴즈</th><th>도전 버전</th><th>학교 A</th><th>학교 B</th><th>사진</th><th>① /20</th><th>② /30</th><th>합계</th><th>마지막 저장</th><th>제출</th></tr></thead><tbody>${rows || '<tr><td colspan="22">아직 접속한 학생이 없어요.</td></tr>'}</tbody></table></div><div id="det"></div>`;
+    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>지금 화면</th><th>세 점</th>${CELLS.map(c => `<th>${c[2]}</th>`).join('')}<th>실험 AB·BC</th><th>퀴즈</th><th>도전 버전</th><th>학교 A</th><th>학교 B</th><th>사진</th><th>① /20</th><th>② /30</th><th>합계</th><th>마지막 저장</th><th>제출</th></tr></thead><tbody>${rows || '<tr><td colspan="23">아직 접속한 학생이 없어요.</td></tr>'}</tbody></table></div><div id="det"></div>`;
     const tb = $('tbl');
     tb.onclick = e => { const tr = e.target.closest('tr.pick'); if (tr) { sel = +tr.dataset.r; tb.querySelectorAll('tr.pick').forEach(x => x.classList.toggle('sel', x === tr)); detail(); } };
     tb.onkeydown = e => { const tr = e.target.closest('tr.pick'); if (tr && e.key === 'Enter') tr.click(); };
@@ -338,6 +341,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     <dl><dt>세 점</dt><dd>${abc.A ? `A(${abc.A}) · B(${abc.B}) · C(${abc.C})` : '<span class="dim">아직</span>'}${P.nb && P.nb.warned ? ` · <span class="no">이웃 경고(AB ${P.nb.AB}%, BC ${P.nb.BC}%)${P.nb.ignored ? ' 무시하고 진행' : ''}</span>` : ''}</dd>
     <dt>관계 쓰기</dt><dd>${esc(P.s3 || '') || '<span class="dim">없음</span>'}</dd>
     ${CELLS.map(([s, k, nm], i) => `<dt>${nm}</dt><dd>${cell(d.cells[i])} <code>${esc(pretty(d.cells[i].input === 'none' ? '기울기 없음' : d.cells[i].input))}</code></dd>`).join('')}
+    <dt>실험 판정</dt><dd>선분 AB ${EXP(d.exp[0])} · 선분 BC ${EXP(d.exp[1])} · 선생님 실험 선분 ${(P.s4 || []).length}개</dd>
     <dt>도전 문제</dt><dd>버전 ${d.ver} (답 A(${V8.A}), B(${V8.B})) · 학교 A ${cell(d.s8.A || {})} <code>${esc(pretty((d.s8.A || {}).input))}</code> · 학교 B ${cell(d.s8.B || {})} <code>${esc(pretty((d.s8.B || {}).input))}</code></dd>
     <dt>2014 · 2024 지도</dt><dd>${esc((P.s71 || {}).why || '') || '<span class="dim">이유 없음</span>'} / ${esc((P.s72 || {}).why || '') || '<span class="dim">이유 없음</span>'}</dd>
     <dt>채점</dt><dd>① ${d.grade.sol1 ? d.grade.sol1.score + '/20 ' + esc(d.grade.sol1.memo || '') : '<span class="dim">아직</span>'} · ② ${d.grade.sol2 ? d.grade.sol2.score + '/30 ' + esc(d.grade.sol2.memo || '') : '<span class="dim">아직</span>'}</dd>
@@ -406,10 +410,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     S('image', { href: 'img/' + (mapShow.cell ? 'map-base.png' : 'pop-2014.png'), x: 0, y: 0, width: b.W, height: b.H, preserveAspectRatio: 'none' }, b.svg);
     const vo = Geo.voronoi(six, v);
     if (mapShow.cell) {
-      const cnt = vo.cells.map((_, i) => V.filter(d => ((d.P.s73 || {}).cells || []).includes(i)).length), mx = Math.max(1, ...cnt);
-      vo.cells.forEach((c, i) => { if (cnt[i]) { S('polygon', { points: c.map(p => `${b.X(p[0])},${b.Y(p[1])}`).join(' '), fill: '#FF6F59', opacity: (.12 + .5 * cnt[i] / mx).toFixed(2) }, b.svg); } });
       vo.edges.forEach(e => S('line', { x1: b.X(e.p[0]), y1: b.Y(e.p[1]), x2: b.X(e.q[0]), y2: b.Y(e.q[1]), stroke: '#2F55D4', 'stroke-width': 3 }, b.svg));
-      vo.cells.forEach((c, i) => { if (cnt[i]) { const m = c.reduce((a, p) => [a[0] + p[0] / c.length, a[1] + p[1] / c.length], [0, 0]); S('text', { x: b.X(m[0]), y: b.Y(m[1]), 'font-size': 26, 'font-weight': 700, fill: '#A0362A', 'text-anchor': 'middle' }, b.svg).textContent = cnt[i] + '명'; } });
       six.forEach(p => S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 9, fill: '#2F55D4', stroke: '#fff', 'stroke-width': 3 }, b.svg));
     }
     V.forEach(d => {
@@ -417,8 +418,8 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
       if (mapShow.x) xs.forEach(p => { const x = b.X(p[0]), y = b.Y(p[1]); S('path', { d: `M${x - 9} ${y - 9}L${x + 9} ${y + 9}M${x + 9} ${y - 9}L${x - 9} ${y + 9}`, stroke: '#2F6FDB', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: .35 }, b.svg); });
       if (mapShow.pick) pk.forEach(i => { const p = xs[i]; if (p) S('circle', { cx: b.X(p[0]), cy: b.Y(p[1]), r: 20, fill: 'none', stroke: '#D23B2E', 'stroke-width': 4, opacity: .45 }, b.svg); });
     });
-    $('view').innerHTML = `<div class="mbar"><label class="mchip"><input type="checkbox" id="mx" ${mapShow.x ? 'checked' : ''}> 2014 학교 X 표시</label><label class="mchip"><input type="checkbox" id="mp" ${mapShow.pick ? 'checked' : ''}> 2024 사라진 곳(동그라미)</label><label class="mchip"><input type="checkbox" id="mc" ${mapShow.cell ? 'checked' : ''}> 폐교 영역 색칠(칸별 인원)</label><span class="grow"></span><button class="btn" id="mbig" type="button">크게 보기</button></div>
-      <p class="note">${esc(classLabel(cls))} ${V.length}명의 표시를 한 지도에 겹쳤어요. 도전 문제 버전이 달라도 같은 자리로 맞춰 보여 줘요. 칸 색칠을 끄면 2014년 인구 지도 위에 보여요.</p><div id="mapbox" style="background:#fff;border-radius:14px;padding:6px"></div>`;
+    $('view').innerHTML = `<div class="mbar"><label class="mchip"><input type="checkbox" id="mx" ${mapShow.x ? 'checked' : ''}> 2014 학교 X 표시</label><label class="mchip"><input type="checkbox" id="mp" ${mapShow.pick ? 'checked' : ''}> 2024 사라진 곳(동그라미)</label><label class="mchip"><input type="checkbox" id="mc" ${mapShow.cell ? 'checked' : ''}> 남은 6개 학교의 보로노이 경계</label><span class="grow"></span><button class="btn" id="mbig" type="button">크게 보기</button></div>
+      <p class="note">${esc(classLabel(cls))} ${V.length}명의 표시를 한 지도에 겹쳤어요. 도전 문제 버전이 달라도 같은 자리로 맞춰 보여 줘요. 경계를 끄면 2014년 인구 지도 위에 보여요.</p><div id="mapbox" style="background:#fff;border-radius:14px;padding:6px"></div>`;
     $('mapbox').appendChild(b.svg);
     [['mx', 'x'], ['mp', 'pick'], ['mc', 'cell']].forEach(([id, k]) => $(id).onchange = e => { mapShow[k] = e.target.checked; mapView(); });
     $('mbig').onclick = () => big(b.svg.cloneNode(true), `${classLabel(cls)} · 지도 모아 보기`);
@@ -539,9 +540,9 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   $('csv').onclick = () => {
     const L = VIEW(); if (!L.length) return note('내려받을 기록이 없어요.', 'no');
     const r = s => s && s.ok ? `맞음(틀림 ${s.wrong || 0})` : s && s.wrong ? `못 맞힘(틀림 ${s.wrong})` : '';
-    const head = ['학번', '이름', '반', '운영', '지금 화면', '이웃 경고', ...CELLS.map(c => c[2]), '퀴즈(맞힌 수)', '도전 버전', '학교 A', '학교 B', '풀이① 점수(20)', '풀이① 메모', '풀이② 점수(30)', '풀이② 메모', '합계(50)', '이해도', '수업', '한 줄 소감', '관계 쓰기', '마지막 저장', '제출 시각'];
+    const head = ['학번', '이름', '반', '운영', '지금 화면', '이웃 경고', ...CELLS.map(c => c[2]), '실험 AB', '실험 BC', '퀴즈(맞힌 수)', '도전 버전', '학교 A', '학교 B', '풀이① 점수(20)', '풀이① 메모', '풀이② 점수(30)', '풀이② 메모', '합계(50)', '이해도', '수업', '한 줄 소감', '관계 쓰기', '마지막 저장', '제출 시각'];
     const body = L.map(d => [d.sid, d.name, classLabel(d.cls), d.run_label || '', SCREEN[d.screen] || d.screen, d.P.nb && d.P.nb.warned ? (d.P.nb.ignored ? '경고 무시' : '경고') : '',
-      ...d.cells.map(r), d.quiz, d.ver, r(d.s8.A), r(d.s8.B),
+      ...d.cells.map(r), EXPT(d.exp[0]), EXPT(d.exp[1]), d.quiz, d.ver, r(d.s8.A), r(d.s8.B),
       d.grade.sol1 ? d.grade.sol1.score : '', d.grade.sol1 ? d.grade.sol1.memo || '' : '', d.grade.sol2 ? d.grade.sol2.score : '', d.grade.sol2 ? d.grade.sol2.memo || '' : '', total(d),
       d.submitted && d.eval.u ? U[d.eval.u - 1] : '', d.submitted && d.eval.f ? F[d.eval.f - 1] : '', String(d.eval.c || '').trim().replace(/\s+/g, ' '), String(d.P.s3 || '').trim().replace(/\s+/g, ' '),
       kst(d.saved), d.submitted ? kst(d.submitted) : '']);

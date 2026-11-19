@@ -19,15 +19,20 @@ def remove_names(img):
     return cv2.inpaint(img, mask, 5, cv2.INPAINT_TELEA)
 
 def boundary(blank, school):
-    gs = school.astype(int).mean(2); gb = blank.astype(int).mean(2)
-    m = (gs < 200) & (gb - gs > 25) & (np.abs(school[..., 0].astype(int) - school[..., 2]) < 25)
-    m = ndimage.binary_opening(m, iterations=1)
+    # 학교 표시 지도의 굵은 회색 테두리(밝기 약 182, 폭 약 11px)만 골라 가운데 선으로
+    from skimage.morphology import disk
+    g = school.astype(int).mean(2); neu = (school.max(2).astype(int) - school.min(2)) < 14
+    m = ndimage.binary_opening((g >= 168) & (g <= 196) & neu, structure=disk(4))
     lab, n = ndimage.label(m); sz = ndimage.sum(m, lab, range(1, n + 1))
-    keep = np.isin(lab, 1 + np.where(sz > 800)[0])
-    keep = ndimage.binary_opening(ndimage.binary_closing(keep, structure=np.ones((9, 9))), structure=np.ones((3, 3)))
-    sk = skeletonize(keep).astype(np.uint8)
-    lab2, n2 = ndimage.label(sk, structure=np.ones((3, 3))); sz2 = ndimage.sum(sk, lab2, range(1, n2 + 1))
-    return np.isin(lab2, 1 + np.where(sz2 > 60)[0]).astype(np.uint8)
+    return skeletonize(np.isin(lab, 1 + np.where(sz > 1500)[0])).astype(np.uint8)
+
+def sea_mask(blank):
+    # 오른쪽 아래 바다(밝기 228 회색의 넓은 영역)
+    from skimage.morphology import disk
+    g = blank.astype(int).mean(2); neu = (blank.max(2).astype(int) - blank.min(2)) < 14
+    m = ndimage.binary_opening((g >= 222) & (g <= 234) & neu, structure=disk(5))
+    lab, n = ndimage.label(m); sz = ndimage.sum(m, lab, range(1, n + 1))
+    return np.isin(lab, 1 + np.where(sz > 15000)[0])
 
 # 인구 지도: 격자 칸(46.75px, 왼쪽 위 230.5,49.3)의 색을 중앙값으로 읽어 깨끗한 바탕 위에 다시 그림(칸 위 글자 제거)
 def redraw_pop(pop, blank, base):
@@ -48,7 +53,8 @@ def main(blank_p, school_p, p14, p24, choco_p, out):
     base = remove_names(blank)
     line = cv2.GaussianBlur(cv2.dilate(boundary(blank, school) * 255, np.ones((3, 3), np.uint8)).astype(np.float32), (3, 3), 0) / 255
     a = np.clip(line * 1.2, 0, 1)[..., None]
-    cv2.imwrite(f'{out}/map-base.png', (base * (1 - a) + np.array([150, 150, 150]) * a).astype(np.uint8))
+    cv2.imwrite(f'{out}/map-base.png', (base * (1 - a) + np.array([105, 105, 105]) * a).astype(np.uint8))
+    cv2.imwrite(f'{out}/sea-mask.png', sea_mask(blank).astype(np.uint8) * 255)   # 흰색 = 바다(학교·X를 못 놓음)
     cv2.imwrite(f'{out}/pop-2014.png', redraw_pop(cv2.imread(p14), blank, base))
     cv2.imwrite(f'{out}/pop-2024.png', redraw_pop(cv2.imread(p24), blank, base))
     c = cv2.imread(choco_p); k = 1600 / max(c.shape[:2])

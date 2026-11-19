@@ -1,4 +1,4 @@
--- Math Land Explorers · 초코볼 다이어그램 (2026-11-19) — 선생님 허락 후 실행
+-- Math Land Explorers · 초코볼 다이어그램 (2026-11-19) — 실행 완료(2026-11-19 선생님 허락)
 -- 1) 활동 등록 + 버전 기록
 -- 2) 풀이 사진 채점 표 land_grades (학생 저장 land_save 가 detail 을 통째로 덮어쓰므로 채점은 따로 둠)
 -- 3) 교사 함수 land_t_grade(채점 저장), land_t_grades(채점 목록)
@@ -71,3 +71,5 @@ end $$;
 
 revoke all on function public.land_t_grade(bigint, text, integer, integer, text, jsonb), public.land_t_grades(text, integer) from public;
 grant execute on function public.land_t_grade(bigint, text, integer, integer, text, jsonb), public.land_t_grades(text, integer) to authenticated;
+-- 2026-11-19 실행 후 추가: Supabase 기본 설정으로 생긴 익명(anon) 실행 권한도 뺌(로그인한 선생님 계정만)
+revoke execute on function public.land_t_grade(bigint, text, integer, integer, text, jsonb), public.land_t_grades(text, integer) from anon;

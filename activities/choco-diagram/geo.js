@@ -84,6 +84,42 @@
     return n ? Math.round(100 * o / n) : 0;
   }
 
+  // 사진 속 실제 색 경계 찾기: AB에 평행한 여러 줄을 따라 가며 A 색 → B 색으로 바뀌는 곳을 모아 직선으로 맞춤(픽셀 좌표).
+  // 반환 { m: 지나는 점, d: 방향(단위), n: 찾은 점 수 } 또는 null(점 4개 미만)
+  function boundaryFit(lab, w, h, p, q, skip, tol = 20) {
+    const at = (x, y) => { x = Math.max(0, Math.min(w - 1, Math.floor(x))); y = Math.max(0, Math.min(h - 1, Math.floor(y))); const o = (y * w + x) * 3; return [lab[o], lab[o + 1], lab[o + 2]]; };
+    const dist = (u, v) => Math.hypot(u[0] - v[0], u[1] - v[1], u[2] - v[2]);
+    const L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L <= 3.2 * skip) return null;
+    const ux = (q[0] - p[0]) / L, uy = (q[1] - p[1]) / L, nx = -uy, ny = ux;
+    const ring = (c, s) => { const m = [0, 0, 0]; for (let k = 0; k < 7; k++) at(c[0] + s * ux * (skip * 1.6 + 2 * k), c[1] + s * uy * (skip * 1.6 + 2 * k)).forEach((v, i) => { m[i] += v / 7; }); return m; };
+    const cA = ring(p, 1), cB = ring(q, -1);
+    if (dist(cA, cB) < tol) return null;                              // 두 영역 색이 같으면 구별 못 함
+    const pts = [];
+    for (let k = -10; k <= 10; k++) {
+      const s = k * L * 0.04, ox = p[0] + nx * s, oy = p[1] + ny * s;
+      const lab1 = []; for (let t = skip * 1.2; t <= L - skip * 1.2; t++) {
+        const x = ox + ux * t, y = oy + uy * t; if (x < 0 || y < 0 || x >= w || y >= h) { lab1.push(null); continue; }
+        const c = at(x, y), a = dist(c, cA), b = dist(c, cB); lab1.push(Math.min(a, b) > 1.5 * tol ? null : a < b ? 'A' : 'B');
+      }
+      const ia = lab1.lastIndexOf('A'), ib = lab1.indexOf('B');
+      if (ia < 0 || ib < 0 || ib < ia - 3) continue;                    // A 다음 B 가 아니면 버림
+      const t = skip * 1.2 + (ia + ib) / 2; pts.push([ox + ux * t, oy + uy * t]);
+    }
+    if (pts.length < 4) return null;
+    const m = pts.reduce((a, v) => [a[0] + v[0] / pts.length, a[1] + v[1] / pts.length], [0, 0]);
+    let sxx = 0, sxy = 0, syy = 0; pts.forEach(([x, y]) => { sxx += (x - m[0]) ** 2; sxy += (x - m[0]) * (y - m[1]); syy += (y - m[1]) ** 2; });
+    const th = 0.5 * Math.atan2(2 * sxy, sxx - syy);                    // 주축 방향
+    return { m, d: [Math.cos(th), Math.sin(th)], n: pts.length };
+  }
+  // 학생 직선 ax+by+c=0 과 찾은 경계(b.m, b.d)가 비슷한가: 기울기 차 ≤ 25°, 치우침 ≤ AB 길이 × 0.2
+  // (선생님 사진 시험: 바른 수직이등분선 1~22°·치우침 ≤0.13, 45° 돌린 선은 대부분 36° 이상)
+  function lineVsBoundary(l, b, ab, maxDeg = 25, maxShift = 0.2) {
+    const [a, bb, c] = l, nn = Math.hypot(a, bb), dl = [bb / nn, -a / nn];
+    const cos = Math.abs(dl[0] * b.d[0] + dl[1] * b.d[1]), deg = Math.acos(Math.min(1, cos)) * 180 / Math.PI;
+    const shift = Math.abs(a * b.m[0] + bb * b.m[1] + c) / nn / ab;
+    return { ok: deg <= maxDeg && shift <= maxShift, deg, shift };
+  }
+
   // 도전 문제: 기준판(①)을 정수만큼 평행이동한 5버전. 숨은 학교 A, B가 답
   const OTHERS = [[5.61, 1.66], [8.05, 6.44], [7.17, 7.38], [11.17, 7.63]];
   const ORIGIN = [-0.03, -1.04];   // 지도 그림 왼쪽 아래 모서리(기준판)
@@ -99,6 +135,6 @@
   // 화면 좌표(버전) ↔ 기준판 좌표
   const toBase = (p, id) => [r2(p[0] + SHIFT[id][0]), r2(p[1] + SHIFT[id][1])];
 
-  const Geo = { voronoi, neighbors, perpBisector, sameLine, lineOf, otherColour, VERSIONS, others, mapOrigin, toBase, SHIFT };
+  const Geo = { voronoi, neighbors, perpBisector, sameLine, lineOf, otherColour, boundaryFit, lineVsBoundary, VERSIONS, others, mapOrigin, toBase, SHIFT };
   if (typeof module !== 'undefined' && module.exports) module.exports = Geo; else window.Geo = Geo;
 })();
