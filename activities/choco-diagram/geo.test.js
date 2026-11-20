@@ -81,3 +81,15 @@ test('lineVsBoundary: tilt and shift tolerance', () => {
   assert.ok(!G.lineVsBoundary([1, -1, 0], B, 10).ok);            // 45° 기울어짐
   assert.ok(!G.lineVsBoundary([1, 0, -4], B, 10).ok);            // 4칸(=40%) 치우침
 });
+
+test('sideCheck: colours on each side of the student line (fallback when no boundary fit)', () => {
+  const w = 200, h = 200, lab = new Float32Array(w * h * 3), RED = [50, 60, 40], YEL = [90, -5, 80];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) lab.set(x < 100 ? RED : YEL, (y * w + x) * 3);
+  const A = [40, 100], B = [160, 100];
+  assert.ok(G.sideCheck(lab, w, h, A, B, 8, [100, 0], [100, 199]).ok, 'same as boundary');
+  assert.ok(G.sideCheck(lab, w, h, A, B, 8, [92, 0], [104, 199]).ok, 'slightly off');
+  assert.ok(!G.sideCheck(lab, w, h, A, B, 8, [0, 0], [199, 199]).ok, '45° off');
+  assert.ok(!G.sideCheck(lab, w, h, A, B, 8, [150, 0], [150, 199]).ok, 'far shifted');
+  const one = new Float32Array(w * h * 3); for (let i = 0; i < w * h; i++) one.set(RED, i * 3);
+  assert.equal(G.sideCheck(one, w, h, A, B, 8, [100, 0], [100, 199]), null);
+});

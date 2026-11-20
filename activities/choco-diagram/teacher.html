@@ -299,7 +299,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
       P, cells, s5ok: cells.filter(c => c.ok).length, ver: P.ver || 1, s8: s8, s8ok: !!((s8.A || {}).ok && (s8.B || {}).ok),
       quiz: (P.quiz || []).filter(q => q.ok).length, files: P.files || {}, grade: g,
       screen: OLD[P.screen] || P.screen || 'T', exp: [((P.s5 || {}).AB || {}).exp, ((P.s5 || {}).BC || {}).exp], saved: r.saved_at, submitted: r.finished_at || P.submitted || '', saves: r.save_count,
-      eval: { u: (P.s11 || {}).u, f: (P.s11 || {}).c, c: (P.s11 || {}).text || '' }
+      eval: { u: (P.s11 || {}).u, f: (P.s11 || {}).c, c: (P.s11 || {}).text || '', a: (P.s11 || {}).apply || '' }
     };
   }
   const stuck = d => d.cells.some(c => !c.ok && c.wrong >= 3) || ['A', 'B'].some(k => d.s8[k] && !d.s8[k].ok && d.s8[k].wrong >= 3);
@@ -327,7 +327,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
       <td>${d.files.m2 ? '<span class="ok">①</span>' : '<span class="dim">①</span>'} ${d.files.m3 ? '<span class="ok">②</span>' : '<span class="dim">②</span>'}</td><td>${gtxt(d, 'sol1')}</td><td>${gtxt(d, 'sol2')}</td><td><b>${total(d)}</b></td>
       <td>${esc(ago(d.saved))}</td><td>${d.submitted ? '<span class="ok">✓</span>' : '<span class="dim">·</span>'}</td></tr>`).join('');
     $('view').innerHTML = `<p class="note">✓ 맞힘(옆 숫자는 맞히기 전 틀린 횟수) · ✗n 아직 못 맞힘(틀림 n번) · 세 점: 사진 색 검사에서 이웃이 아닌 것 같다는 경고가 떴는지 · 학생을 누르면 자세한 기록이 보여요. 30초마다 자동으로 새로 고쳐져요.</p>
-    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>지금 화면</th><th>세 점</th>${CELLS.map(c => `<th>${c[2]}</th>`).join('')}<th>실험 AB·BC</th><th>퀴즈</th><th>도전 버전</th><th>학교 A</th><th>학교 B</th><th>사진</th><th>① /20</th><th>② /30</th><th>합계</th><th>마지막 저장</th><th>제출</th></tr></thead><tbody>${rows || '<tr><td colspan="23">아직 접속한 학생이 없어요.</td></tr>'}</tbody></table></div><div id="det"></div>`;
+    <div class="scroll"><table id="tbl"><thead><tr><th>학번</th><th class="l">이름</th><th>지금 화면</th><th>세 점</th>${CELLS.map(c => `<th>${c[2]}</th>`).join('')}<th>실험 AB·BC</th><th>퀴즈</th><th>도전 버전</th><th>학교 1</th><th>학교 2</th><th>사진</th><th>① /20</th><th>② /30</th><th>합계</th><th>마지막 저장</th><th>제출</th></tr></thead><tbody>${rows || '<tr><td colspan="23">아직 접속한 학생이 없어요.</td></tr>'}</tbody></table></div><div id="det"></div>`;
     const tb = $('tbl');
     tb.onclick = e => { const tr = e.target.closest('tr.pick'); if (tr) { sel = +tr.dataset.r; tb.querySelectorAll('tr.pick').forEach(x => x.classList.toggle('sel', x === tr)); detail(); } };
     tb.onkeydown = e => { const tr = e.target.closest('tr.pick'); if (tr && e.key === 'Enter') tr.click(); };
@@ -342,7 +342,7 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
     <dt>관계 쓰기</dt><dd>${esc(P.s3 || '') || '<span class="dim">없음</span>'}</dd>
     ${CELLS.map(([s, k, nm], i) => `<dt>${nm}</dt><dd>${cell(d.cells[i])} <code>${esc(pretty(d.cells[i].input === 'none' ? '기울기 없음' : d.cells[i].input))}</code></dd>`).join('')}
     <dt>실험 판정</dt><dd>선분 AB ${EXP(d.exp[0])} · 선분 BC ${EXP(d.exp[1])} · 선생님 실험 선분 ${(P.s4 || []).length}개</dd>
-    <dt>도전 문제</dt><dd>버전 ${d.ver} (답 A(${V8.A}), B(${V8.B})) · 학교 A ${cell(d.s8.A || {})} <code>${esc(pretty((d.s8.A || {}).input))}</code> · 학교 B ${cell(d.s8.B || {})} <code>${esc(pretty((d.s8.B || {}).input))}</code></dd>
+    <dt>도전 문제</dt><dd>버전 ${d.ver} (답 A(${V8.A}), B(${V8.B})) · 학교 1 ${cell(d.s8.A || {})} <code>${esc(pretty((d.s8.A || {}).input))}</code> · 학교 2 ${cell(d.s8.B || {})} <code>${esc(pretty((d.s8.B || {}).input))}</code></dd>
     <dt>2014 · 2024 지도</dt><dd>${esc((P.s71 || {}).why || '') || '<span class="dim">이유 없음</span>'} / ${esc((P.s72 || {}).why || '') || '<span class="dim">이유 없음</span>'}</dd>
     <dt>채점</dt><dd>① ${d.grade.sol1 ? d.grade.sol1.score + '/20 ' + esc(d.grade.sol1.memo || '') : '<span class="dim">아직</span>'} · ② ${d.grade.sol2 ? d.grade.sol2.score + '/30 ' + esc(d.grade.sol2.memo || '') : '<span class="dim">아직</span>'}</dd>
     <dt>이해도 / 수업</dt><dd>${d.submitted && d.eval.u ? esc(U[d.eval.u - 1]) + ' / ' + esc(F[(d.eval.f || 3) - 1]) : '<span class="dim">없음</span>'} ${esc(d.eval.c)}</dd></dl>
@@ -493,26 +493,26 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   }
 
   function evalView() {
-    const V = VIEW(), wrote = V.filter(d => String(d.eval.c || '').trim());
+    const V = VIEW(), wrote = V.filter(d => String(d.eval.c || '').trim() || String(d.eval.a || '').trim());
     const hist = key => { const h = [0, 0, 0, 0, 0]; V.forEach(d => { const v = d.eval[key]; if (d.submitted && v >= 1 && v <= 5) h[v - 1]++; }); return h; };
     const bars = (title, key, labels) => { const h = hist(key), mx = Math.max(1, ...h);
       return `<div class="evbox"><b>${esc(title)}</b>${h.map((n, i) => `<div class="evrow"><span class="evf">${FACE[i]}</span><span>${esc(labels[i])}</span><span class="evbar"><i style="width:${Math.round(n / mx * 100)}%"></i></span><span class="evn">${n}명</span></div>`).join('')}</div>`; };
     const L = evalOnly ? wrote : V;
     const cards = L.map(d => { const e = d.eval, c = String(e.c || '').trim();
-      return `<div class="evcard${c ? '' : ' empty'}"><div class="evhd"><b>${esc(d.sid)} ${esc(d.name)}</b><span title="이해도">${e.u ? FACE[e.u - 1] + ' ' + esc(U[e.u - 1]) : ''}</span><span title="수업">${e.f ? FACE[e.f - 1] + ' ' + esc(F[e.f - 1]) : ''}</span></div><div class="evtx">${c ? esc(c) : '<span class="dim">아직 쓰지 않았어요</span>'}</div></div>`; }).join('');
+      return `<div class="evcard${c ? '' : ' empty'}"><div class="evhd"><b>${esc(d.sid)} ${esc(d.name)}</b><span title="이해도">${e.u ? FACE[e.u - 1] + ' ' + esc(U[e.u - 1]) : ''}</span><span title="수업">${e.f ? FACE[e.f - 1] + ' ' + esc(F[e.f - 1]) : ''}</span></div><div class="evtx">${c ? esc(c) : '<span class="dim">아직 쓰지 않았어요</span>'}</div>${String(e.a || '').trim() ? `<div class="evtx"><b>적용·진로</b> ${esc(e.a)}</div>` : ''}</div>`; }).join('');
     $('view').innerHTML = `<div class="evtop">${bars('오늘 수학 시간 이해도 (제출한 학생)', 'u', U)}${bars('오늘 수업은 어땠나요? (제출한 학생)', 'f', F)}</div>
-      <div class="evtools"><span>${esc(classLabel(cls))} · 한 줄 소감을 쓴 학생 <b>${wrote.length}</b> / ${V.length}명</span>
+      <div class="evtools"><span>${esc(classLabel(cls))} · 소감·적용 분야를 쓴 학생 <b>${wrote.length}</b> / ${V.length}명</span>
       <label><input type="checkbox" id="evonly" ${evalOnly ? 'checked' : ''}> 쓴 학생만 보기</label>
       <button class="btn sm" id="evcopy" type="button">모두 복사</button></div>
       ${L.length ? `<div class="evgrid">${cards}</div>` : '<p>아직 소감을 쓴 학생이 없어요.</p>'}`;
     $('evonly').onchange = e => { evalOnly = e.target.checked; evalView(); };
     $('evcopy').onclick = async () => {
-      const txt = wrote.map(d => `${d.sid} ${d.name}\t${U[(d.eval.u || 3) - 1]}\t${F[(d.eval.f || 3) - 1]}\t${String(d.eval.c).trim().replace(/\s+/g, ' ')}`).join('\n');
+      const txt = wrote.map(d => `${d.sid} ${d.name}\t${U[(d.eval.u || 3) - 1]}\t${F[(d.eval.f || 3) - 1]}\t${String(d.eval.c || '').trim().replace(/\s+/g, ' ')}\t${String(d.eval.a || '').trim().replace(/\s+/g, ' ')}`).join('\n');
       if (!txt) return note('복사할 소감이 없어요.', 'no');
       let ok = false;
       try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) { }
       if (!ok) { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) { } ta.remove(); }
-      note(ok ? `소감 ${wrote.length}개를 복사했어요. 한글이나 엑셀에 붙여넣으면 학번·이름·이해도·수업·소감 순으로 들어가요.` : '복사하지 못했어요. 직접 선택해서 복사해 주세요.', ok ? 'ok' : 'no');
+      note(ok ? `소감 ${wrote.length}개를 복사했어요. 한글이나 엑셀에 붙여넣으면 학번·이름·이해도·수업·소감·적용/진로 순으로 들어가요.` : '복사하지 못했어요. 직접 선택해서 복사해 주세요.', ok ? 'ok' : 'no');
     };
   }
 
@@ -540,11 +540,11 @@ tr.pick:hover td{background:#FBF6E8}tr.pick.sel td{background:#F1E8D2}
   $('csv').onclick = () => {
     const L = VIEW(); if (!L.length) return note('내려받을 기록이 없어요.', 'no');
     const r = s => s && s.ok ? `맞음(틀림 ${s.wrong || 0})` : s && s.wrong ? `못 맞힘(틀림 ${s.wrong})` : '';
-    const head = ['학번', '이름', '반', '운영', '지금 화면', '이웃 경고', ...CELLS.map(c => c[2]), '실험 AB', '실험 BC', '퀴즈(맞힌 수)', '도전 버전', '학교 A', '학교 B', '풀이① 점수(20)', '풀이① 메모', '풀이② 점수(30)', '풀이② 메모', '합계(50)', '이해도', '수업', '한 줄 소감', '관계 쓰기', '마지막 저장', '제출 시각'];
+    const head = ['학번', '이름', '반', '운영', '지금 화면', '이웃 경고', ...CELLS.map(c => c[2]), '실험 AB', '실험 BC', '퀴즈(맞힌 수)', '도전 버전', '학교 1', '학교 2', '풀이① 점수(20)', '풀이① 메모', '풀이② 점수(30)', '풀이② 메모', '합계(50)', '이해도', '수업', '한 줄 소감', '적용·진로 분야', '관계 쓰기', '마지막 저장', '제출 시각'];
     const body = L.map(d => [d.sid, d.name, classLabel(d.cls), d.run_label || '', SCREEN[d.screen] || d.screen, d.P.nb && d.P.nb.warned ? (d.P.nb.ignored ? '경고 무시' : '경고') : '',
       ...d.cells.map(r), EXPT(d.exp[0]), EXPT(d.exp[1]), d.quiz, d.ver, r(d.s8.A), r(d.s8.B),
       d.grade.sol1 ? d.grade.sol1.score : '', d.grade.sol1 ? d.grade.sol1.memo || '' : '', d.grade.sol2 ? d.grade.sol2.score : '', d.grade.sol2 ? d.grade.sol2.memo || '' : '', total(d),
-      d.submitted && d.eval.u ? U[d.eval.u - 1] : '', d.submitted && d.eval.f ? F[d.eval.f - 1] : '', String(d.eval.c || '').trim().replace(/\s+/g, ' '), String(d.P.s3 || '').trim().replace(/\s+/g, ' '),
+      d.submitted && d.eval.u ? U[d.eval.u - 1] : '', d.submitted && d.eval.f ? F[d.eval.f - 1] : '', String(d.eval.c || '').trim().replace(/\s+/g, ' '), String(d.eval.a || '').trim().replace(/\s+/g, ' '), String(d.P.s3 || '').trim().replace(/\s+/g, ' '),
       kst(d.saved), d.submitted ? kst(d.submitted) : '']);
     const csv = '\ufeff' + [head, ...body].map(x => x.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));

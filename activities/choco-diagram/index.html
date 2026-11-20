@@ -39,6 +39,7 @@ button{font-family:inherit}
 @media (orientation:portrait){.maps{grid-template-columns:1fr}.tencol{justify-self:center}}
 .figs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.figs .opt{margin:0}.figs .opt svg{width:100%;height:auto;max-width:220px}
 .mth{font-family:KaTeX_Main,'Times New Roman',serif;font-size:19px}.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;line-height:1.15;margin:0 2px}.fr>span+span{border-top:1.5px solid currentColor}
+.win{margin:12px 0;padding:16px;border-radius:14px;background:#E3F6EC;color:#1E8E5A;font-size:24px;font-weight:800;text-align:center;border:3px solid #1E8E5A}
 .box.sol{border:2px dashed var(--line)}
 .ro-band{background:var(--coral);color:#fff;text-align:center;font-size:14px;padding:4px}
 /* 작업 화면: 가로 = 왼쪽 문제·입력 | 오른쪽 그림, 세로 = 위 그림 | 아래 입력 */
@@ -136,7 +137,7 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
     const c = () => ({ input: '', ok: false, wrong: 0 });
     return { v: 2, ver: 1 + (Number(no) % 5), screen: 'T', done: [], photo: null, abc: { A: [-10, 0], B: [0, 0], C: [10, 0] }, nb: null, s3: '', s4: [],
       s5: { AB: { mid: c(), slope: c(), eq: c() }, BC: { mid: c(), slope: c(), eq: c() } }, files: {}, quiz: [0, 1, 2, 3].map(() => ({ first: null, tries: 0, ok: false })),
-      s71: { xs: [], why: '' }, s72: { picked: [], why: '', open: false }, s8: { A: c(), B: c() },
+      s71: { xs: [], why: '', sent: false }, s72: { picked: [], why: '', open: false }, s8: { A: c(), B: c() },
       s10: { q1: { first: null, tries: 0, ok: false }, q2: { first: null, tries: 0, ok: false }, eq: c() }, s11: { u: 3, c: 3, text: '', apply: '' }, submitted: '' };
   }
   function merge(a, b) { if (!b || typeof b !== 'object' || Array.isArray(b)) return b === undefined ? a : b; const o = Object.assign({}, a); for (const k in b) o[k] = (a && typeof a[k] === 'object' && a[k] && !Array.isArray(a[k])) ? merge(a[k], b[k]) : b[k]; return o; }
@@ -391,7 +392,12 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
   async function experiment(p, q, line) {
     let L = null; try { L = await photoLab(); } catch (e) { console.warn(e); }
     if (!L) return 'unknown';
-    const f = Geo.boundaryFit(L.lab, L.cw, L.ch, toPx(p, L), toPx(q, L), skipOf(L)); if (!f) return 'unknown';
+    const f = Geo.boundaryFit(L.lab, L.cw, L.ch, toPx(p, L), toPx(q, L), skipOf(L));
+    if (!f) {   // 경계를 못 찾으면: 직선 양옆 색이 각 초코볼 색과 맞는지(선생님 사진에서 바른 선 대부분 0.79 이상, 45° 돌린 선 0.58~0.68)
+      const e = lineEnds(line, VIEW1); if (!e) return 'unknown';
+      const r = Geo.sideCheck(L.lab, L.cw, L.ch, toPx(p, L), toPx(q, L), skipOf(L), toPx(e[0], L), toPx(e[1], L), 12, 0.6);
+      return !r ? 'unknown' : r.ok ? 'ok' : 'far';
+    }
     const m = toWorld(f.m, L), m2 = toWorld([f.m[0] + f.d[0] * 10, f.m[1] + f.d[1] * 10], L), n = Math.hypot(m2[0] - m[0], m2[1] - m[1]);
     return Geo.lineVsBoundary(line, { m, d: [(m2[0] - m[0]) / n, (m2[1] - m[1]) / n] }, Math.hypot(q[0] - p[0], q[1] - p[1])).ok ? 'ok' : 'far';
   }
@@ -471,7 +477,7 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
     const BIS = { AB: Geo.perpBisector(A, B), BC: Geo.perpBisector(B, C) }, END = { AB: [A, B], BC: [B, C] }, COL = { AB: '#2F6FDB', BC: '#7A3FC4' };
     pane.append(h('h2', { text: '④ 초코볼 다이어그램의 숨은 비밀' }),
       h('p', { html: `세 점의 좌표는 <b>A${pt(A)}, B${pt(B)}, C${pt(C)}</b> 이에요.` }),
-      h('p', { text: '선분 AB와 선분 BC의 수직이등분선의 방정식을 구해 봐요. 칸마다 [확인]을 눌러요.' }));
+      h('p', { text: '선분 AB와 선분 BC의 수직이등분선의 방정식을 구해 봐요. 중점과 기울기는 [확인], 방정식은 [그래프 그리기]를 눌러요.' }));
     if (!BIS.AB || !BIS.BC || BIS.AB.slope === null || BIS.BC.slope === null) { pane.append(h('div', { class: 'fb no', text: '세 점의 위치를 다시 정해야 해요. ③ 세 점 화면에서 점을 옮겨 주세요.' })); return; }
     const b = await photoBoard('초코볼 사진 위의 수직이등분선'); abcLayer(b, null, false); const LG = { AB: b.g(), BC: b.g() };
     const drawEq = sg => { LG[sg].innerHTML = ''; const l = texLine(P.s5[sg].eq.input); if (l) drawLine(b, l, { stroke: COL[sg] }, LG[sg]); };
@@ -497,13 +503,13 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
           if (k === 'eq') { P.s5[sg].exp = null; drawEq(sg); }      // 방정식은 [확인]하면 바로 그래프에
           save();
         };
-        item.append(h('div', { class: 'row' }, [w, h('button', { class: 'btn small', type: 'button', text: '확인', onclick: chk, disabled: RO })]), mark);
+        item.append(h('div', { class: 'row' }, [w, h('button', { class: 'btn small', type: 'button', text: k === 'eq' ? '그래프 그리기' : '확인', onclick: chk, disabled: RO })]), mark);
         box.append(item);
       });
-      const fb = fbBox(), gb = h('button', { class: 'btn yel small', type: 'button', text: `선분 ${sg} 그래프 확인하기`, style: 'margin-top:8px', disabled: RO });
-      const MSG = { ok: ['ok', '경계선이 구한 직선의 방정식과 비슷합니다. 실험 성공! 축하축하 🎉'], far: ['no', '사진 속 경계선과 직선이 많이 달라요. 점의 위치와 식을 다시 확인해 보세요.'], unknown: ['info', '사진에서 경계선을 찾기 어려워요. 사진 위의 경계선과 직선을 눈으로 비교해 보세요.'] };
+      const fb = fbBox(), gb = h('button', { class: 'btn yel small', type: 'button', text: `선분 ${sg}: 실험과 직선의 방정식이 일치하는지 확인하기`, style: 'margin-top:8px', disabled: RO });
+      const MSG = { ok: ['ok', '경계선이 구한 직선의 방정식과 비슷합니다. 실험 성공! 축하축하 🎉'], far: ['no', '사진 속 경계선과 직선이 많이 달라요. 점의 위치와 식을 다시 확인해 보세요.'], unknown: ['info', '사진 속 두 초코볼 영역의 색이 비슷해서 앱이 비교하기 어려워요. 사진 위의 경계선과 그래프가 비슷한지 모둠에서 직접 판단해 보세요.'] };
       gb.onclick = async () => {
-        const eq = P.s5[sg].eq; if (!eq.ok) { say(fb, 'no', '먼저 수직이등분선의 방정식을 맞게 구해 [확인]을 눌러 주세요.'); return; }
+        const eq = P.s5[sg].eq; if (!eq.ok) { say(fb, 'no', '먼저 수직이등분선의 방정식을 맞게 구해 [그래프 그리기]를 눌러 주세요.'); return; }
         drawEq(sg); say(fb, 'info', '사진 속 경계선과 비교하는 중…');
         const r = await experiment(END[sg][0], END[sg][1], BIS[sg].line); P.s5[sg].exp = r; save();
         say(fb, ...MSG[r]);
@@ -580,27 +586,35 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
   let SEA = null;    // 바다(흰색) 그림의 픽셀
   const seaReady = loadImg('img/sea-mask.png').then(im => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0); SEA = { d: g.getImageData(0, 0, im.width, im.height).data, w: im.width, h: im.height }; }).catch(() => { });
   const isSea = w => { if (!SEA) return false; const o = Geo.mapOrigin(P.ver), x = Math.floor((w[0] - o[0]) * 67.76), y = Math.floor((o[1] + MAPH - w[1]) * 67.76); return x >= 0 && y >= 0 && x < SEA.w && y < SEA.h && SEA.d[(y * SEA.w + x) * 4] > 127; };
-  function xMark(b, p, g, col) { const x = b.X(p[0]), y = b.Y(p[1]), r = 9; S('path', { d: `M${x - r} ${y - r}L${x + r} ${y + r}M${x + r} ${y - r}L${x - r} ${y + r}`, stroke: col || '#2F6FDB', 'stroke-width': 5, 'stroke-linecap': 'round' }, g); }
+  function xMark(b, p, g, col) { const x = b.X(p[0]), y = b.Y(p[1]), r = 5.5; S('path', { d: `M${x - r} ${y - r}L${x + r} ${y + r}M${x + r} ${y - r}L${x - r} ${y + r}`, stroke: col || '#2F6FDB', 'stroke-width': 3.2, 'stroke-linecap': 'round' }, g); }
   RENDER.MAP = () => {
     const pane = frame(true); $('#ws').classList.add('wide');
+    if (P.s72.open) P.s71.sent = true;   // 예전 기록
     const why1 = h('textarea', { 'aria-label': '2014년에 그렇게 표시한 이유', placeholder: '왜 그렇게 표시했나요?', disabled: RO }), why2 = h('textarea', { 'aria-label': '2024년에 그렇게 생각한 이유', placeholder: '왜 그렇게 생각했나요?', disabled: RO });
     why1.value = P.s71.why; why1.oninput = () => { P.s71.why = why1.value; save(); }; why2.value = P.s72.why; why2.oninput = () => { P.s72.why = why2.value; save(); };
-    const host1 = h('div', { class: 'mapbox' }), host2 = h('div', { class: 'mapbox' }), cnt = h('p', { class: 'note' });
-    const right = h('div', { class: 'mapcol', hidden: !P.s72.open }, [h('h3', { text: '2024년 초등학생 인구 분포' }), h('p', { html: '인구가 바뀌면서 8개 학교 중 <b>2개 학교가 폐교</b>되었어요. 앞에서 표시한 X 중 사라졌을 것 같은 <b>2곳을 눌러 동그라미</b>를 쳐요.' }), host2, h('label', { class: 'sl', text: '그렇게 생각한 이유' }), why2]);
-    const tenBtn = h('button', { class: 'btn yel ten', type: 'button', text: '10년 뒤 →' });
+    const host1 = h('div', { class: 'mapbox' }), host2 = h('div', { class: 'mapbox' }), cnt = h('p', { class: 'note' }), cnt2 = h('p', { class: 'note' });
+    const right = h('div', { class: 'mapcol', hidden: !P.s72.open }, [h('h3', { text: '2024년 초등학생 인구 분포' }), h('p', { html: '인구분포가 변하면서 이 지역 초등학생 인구 분포가 변화되어 8개의 학교 중 <b>2개의 학교가 통폐합</b>되었어요. 앞에서 표시한 8개의 학교 X 중 사라졌을 것 같은 <b>2곳을 눌러 동그라미</b>를 쳐요.' }), host2, cnt2, h('label', { class: 'sl', text: '그렇게 생각한 이유' }), why2]);
+    const tenBtn = h('button', { class: 'btn yel ten', type: 'button', text: '10년 뒤 →', hidden: !P.s71.sent });
+    const sendBtn = h('button', { class: 'btn', type: 'button', text: '제출', style: 'margin-top:8px', disabled: RO }), sendFb = fbBox();
+    if (P.s71.sent && !P.s72.open) say(sendFb, 'ok', '✓ 제출했어요. [10년 뒤 →]를 눌러 보세요.');
+    sendBtn.onclick = () => {   // 8곳 표시 + 이유를 쓰고 [제출]해야 [10년 뒤]가 나옴
+      const m = P.s71.xs.length < 8 ? `지도에 학교 8곳을 표시해 주세요. (지금 ${P.s71.xs.length}곳)` : !P.s71.why.trim() ? '그렇게 표시한 이유를 써 주세요.' : '';
+      if (m) { say(sendFb, 'no', m); return; }
+      P.s71.sent = true; save(); tenBtn.hidden = false; say(sendFb, 'ok', P.s72.open ? '✓ 제출했어요.' : '✓ 제출했어요. [10년 뒤 →]를 눌러 보세요.');
+    };
     pane.append(h('h2', { text: '⑤ 지도 속 초등학교를 찾아라' }),
       h('div', { class: 'maps' }, [
-        h('div', { class: 'mapcol' }, [h('h3', { text: '2014년 초등학생 인구 분포' }), h('p', { html: '진한 색일수록 초등학생이 많이 살아요. 2014년에 이 지역에는 <b>초등학교가 8개</b> 있었어요. 지도를 눌러 <b>X</b>로 표시해요(다시 누르면 지워져요).' }), host1, cnt, h('label', { class: 'sl', text: '그렇게 표시한 이유' }), why1]),
+        h('div', { class: 'mapcol' }, [h('h3', { text: '2014년 초등학생 인구 분포' }), h('p', { html: '다음 지도는 어느 지역의 초등학교 인구분포를 나타낸 지도입니다. 진한 색일수록 초등학생이 많이 살아요. 2014년에 이 지역에는 <b>초등학교가 8개</b> 있었다고 합니다. 지도를 눌러 초등학교가 있을 위치에 <b>X</b>로 표시해 봅시다.' }), host1, cnt, h('label', { class: 'sl', text: '그렇게 표시한 이유' }), why1, sendBtn, sendFb]),
         h('div', { class: 'tencol' }, [tenBtn]), right]));
     const b1 = mapBoard(host1, 'img/pop-2014.png', '2014년 초등학생 인구 분포 지도'), g1 = b1.g();
     let b2 = null, g2 = null;
     const draw = () => {
-      g1.innerHTML = ''; P.s71.xs.forEach(p => xMark(b1, fromBase(p), g1)); cnt.textContent = `표시한 학교: ${P.s71.xs.length} / 8`;
+      g1.innerHTML = ''; P.s71.xs.forEach(p => xMark(b1, fromBase(p), g1)); cnt.textContent = `표시한 학교: ${P.s71.xs.length} / 8 (다시 누르면 지워져요)`; cnt2.textContent = `삭제한 학교: ${P.s72.picked.length} / 2`;
       if (!g2) return; g2.innerHTML = '';
-      P.s71.xs.forEach((p, i) => { const q = fromBase(p); xMark(b2, q, g2); if (P.s72.picked.includes(i)) S('circle', { cx: b2.X(q[0]), cy: b2.Y(q[1]), r: 22, fill: 'none', stroke: '#D23B2E', 'stroke-width': 4 }, g2); });
+      P.s71.xs.forEach((p, i) => { const q = fromBase(p); xMark(b2, q, g2); if (P.s72.picked.includes(i)) S('circle', { cx: b2.X(q[0]), cy: b2.Y(q[1]), r: 14, fill: 'none', stroke: '#D23B2E', 'stroke-width': 3 }, g2); });
     };
     const open2 = () => { right.hidden = false; tenBtn.hidden = true; if (!b2) { b2 = mapBoard(host2, 'img/pop-2024.png', '2024년 초등학생 인구 분포 지도'); g2 = b2.g(); if (!RO) b2.svg.addEventListener('pointerdown', tap2); } draw(); };
-    tenBtn.onclick = () => { if (!P.s71.xs.length) { toast('먼저 2014년 지도에 학교를 표시해 주세요.'); return; } P.s72.open = true; save(); open2(); };
+    tenBtn.onclick = () => { if (!P.s71.sent) { toast('먼저 [제출]을 눌러 주세요.'); return; } P.s72.open = true; save(); open2(); };
     seaReady.then(draw);
     if (!RO) b1.svg.addEventListener('pointerdown', e => {
       const w = b1.world(e), i = P.s71.xs.findIndex(p => Math.hypot(fromBase(p)[0] - w[0], fromBase(p)[1] - w[1]) < .4);
@@ -618,7 +632,7 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
       draw(); save();
     }
     if (P.s72.open) open2(); else draw();
-    gate = () => !P.s71.xs.length ? '2014년 지도에 학교를 표시해 주세요.' : !P.s71.why.trim() ? '2014년 지도에 표시한 이유를 써 주세요.' : !P.s72.open ? '[10년 뒤 →]를 눌러 2024년 지도를 보세요.' : P.s72.picked.length < 2 ? '사라졌을 것 같은 2곳을 골라 주세요.' : !P.s72.why.trim() ? '2024년 지도에서 그렇게 생각한 이유를 써 주세요.' : '';
+    gate = () => P.s71.xs.length < 8 ? '2014년 지도에 학교 8곳을 표시해 주세요.' : !P.s71.why.trim() ? '2014년 지도에 표시한 이유를 써 주세요.' : !P.s71.sent ? '[제출]을 눌러 주세요.' : !P.s72.open ? '[10년 뒤 →]를 눌러 2024년 지도를 보세요.' : P.s72.picked.length < 2 ? '사라졌을 것 같은 2곳을 골라 주세요.' : !P.s72.why.trim() ? '2024년 지도에서 그렇게 생각한 이유를 써 주세요.' : '';
   };
 
   /* ---------- ⑥ 도전 문제 + 풀이 사진 ② ---------- */
@@ -627,12 +641,12 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
     const pane = frame(); await ML;
     pane.append(h('h2', { text: '⑥ 사라진 옛 학교를 찾아라!' }),
       h('p', { html: `지도에 나타난 두 점 <b>P${pt(V.P)}, Q${pt(V.Q)}</b>의 좌표와<br>보로노이 다이어그램 경계선의 방정식 <b>${eqText(V.lineA)}</b>, <b>${eqText(V.lineB)}</b>를 이용하여` }),
-      h('p', { html: '사라진 두 학교 <b>A(a, b), B(c, d)</b>의 좌표를 구해 보자. <b>학습지에 직접 풀어</b> 보세요.' }));
+      h('p', { html: '<b>사라진 두 학교의 좌표</b>를 구해 보자. <b>학습지에 직접 풀어</b> 보세요.' }));
     const b = mapBoard($('#stage'), 'img/map-base.png', '사라진 옛 학교 찾기 지도', true), eight = [...Geo.others(P.ver), V.P, V.Q, V.A, V.B];
     const eg = b.g(), rg = b.g(), sg = b.g(), ans = b.g(), lab = b.g();
     S('defs', {}, b.svg).innerHTML = '<marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#D23B2E"/></marker>';
     const vo = Geo.voronoi(eight, b.v);
-    vo.edges.forEach(e => { const red = (e.a === 4 && e.b === 6) || (e.a === 5 && e.b === 7); seg(b, e.p, e.q, red ? { stroke: '#D23B2E', 'stroke-width': 5 * b.s } : { stroke: '#2F55D4', 'stroke-width': 2.5 * b.s, 'stroke-opacity': .85 }, red ? rg : eg); });
+    vo.edges.forEach(e => { const red = (e.a === 4 && e.b === 6) || (e.a === 5 && e.b === 7); seg(b, e.p, e.q, red ? { stroke: '#D23B2E', 'stroke-width': 5 * b.s } : { stroke: '#8E2DE2', 'stroke-width': 3.5 * b.s }, red ? rg : eg); });
     // 식 이름표: 빨간 선분의 가운데에서 학교 반대쪽으로 비켜 놓고 화살표로 가리킴
     [[4, 6, V.lineA], [5, 7, V.lineB]].forEach(([a, c, l]) => {
       const e = vo.edges.find(x => x.a === a && x.b === c); if (!e) return;
@@ -652,26 +666,30 @@ table.t{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
     });
     Geo.others(P.ver).forEach(p => school(b, p, '#2F55D4', sg));
     school(b, V.P, '#D23B2E', sg, `P${pt(V.P)}`.replace(/−/g, '-'), undefined, true); school(b, V.Q, '#D23B2E', sg, `Q${pt(V.Q)}`.replace(/−/g, '-'), undefined, true);   // 빨간 경계선이 오른쪽에 있어 이름은 왼쪽에
-    const fields = {}, marks = {};
-    const showAns = () => { ans.innerHTML = ''; ['A', 'B'].forEach(k => { const s = P.s8[k]; if (!s.input) return; try { const p = TMath.parsePoint(TMath.latexToPlain(s.input)); school(b, p, s.ok ? '#1E8E5A' : '#9AA0BF', ans, k); } catch (e) { } }); };
-    ['A', 'B'].forEach(k => {
-      const st = P.s8[k]; fields[k] = MathPad.mathInput(st.input, () => btn.click()); marks[k] = h('div', { class: 'mark' + (st.ok ? ' ok' : ''), text: st.ok ? '✓' : '' });
-      pane.append(h('div', { class: 'kv' + (st.ok ? ' ok' : '') }, [h('span', { class: 'k', text: `사라진 학교 ${k}의 좌표 (예: (2, 3))` }), fields[k], marks[k]]));
+    // 두 학교는 순서 없이: 칸마다 [학교 위치 확인하기], 정답 두 곳 중 하나와 같으면 ✓ (두 칸이 같은 학교면 안 됨)
+    const showAns = () => { ans.innerHTML = ''; ['A', 'B'].forEach(k => { const s = P.s8[k]; if (!s.input) return; try { const p = TMath.parsePoint(TMath.latexToPlain(s.input)); school(b, p, s.ok ? '#1E8E5A' : '#9AA0BF', ans); } catch (e) { } }); };
+    const win = h('div', { 'aria-live': 'polite' });
+    const showWin = () => { win.innerHTML = ''; if (P.s8.A.ok && P.s8.B.ok) win.append(h('div', { class: 'win', text: '🎉 사라진 두 학교를 찾았어요!! 정답입니다!!!' })); };
+    const same = (p, q) => near(p[0], q[0]) && near(p[1], q[1]);
+    const fields = {};
+    ['A', 'B'].forEach((k, i) => {
+      const st = P.s8[k], other = i ? 'A' : 'B', mark = h('div', { class: 'mark' + (st.ok ? ' ok' : ''), text: st.ok ? '✓' : '' });
+      const item = h('div', { class: 'kv' + (st.ok ? ' ok' : '') });
+      const chk = () => {
+        if (RO) return; const tex = fields[k].tex(); if (!tex.trim()) return;
+        let p; try { p = TMath.parsePoint(fields[k].plain()); } catch (e) { mark.className = 'mark no'; mark.textContent = '(x좌표, y좌표) 꼴로 써 주세요.'; return; }
+        let ok = same(p, V.A) || same(p, V.B), dup = false;
+        if (ok && P.s8[other].ok) { try { dup = same(p, TMath.parsePoint(TMath.latexToPlain(P.s8[other].input))); } catch (e) { } }
+        if (dup) ok = false; if (!ok) st.wrong++;
+        st.input = tex; st.ok = ok;
+        item.className = 'kv ' + (ok ? 'ok' : 'no'); mark.className = 'mark ' + (ok ? 'ok' : 'no'); mark.textContent = ok ? '✓' : dup ? '다른 칸과 같은 학교예요. 나머지 한 학교를 찾아보세요.' : '아직 아니에요';
+        showAns(); showWin(); save();
+      };
+      fields[k] = MathPad.mathInput(st.input, chk);
+      item.append(h('span', { class: 'k', text: `사라진 학교의 좌표 ${i + 1} (예: (2, 3))` }), h('div', { class: 'row' }, [fields[k], h('button', { class: 'btn small', type: 'button', text: '학교 위치 확인하기', onclick: chk, disabled: RO })]), mark);
+      pane.append(item);
     });
-    const btn = h('button', { class: 'btn yel', type: 'button', text: '학교의 위치 확인하기', disabled: RO, style: 'margin-top:8px' }), fb = fbBox();
-    pane.append(btn, fb);
-    btn.onclick = () => {
-      let all = true;
-      ['A', 'B'].forEach(k => {
-        const st = P.s8[k], tex = fields[k].tex(); if (!tex.trim()) { all = false; return; }
-        let p; try { p = TMath.parsePoint(fields[k].plain()); } catch (e) { marks[k].className = 'mark no'; marks[k].textContent = '(x좌표, y좌표) 꼴로 써 주세요.'; all = false; return; }
-        const ok = near(p[0], V[k][0]) && near(p[1], V[k][1]); if (!ok) st.wrong++;
-        st.input = tex; st.ok = ok; all = all && ok;
-        marks[k].className = 'mark ' + (ok ? 'ok' : 'no'); marks[k].textContent = ok ? '✓' : '아직 아니에요';
-      });
-      showAns(); save();
-      say(fb, all ? 'ok' : '', all ? '✓ 사라진 두 학교를 찾았어요! 경계선이 빨간 선과 딱 맞지요?' : '');
-    };
+    pane.append(win); showWin();
     showAns();
     pane.append(solBlock('m3', '풀이 사진 ② 올리기', '학습지의 사라진 학교 좌표 구하기 풀이를 찍어 올려 주세요.'));
   };

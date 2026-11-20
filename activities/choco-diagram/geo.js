@@ -111,6 +111,30 @@
     const th = 0.5 * Math.atan2(2 * sxy, sxx - syy);                    // 주축 방향
     return { m, d: [Math.cos(th), Math.sin(th)], n: pts.length };
   }
+  // 경계를 못 찾을 때 쓰는 두 번째 방법: 학생 직선(사진 픽셀의 두 점 l1, l2)의 양옆 색이
+  // A쪽은 A 둘레 색, B쪽은 B 둘레 색에 더 가까운가. 직선을 따라 ±0.45|AB|, 양옆 0.12|AB| 에서 비교해 75% 이상이면 성공
+  // (같은 기준이면 약 28° 기운 선까지 성공, 45°는 실패)
+  function sideCheck(lab, w, h, p, q, skip, l1, l2, tol = 12, need = 0.75) {
+    const at = (x, y) => { x = Math.max(0, Math.min(w - 1, Math.floor(x))); y = Math.max(0, Math.min(h - 1, Math.floor(y))); const o = (y * w + x) * 3; return [lab[o], lab[o + 1], lab[o + 2]]; };
+    const dist = (u, v) => Math.hypot(u[0] - v[0], u[1] - v[1], u[2] - v[2]);
+    const L = Math.hypot(q[0] - p[0], q[1] - p[1]); if (L <= 2.4 * skip) return null;
+    const ux = (q[0] - p[0]) / L, uy = (q[1] - p[1]) / L;
+    const ring = (c, s) => { const m = [0, 0, 0]; for (let k = 0; k < 7; k++) at(c[0] + s * ux * (skip * 1.4 + 2 * k), c[1] + s * uy * (skip * 1.4 + 2 * k)).forEach((v, i) => { m[i] += v / 7; }); return m; };
+    const cA = ring(p, 1), cB = ring(q, -1); if (dist(cA, cB) < tol) return null;
+    const el = Math.hypot(l2[0] - l1[0], l2[1] - l1[1]), ex = (l2[0] - l1[0]) / el, ey = (l2[1] - l1[1]) / el;
+    let nx = -ey, ny = ex; if ((p[0] - l1[0]) * nx + (p[1] - l1[1]) * ny < 0) { nx = -nx; ny = -ny; }   // n 은 A 쪽
+    const mid = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2], t0 = (mid[0] - l1[0]) * ex + (mid[1] - l1[1]) * ey, M = [l1[0] + ex * t0, l1[1] + ey * t0];
+    const d = 0.12 * L; let good = 0, all = 0;
+    for (let k = -9; k <= 9; k++) {
+      const s = k / 9 * 0.45 * L, c = [M[0] + ex * s, M[1] + ey * s];
+      [[1, cA, cB], [-1, cB, cA]].forEach(([sg, mine, other]) => {
+        const x = c[0] + nx * d * sg, y = c[1] + ny * d * sg; if (x < 0 || y < 0 || x >= w || y >= h) return;
+        const v = at(x, y); all++; if (dist(v, mine) < dist(v, other)) good++;
+      });
+    }
+    if (all < 10) return null;
+    return { ok: good / all >= need, frac: good / all };
+  }
   // 학생 직선 ax+by+c=0 과 찾은 경계(b.m, b.d)가 비슷한가: 기울기 차 ≤ 25°, 치우침 ≤ AB 길이 × 0.2
   // (선생님 사진 시험: 바른 수직이등분선 1~22°·치우침 ≤0.13, 45° 돌린 선은 대부분 36° 이상)
   function lineVsBoundary(l, b, ab, maxDeg = 25, maxShift = 0.2) {
@@ -135,6 +159,6 @@
   // 화면 좌표(버전) ↔ 기준판 좌표
   const toBase = (p, id) => [r2(p[0] + SHIFT[id][0]), r2(p[1] + SHIFT[id][1])];
 
-  const Geo = { voronoi, neighbors, perpBisector, sameLine, lineOf, otherColour, boundaryFit, lineVsBoundary, VERSIONS, others, mapOrigin, toBase, SHIFT };
+  const Geo = { voronoi, neighbors, perpBisector, sameLine, lineOf, otherColour, boundaryFit, lineVsBoundary, sideCheck, VERSIONS, others, mapOrigin, toBase, SHIFT };
   if (typeof module !== 'undefined' && module.exports) module.exports = Geo; else window.Geo = Geo;
 })();
